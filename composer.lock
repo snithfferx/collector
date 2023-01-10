@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "adc685834f1cbbb06dbe0e9d2f9cceaf",
+    "content-hash": "2f0f5e5d83eadd11bbedc0902675a9ab",
     "packages": [
         {
             "name": "brick/math",
@@ -545,6 +545,57 @@
                 }
             ],
             "time": "2022-10-26T14:07:24+00:00"
+        },
+        {
+            "name": "phpclassic/php-shopify",
+            "version": "v1.2.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phpclassic/php-shopify.git",
+                "reference": "38b31fcab8fc15dc9d7b066d6a337e22f988954f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpclassic/php-shopify/zipball/38b31fcab8fc15dc9d7b066d6a337e22f988954f",
+                "reference": "38b31fcab8fc15dc9d7b066d6a337e22f988954f",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "php": ">=5.6"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PHPShopify\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Tareq Mahmood",
+                    "email": "tareqtms@yahoo.com"
+                }
+            ],
+            "description": "PHP SDK for Shopify API",
+            "homepage": "https://github.com/phpclassic/php-shopify",
+            "keywords": [
+                "php",
+                "sdk",
+                "shopify"
+            ],
+            "support": {
+                "issues": "https://github.com/phpclassic/php-shopify/issues",
+                "source": "https://github.com/phpclassic/php-shopify/tree/v1.2.4"
+            },
+            "time": "2022-12-14T06:44:17+00:00"
         },
         {
             "name": "psr/http-client",
