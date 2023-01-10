@@ -1,0 +1,23 @@
+{
+    "name": "bytes4run/modular",
+    "description": "Sistema de inventarios",
+    "type": "project",
+    "license": "MIT",
+    "version": "1.0.0",
+    "autoload": {
+        "psr-4": {
+            "app\\": "./app"
+        }
+    },
+    "optimize-autoloader": true,
+    "authors": [
+        {
+            "name": "Jorge Echeverria",
+            "email": "jecheverria@bytes4run.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "shopify/shopify-api": "^4.2"
+    }
+}
