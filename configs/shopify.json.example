@@ -1,0 +1,6 @@
+{
+    "shop_url" : "my_store.myshopify.com",
+    "api_key" : "API_KEY",
+    "api_pass" : "API_PASSWORD",
+    "api_secr" : "API_SECRET"
+}

@@ -2,4 +2,4 @@
 !.gitignore
 !config.json.example
 !.env.example
-!.shopify.json.example
+!shopify.json.example
