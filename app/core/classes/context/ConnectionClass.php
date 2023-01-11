@@ -30,7 +30,8 @@
             } catch (\PDOException $excepcion) {
                 return [
                     'error' => "Error: " . $excepcion->getMessage(),
-                    'linea' => "Linea del error: " . $excepcion->getLine()
+                    'linea' => "Linea del error: " . $excepcion->getLine(),
+                    'file' => "Componente: " . $excepcion->getFile()
                 ];
             }
         }
@@ -100,7 +101,7 @@
         }
         private function getConfig()
         {
-            $__CONF = $this->globalConf->get();
+            $__CONF = $this->globalConf->get('config');
             if (!empty($__CONF)) {
                 $this->host     = $__CONF['dbhost'];
                 $this->port     = $__CONF['dbport'];

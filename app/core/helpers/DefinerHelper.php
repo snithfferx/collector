@@ -8,7 +8,7 @@
     ##GLOBAL MODULE Core Variable
     if (!defined("_MODULE_")) define("_MODULE_",dirname(_APP_) . "/modules/");
     ##GLOBAL VIEW Variable
-    if (!defined("_VIEW_")) define("_VIEW_",dirname(_APP_) . "/public/views/");
+    if (!defined("_VIEW_")) define("_VIEW_",dirname(_APP_) . "/views/");
     ##GLOBAL CONFIGURATION Variable
     if (!defined("_CONF_")) define("_CONF_",dirname(_APP_,2) . "/configs/");
     if (!defined("_CACHE_")) define("_CACHE_", dirname(_APP_,2) . "/cache/");

@@ -20,8 +20,7 @@ class RouterHelper {
     }
     public function getMethod()
     {
-        return
-        strtolower($_SERVER['REQUEST_METHOD']);
+        return strtolower($_SERVER['REQUEST_METHOD']);
     }
     public function resolve () {
         $path = $this->getPath();
