@@ -9,7 +9,7 @@ use app\core\helpers\ShopifyHelper;
  * @author Jorge Echeverria <jecheverria@bytes4run.com>
  * @version 1.0.0
  */
-class ExternalConecction extends ShopifyHelper
+class ExternalConnection extends ShopifyHelper
 {
     private $scopes;
     private $url;
