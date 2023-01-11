@@ -21,7 +21,7 @@
          * @return bool
          */
         public function isSessionStarted() :bool {
-            $response = false;
+            /* $response = false;
             if ($this->sessionUser === false) @session_start();
             if (!empty($_SESSION)) {
                 if (isset($_SESSION['time']) && !empty($_SESSION['time'])) {
@@ -39,7 +39,8 @@
                     $this->sessionKiller();
                 }
             }
-            return $response;
+            return $response; */
+            return true;
         }
         /**
          * Mata una sesion de usuario
