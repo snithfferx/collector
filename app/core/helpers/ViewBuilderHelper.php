@@ -35,7 +35,7 @@ class ViewBuilderHelper {
     public function find(string $viewName) :bool
     {
         if (is_string($viewName)) {
-            $path = _VIEW_ . $viewName;
+            $path = _VIEW_ . $viewName . ".tpl";
             return file_exists($path);
         } else {
             return false;
@@ -48,7 +48,7 @@ class ViewBuilderHelper {
      */
     public function build(array $viewData) :bool
     {
-        $path = _VIEW_ . $viewData['view'];
+        $path = _VIEW_ . $viewData['view'] . ".tpl";
         $datos = $this->createView($viewData);
         if ($this->smarty->templateExists($path)) {
             $this->smarty->assign('data', $datos);
@@ -59,6 +59,30 @@ class ViewBuilderHelper {
         }
         return $response;
     }
+    public function buildDefault($values)
+    {
+        $this->smarty->assign('data', $this->createPlainView($values));
+        $path = _VIEW_ . "_shared/_plain.tpl";
+        $path = str_replace('/', '\\', $path);
+        return $this->smarty->display($path);
+    }
+    public function buildMessage($values)
+    {
+        $type = ($values['type']['name'] == "alert") ? "_shared/_alert.tpl" : "_shared/_message.tpl";
+        $path = ($values['view']['name'] != "default") ? _VIEW_ . $values['view']['name'] : _VIEW_ . $type;
+        $path = str_replace('/', '\\', $path);
+        if ($this->smarty->templateExists($path)) {
+            $this->smarty->assign('view', $values['view']['data']);
+            $this->smarty->assign('data', $values['data']);
+        } else {
+            $this->smarty->assign('data', $this->createPlainView($values));
+            $path = _VIEW_ . "_shared/_plain.tpl";
+            $path = str_replace('/', '\\', $path);
+        }
+        return $this->smarty->fetch($path);
+    }
+
+
     /**
      * Usada por la función build, genera los datos adicionales para las vistas
      * @param mixed $values
@@ -66,10 +90,10 @@ class ViewBuilderHelper {
      */
     protected function createView($values)
     {
-        $config = $this->configs->get();
+        $config = $this->configs->get('config');
         $userData = $this->auth->getSessionData('all');
         if (isset($values['view']) && !empty($values['view'])) {
-            $viewParts = explode("/", $values['view']);
+            $viewParts = explode("/", $values['view']['name']);
             $title = $viewParts[0];
         }
         $theme = "default";
@@ -80,7 +104,7 @@ class ViewBuilderHelper {
         }
         $tech[] = ['name' => "PHP " . phpversion(), 'url' => "http://www.php.net"];
         $response =  [
-            'content' => $values['content'],
+            'content' => $values['data'],
             'layout' => [
                 'head' => [
                     'template' => "_shared/_head.tpl",
@@ -125,10 +149,6 @@ class ViewBuilderHelper {
                 'scripts' => ''
             ]
         ];
-        /* echo '<pre>';
-            var_dump($response);
-            echo '</pre>';
-            exit; */
         return $response;
     }
     /* private function getUserData()
@@ -155,5 +175,56 @@ class ViewBuilderHelper {
             'mode'  => $user[0]['mode']
         ];
     } */
+    protected function createPlainView($values)
+    {
+        $config = $this->configs->get('config');
+        if (isset($values['view']) && !empty($values['view'])) {
+            $viewParts = explode("/", $values['view']['name']);
+            $title = $viewParts[0];
+        }
+        foreach ($config['colaboration'] as $colab) {
+            if (isset($colab['theme'])) $theme = $colab['theme'];
+            if (isset($colab['technology'])) $tech = $colab['technology'];
+        }
+        $tech[] = ['name' => "PHP " . phpversion(), 'url' => "http://www.php.net"];
+        $response =  [
+            'content' => $values,
+            'layout' => [
+                'head' => [
+                    'template' => "_shared/_head.tpl",
+                    'data' => [
+                        'author' => $config['author'],
+                        'description' => $config['description'],
+                        'lang' => $config['language'],
+                        'app_name' => $config['appName'],
+                        'app_logo' => $config['appLogo'],
+                        'title' => $title,
+                        'version' => $config['shortversion'],
+                        'app_url' => $config['app_url']
+                    ],
+                    'css' => ''
+                ],
+                'navbar' => [
+                    'template' => "_shared/_navbar.tpl",
+                    'data' => [
+                        'app_logo' => $config['appLogo'],
+                    ]
+                ],
+                'footer' => [
+                    'tempalate' => "_shared/_footer.tpl",
+                    'data' => [
+                        'version' => $config['version'],
+                        'theme' => $theme,
+                        'technology' => $tech,
+                        'year' => $config['startYear'],
+                        'companyURL' => $config['companyURL'],
+                        'company' => $config['company']
+                    ]
+                ],
+                'scripts' => ''
+            ]
+        ];
+        return $response;
+    }
 }
 ?>

@@ -92,6 +92,7 @@ class LoaderClass
             }
         } else {
             $response = (is_string($values)) ? $values : json_encode($values);
+            echo $response;
         }
         return $response;
     }
