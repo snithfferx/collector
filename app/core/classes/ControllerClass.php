@@ -121,7 +121,7 @@
         protected function getControllerResponse (string $module, string $controller = null, string $class=null, string $method = "index", $params = null) :array {
             if (!empty($module)) {
                 if ($module == "default") {
-                    $vars = $this->configs->get();
+                    $vars = $this->configs->get('config');
                     $module = $vars['default_ctr'];
                     $controller = $vars['default_ctr'];
                     $class = $vars['default_ctr'];
