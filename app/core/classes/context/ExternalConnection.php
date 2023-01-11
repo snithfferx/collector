@@ -9,38 +9,79 @@ use app\core\helpers\ShopifyHelper;
  * @author Jorge Echeverria <jecheverria@bytes4run.com>
  * @version 1.0.0
  */
-class ExternalConnection extends ShopifyHelper
+class ExternalConnection
 {
     private $scopes;
     private $url;
     private $token;
+    private $shop;
     public function __construct()
     {
+        $shopify = new ShopifyHelper;
         $this->scopes = "read_products,write_products,read_script_tags,write_script_tags";
         $this->url = "";
-        $this->token = $this->shopRequest->createAuthRequest($this->scopes, null, null, null, true);
+        $this->shop = $shopify->getAccess();
+        //$this->shop->createAuthRequest($this->scopes, null, null, null, true);
+        //$this->token = $this->shop->getAccessToken();
     }
-    public function makeRequest(array $values): array
+    /**
+     * Método para realizar una solicitud get a la tienda
+     * @param array $values Contiene la solicitud dividida en las siguientes partes:
+     * 
+     * ELEMENT => contiene el nombre del elemento al cual se le realizará la acción ej.: [products, orders]
+     * 
+     * VALUE   => contiene el valor por el cual se le realizará la acción ej.: [id, handler]; [products(458887999)]
+     * 
+     * FIELDS  => contiene los campos a ser solicitados del elemento enviado ej.: [products()->get(['id','images'])]
+     * 
+     * Devuelve un arreglo conteniendo la información solicitada de forma asociativa.
+     * [información](https://shopify.dev/api/admin-rest)
+     * 
+     * @return array
+     */
+    protected function _get($values): array
     {
-        if ($values['type'] == "get") {
-            $response = $this->get($values['request']);
-        } elseif ($values['type'] == "post") {
-            $response = $this->get($values);
-        } elseif ($values['type'] == "put") {
-            $response = $this->get($values);
-        } else {
-            $response = ['type' => "error", 'data' => array()];
-        }
-        return $response;
-    }
-
-    private function get($values): array
-    {
+        $elemento =  $values['element'];
+        $valores = $values['value'];
+        $campos = $values['fields'];
         try {
-            if (!empty($values['value'])) {
-                $response = $this->shopRequest->$values['element']($values['value'])->get();
+            if (!is_null($valores)) {
+                if (is_null($campos)) {
+                    $result = $this->shop->$elemento($valores)->get();
+                } else {
+                    $result = $this->shop->$elemento($valores)->get($campos);
+                }
             } else {
-                $response = $this->shopRequest->$values['element']->get();
+                if (is_null($campos)) {
+                    $result = $this->shop->$elemento->get();
+                } else {
+                    $result = $this->shop->$elemento->get($campos);
+                }
+            }
+            $response = $result;
+        } catch (\Exception $e) {
+            $response = [
+                'error' => [
+                    'message' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                    'file' => $e->getFile(),
+                    'trace' => $e->getTraceAsString()
+                ],
+                'data' => $values
+            ];
+        }
+        return ['data' => $response];
+    }
+    protected function post($values): array
+    {
+        $elemento = $values['element'];
+        $valores = $values['value'];
+        try {
+            if (!empty($valores)) {
+                $response = $this->shop->$elemento($valores)->post();
+            } else {
+                $response = $this->shop->$elemento->post();
             }
         } catch (\Exception $e) {
             $response = $e;

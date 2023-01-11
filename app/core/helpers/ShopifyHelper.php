@@ -16,7 +16,13 @@ class ShopifyHelper
     {
         $confController = new ConfigHelper;
         $this->confs = $confController->get("shopify");
-        $this->shopRequest = new ShopifySDK([
+        $this->shopRequest = new ShopifySDK();
+    }
+    function getAccess() {
+        return $this->accessToStore();
+    }
+    private function accessToStore() {
+        return $this->shopRequest->config([
             'ShopUrl' => $this->confs['url'],
             'ApiKey' => $this->confs['key'],
             'Password' => $this->confs['pass'],
