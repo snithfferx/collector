@@ -18,6 +18,7 @@
     ],
     "require": {
         "php": ">=7.4",
+        "smarty/smarty": "^3.1",
         "shopify/shopify-api": "^4.2",
         "phpclassic/php-shopify": "^1.2"
     }
