@@ -2,8 +2,6 @@
     namespace app\core\classes;
     use app\core\helpers\ConfigHelper;
     use app\core\helpers\MessengerHelper;
-    use app\core\libraries\AuthenticationLibrary;
-    require __DIR__ . "/../helpers/DefinerHelper.php";
     /**
      * Clase que analiza y busca el controlador en la aplicación.
      * @category File
@@ -89,9 +87,18 @@
             }
             return $response;
         }
+        /**
+         * Función que devuelve la respuesta predeterminada de la aplicación.
+         * @return array
+         */
         public function getDefaultResponse () {
             return $this->getControllerResponse("default");
         }
+        /**
+         * Busca un controller y devuelve el objeto.
+         * @param string $controller Controlador a buscarse
+         * @return array<array>|object
+         */
         public function getControllerInstance(string $controller)
         {
             $name = explode("/", $controller);
@@ -104,6 +111,11 @@
             }
             return $response;
         }
+        /**
+         * Devuelve el objecto del modelo buscado
+         * @param string $model Modelo a ser instanciado
+         * @return array<array>|object
+         */
         public function getModelInstance(string $model)
         {
             $name = explode("/", $model);
@@ -116,8 +128,19 @@
             }
             return $response;
         }
-        //public function get
-
+        
+/**
+ * Devuelve la respuesta del controlador solicitado.
+ *
+ * Devuelve la respuesta en formato array conteniendo la vista a ser renderizada.
+ * 
+ * @param string $module Nombre del modulo solicitado
+ * @param string|null $controller Controlador solitado del modulo
+ * @param string|null $class ~Nombre de la clase a solicitar en el controller~(deprecated)
+ * @param string $method Nombre del método a realizarle la petición
+ * @param array|null $params Contiene el arreglo de parametros a ser usados por el método; puede estár vacio o no declarado
+ * @return array
+ */
         protected function getControllerResponse (string $module, string $controller = null, string $class=null, string $method = "index", $params = null) :array {
             if (!empty($module)) {
                 if ($module == "default") {
@@ -157,6 +180,17 @@
             }
             return $response;
         }
+        /**
+         * Función que devuelve el objeto del componente solicitado
+         * 
+         * Devuvle un objeto del componente solicitado por la aplicación, este debe estar en formato SPR-4
+         * 
+         * @param string $moduleName Nombre del modulo
+         * @param string $type Tipo de componente
+         * @param string|null $componentName Nombre del componente
+         * @param string|null $className Nombre de la clase
+         * @return array<array>|object
+         */
         protected function getComponent (string $moduleName, string $type = "controllers", string $componentName = null, string $className = null) {
             $path = _MODULE_;
             $path .= $moduleName . "/" . $type . "/";
