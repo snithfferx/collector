@@ -20,7 +20,12 @@ class CollectionModel extends ExternalContext
 
     private function getCollections(array $parameters = []) :array {
         if (!empty($parameters['value'])) {
-            $result = (!empty($parameters['fields'])) ? $this->makeRequest("get", "CustomCollection", $parameters['value']) : $this->makeRequest("get", "CustomCollection", $parameters['value'], $parameters['fields']);
+            if (!empty($parameters['fields'])) {
+                $result = $this->makeRequest("get", "CustomCollection", $parameters['value'], $parameters['fields']);
+            } else {
+                $fields = ['id', 'handle', 'title'];
+                $result = $this->makeRequest("get", "CustomCollection", $parameters['value'], $fields);
+            }
         } else {
             $result = $this->makeRequest("get", "CustomCollection");
         }

@@ -1,14 +1,24 @@
 <?php
 
 /**
- * 
+ * Controlador de colecciones
+ * @author Jorge Echeverria <jecheverria@bytes4run.com>
+ * @category Controller
+ * @version 1.0.0
+ * @package app\modules\collections\controllers
+ * 12-01-2023
  */
 
 namespace app\modules\collections\controllers;
 
 use app\core\classes\ControllerClass;
 use app\modules\collections\models\CollectionModel;
-
+/**
+ * Collections Controller
+ * @extends ControllerClass
+ * @author JEcheverria <jecheverria@piensads.com>
+ * @version 1.0.0
+ */
 class CollectionsController extends ControllerClass
 {
     private $model;
@@ -39,8 +49,10 @@ class CollectionsController extends ControllerClass
         $result = $this->model->get($value);
         if (!empty($result['error'])) {
             $response = [
-                'type' => ['name' => "view", 'code' => $result['error']['code']],
                 'view' => [
+                    'type' => [
+                        'name' => "error_view", 
+                        'code' => $result['error']['code']],
                     'name' => "collections/list",
                     'data' => []
                 ],
@@ -48,9 +60,13 @@ class CollectionsController extends ControllerClass
             ];
         } else {
             $response = [
-                'type' => ['name' => "template", 'code' => ""],
-                'view' => ['name' => "collections/list", 'data' => []],
-                'data' => $result
+                'view' => [
+                    'type' => [
+                        'name' => "view", 
+                        'code' => ""],
+                    'name' => "collections/list", 
+                    'data' => []],
+                'data' => $result['data']
             ];
         }
         return $response;
