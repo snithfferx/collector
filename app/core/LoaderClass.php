@@ -15,6 +15,8 @@ use app\core\helpers\MessengerHelper;
 use app\core\helpers\ViewBuilderHelper;
 use app\core\helpers\RouterHelper;
 
+require "helpers/DefinerHelper.php";
+
 class LoaderClass
 {
     /**
