@@ -88,7 +88,8 @@ class LoaderClass
             if ($this->viewBuilder->find($values['view'])) {
                 $response = $this->viewBuilder->build($values);
             } else {
-                $response = $this->viewBuilder->build($this->messenger->build(['type' => "error", 'data' => ['code' => 404, $values]]));
+                $error = $this->messenger->build(['type' => "error", 'data' => ['code' => 404, $values]]);
+                $response = $this->viewBuilder->buildDefault($error);
             }
         } else {
             $response = (is_string($values)) ? $values : json_encode($values);
