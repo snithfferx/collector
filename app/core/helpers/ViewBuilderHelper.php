@@ -32,14 +32,17 @@ class ViewBuilderHelper {
      * @param string $viewName Contiene la vista a ser renderizada
      * @return bool
      */
-    public function find(string $viewName) :bool
+    public function find(array $view) :bool
     {
-        if (is_string($viewName)) {
-            $path = _VIEW_ . $viewName . ".tpl";
+        $path = $this->getViewPath($view);
+        /* if (is_string($viewName)) {
+            $path = _VIEW_ . $viewName . ".tpl"; */
             return file_exists($path);
-        } else {
-            return false;
-        }
+        /* } else {
+            $name = $viewName['name'] ?? null;
+            if (!is_null($name)) $path = _VIEW_ . $name . ".tpl";
+            return file_exists($path);
+        } */
     }
     /**
      * Renderiza la vista a ser presentada
@@ -48,7 +51,13 @@ class ViewBuilderHelper {
      */
     public function build(array $viewData) :bool
     {
-        $path = _VIEW_ . $viewData['view'] . ".tpl";
+        /*[
+                    'type' => [
+                        'name' => "template", 
+                        'code' => ""],
+                    'name' => "collections/list", 
+                    'data' => []]*/
+        $path = $this->getViewPath($viewData['view']);
         $datos = $this->createView($viewData);
         if ($this->smarty->templateExists($path)) {
             $this->smarty->assign('data', $datos);
@@ -91,7 +100,7 @@ class ViewBuilderHelper {
     protected function createView($values)
     {
         $config = $this->configs->get('config');
-        $userData = $this->auth->getSessionData('all');
+        //$userData = $this->auth->getSessionData('all');
         if (isset($values['view']) && !empty($values['view'])) {
             $viewParts = explode("/", $values['view']['name']);
             $title = $viewParts[0];
@@ -112,29 +121,15 @@ class ViewBuilderHelper {
                         'author' => $config['author'],
                         'description' => $config['description'],
                         'lang' => $config['language'],
-                        'app_name' => $config['appName'],
-                        'app_logo' => $config['appLogo'],
+                        'app_name' => $config['app_name'],
+                        'app_logo' => $config['app_logo'],
                         'title' => $title,
                         'version' => $config['shortversion'],
                         'app_url' => $config['app_url']
                     ],
                     'css' => ''
                 ],
-                'navbar' => [
-                    'template' => "_shared/_navbar.tpl",
-                    'data' => [
-                        'app_logo' => ($userData['mode'] == "dark") ? $config['darkLogo'] : $config['appLogo'],
-                        'user' => $userData
-                    ] //(isset($userData['ops'])) ? ['darkmode' => $userData['ops']['darkmode']] : []
-                ],
-                'sidebar' => [
-                    'template' => "_shared/_sidebar.tpl",
-                    'data' => [
-                        'app_logo' => $config['appLogo'],
-                        'user_name' => (isset($userData['name'])) ? $userData['name'] : "",
-                        'user_image' => "assets/img/avatar5.png",
-                    ]
-                ],
+                'body' => ['layout' => '', 'darkmode' => ''],
                 'footer' => [
                     'tempalate' => "_shared/_footer.tpl",
                     'data' => [
@@ -149,6 +144,22 @@ class ViewBuilderHelper {
                 'scripts' => ''
             ]
         ];
+        /* 'navbar' => [
+            'template' => "_shared/_navbar.tpl",
+            'data' => [
+                //'app_logo' => ($userData['mode'] == "dark") ? $config['darkLogo'] : $config['app_logo'],
+                'app_logo' => $config['app_logo'],
+                //'user' => $userData
+            ]
+        ],
+        'sidebar' => [
+            'template' => "_shared/_sidebar.tpl",
+            'data' => [
+                'app_logo' => $config['app_logo'],
+                //'user_name' => (isset($userData['name'])) ? $userData['name'] : "",
+                'user_image' => "assets/img/avatar5.png",
+            ]
+        ], */
         return $response;
     }
     /* private function getUserData()
@@ -196,20 +207,15 @@ class ViewBuilderHelper {
                         'author' => $config['author'],
                         'description' => $config['description'],
                         'lang' => $config['language'],
-                        'app_name' => $config['appName'],
-                        'app_logo' => $config['appLogo'],
+                        'app_name' => $config['app_name'],
+                        'app_logo' => $config['app_logo'],
                         'title' => $title,
                         'version' => $config['shortversion'],
                         'app_url' => $config['app_url']
                     ],
                     'css' => ''
                 ],
-                'navbar' => [
-                    'template' => "_shared/_navbar.tpl",
-                    'data' => [
-                        'app_logo' => $config['appLogo'],
-                    ]
-                ],
+                'body'=> ['layout'=>'', 'darkmode'=>null],
                 'footer' => [
                     'tempalate' => "_shared/_footer.tpl",
                     'data' => [
@@ -219,12 +225,41 @@ class ViewBuilderHelper {
                         'year' => $config['startYear'],
                         'companyURL' => $config['companyURL'],
                         'company' => $config['company']
+                        ]
+                    ],
+                    'scripts' => ''
                     ]
-                ],
-                'scripts' => ''
-            ]
-        ];
+                ];
+                /* 'navbar' => [
+                    'template' => "_shared/_navbar.tpl",
+                    'data' => [
+                        'app_logo' => $config['app_logo'],
+                    ]
+                ], */
         return $response;
+    }
+    protected function getViewPath (array $view) :string {
+        $type = $view['type']['name'];
+        $name = $view['name'];
+        $path = _VIEW_;
+        switch ($type) {
+            case "view":
+                $path .= $name . ".tpl";
+                break;
+            case "template":
+                $nameSplited = explode("/", $name);
+                $module = $nameSplited[0];
+                $viewName = $nameSplited[1];
+                $path .= $module . "/templates/" . $viewName . ".tpl";
+                break;
+            case "layout":
+                $nameSplited = explode("/", $name);
+                $module = $nameSplited[0];
+                $viewName = $nameSplited[1];
+                $path .= $module . "/layouts/" . $viewName . ".tpl";
+                break;
+        }
+        return $path;
     }
 }
 ?>

@@ -9,16 +9,6 @@
 {{else}}
     {{assign var="body" value=$data.layout.body}}
 {{/if}}
-{{if isset($data.view.navbar)}}
-    {{assign var="navbar" value=$data.view.navbar}}
-{{else}}
-    {{assign var="navbar" value=$data.layout.navbar}}
-{{/if}}
-{{if isset($data.view.sidebar)}}
-    {{assign var="sidebar" value=$data.view.sidebar}}
-{{else}}
-    {{assign var="sidebar" value=$data.layout.sidebar}}
-{{/if}}
 {{if isset($data.footer)}}
     {{assign var="footer" value=$data.footer}}
 {{else}}
@@ -31,6 +21,19 @@
         {{$data.layout.scripts}}
     {{/if}}
 {{/if}}
+
+{{if isset($data.view.navbar)}}
+    {{assign var="navbar" value=$data.view.navbar}}
+{{elseif isset($data.layout.navbar)}}
+    {{assign var="navbar" value=$data.layout.navbar}}
+{{/if}}
+
+{{if isset($data.view.sidebar)}}
+    {{assign var="sidebar" value=$data.view.sidebar}}
+{{elseif isset($data.layout.sidebar)}}
+    {{assign var="sidebar" value=$data.layout.sidebar}}
+{{/if}}
+
 <html lang="{{$head.data.lang}}">
     <head>
         {{block name=head}}
@@ -41,34 +44,41 @@
             {{/if}}
         {{/block}}
     </head>
+    {{* 
     <body
         class="{{$body.layout}} accent-orange {{if $body.darkmode === true or $navbar.darkmode === "true"}}dark-mode{{/if}}"
         style="height:auto;">
+        <div class="preloader flex-column justify-content-center align-items-center" style="height: 0px;">
+            <img class="animation__shake"
+                src="assets/img/{{if isset($data.view.sidebar.data.app_logo)}}{{$data.view.sidebar.data.app_logo}}{{else}}{{$data.layout.sidebar.data.app_logo}}{{/if}}"
+                alt="{{$head.data.app_name}}" style="display: none; background-color:dodgerblue" width="60"
+                height="60">
+        </div>
+    *}}
+    <body style="height:auto;">
         <div class="wrapper">
-            <div class="preloader flex-column justify-content-center align-items-center" style="height: 0px;">
-                <img class="animation__shake"
-                    src="assets/img/{{if isset($data.view.sidebar.data.app_logo)}}{{$data.view.sidebar.data.app_logo}}{{else}}{{$data.layout.sidebar.data.app_logo}}{{/if}}"
-                    alt="{{$head.data.app_name}}" style="display: none; background-color:dodgerblue" width="60"
-                    height="60">
-            </div>
-            {{block name=navbar}}
-                <!--NAVBAR-->
-                {{if isset($navbar.template)}}
-                    {{include file=_VIEW_|cat:$navbar.template}}
-                {{else}}
-                    {{include file=_VIEW_|cat:"_shared/_navbar.tpl"}}
-                {{/if}}
-                <!-- NAVBAR END -->
-            {{/block}}
-            {{block name="sidebar"}}
-                <!-- SIDEBAR -->
-                {{if isset($sidebar.template)}}
-                    {{include file=_VIEW_|cat:$sidebar.template}}
-                {{else}}
-                    {{include file=_VIEW_|cat:"_shared/_sidebar.tpl"}}
-                {{/if}}
-                <!-- SIDEBAR END -->
-            {{/block}}
+            {{if isset($sidebar)}}
+                {{block name=navbar}}
+                    <!--NAVBAR-->
+                    {{if isset($navbar.template)}}
+                        {{include file=_VIEW_|cat:$navbar.template}}
+                    {{else}}
+                        {{include file=_VIEW_|cat:"_shared/_navbar.tpl"}}
+                    {{/if}}
+                    <!-- NAVBAR END -->
+                {{/block}}
+            {{/if}}
+            {{if isset($sidebar)}}
+                {{block name="sidebar"}}
+                    <!-- SIDEBAR -->
+                    {{if isset($sidebar.template)}}
+                        {{include file=_VIEW_|cat:$sidebar.template}}
+                    {{else}}
+                        {{include file=_VIEW_|cat:"_shared/_sidebar.tpl"}}
+                    {{/if}}
+                    <!-- SIDEBAR END -->
+                {{/block}}
+            {{/if}}
             <!-- MAIN CONTENT -->
             <div class="content-wrapper" id="mainContentWraper">
                 {{if isset($data.content.breadcrumbs) && !empty($data.content.breadcrumbs)}}

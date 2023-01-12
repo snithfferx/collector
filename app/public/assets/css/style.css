@@ -1,0 +1,30 @@
+.custom-file-input~.custom-file-label::after {
+    content: "Buscar";
+    background-color: orange;
+    color: white;
+    font-weight: bold;
+}
+
+.btn-circle {
+    width: 35px;
+    height: 35px;
+    text-align: center;
+    padding: 6px 0;
+    font-size: 12px;
+    line-height: 1.428571429;
+    border-radius: 15px;
+    vertical-align: top;
+}
+
+.bs-example {
+    margin: 20px;
+}
+
+.bg-company-color {
+    background-color: #ededfb !important;
+}
+
+.tabla td,
+.tabla th {
+    border-top: none;
+}
