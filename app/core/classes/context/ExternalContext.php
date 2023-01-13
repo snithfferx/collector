@@ -41,7 +41,7 @@ class ExternalContext extends ExternalConnection
         } elseif ($values['type'] == "put") {
             $response = $this->_get($values);
         } else {
-            $response = ['type' => "error", 'data' => array()];
+            $response = ['type' => "error", 'data' => ['message'=>"Method not supported"]];
         }
         return $response;
     }
