@@ -13,10 +13,12 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
+
     
     # Handle Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
+    #RewriteCond %{REQUEST_FILENAME} \.(js|css|jpe?g|gif|png|bmp|ico)$ [NC]
     RewriteRule ^ index.php [L]
     
     RewriteCond %{DOCUMENT_ROOT}/$1 !-d

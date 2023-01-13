@@ -33,7 +33,7 @@
 {{elseif isset($data.layout.sidebar)}}
     {{assign var="sidebar" value=$data.layout.sidebar}}
 {{/if}}
-
+{{* 
 <html lang="{{$head.data.lang}}">
     <head>
         {{block name=head}}
@@ -44,7 +44,6 @@
             {{/if}}
         {{/block}}
     </head>
-    {{* 
     <body
         class="{{$body.layout}} accent-orange {{if $body.darkmode === true or $navbar.darkmode === "true"}}dark-mode{{/if}}"
         style="height:auto;">
@@ -54,7 +53,6 @@
                 alt="{{$head.data.app_name}}" style="display: none; background-color:dodgerblue" width="60"
                 height="60">
         </div>
-    *}}
     <body style="height:auto;">
         <div class="wrapper">
             {{if isset($sidebar)}}
@@ -127,3 +125,5 @@
         {{block name="scripts"}}{{/block}}
     </body>
 </html>
+*}}
+{{include file=_VIEW_|cat:"_shared/layouts/_main.tpl"}}

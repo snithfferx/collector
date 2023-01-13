@@ -6,12 +6,13 @@
             <a href="{{$theme.url}}" rel="external" target="_blank">{{$theme.name}}</a>
             {{if !$theme@last}} | {{/if}}
         {{/foreach}}
-         <b>Technologies</b>
+        <b>Technologies</b>
         {{foreach $footer.data.technology as $coop}}
             <a href="{{$coop.url}}" rel="external" target="_blank">{{$coop.name}}</a>
             {{if !$coop@last}} | {{/if}}
         {{/foreach}}
     </div>
     <!-- Default to the left -->
-    <strong>Copyright &copy; {{$footer.data.year}}-{{$smarty.now|date_format:"%Y"}} <a href="{{$footer.data.companyURL}}" rel="external" target="_blank">{{$footer.data.company}}</a>.</strong> All rights reserved.
+    <strong>Copyright &copy; {{$footer.data.year}}-2023 <a href="{{$footer.data.companyURL}}" rel="external"
+            target="_blank">{{$footer.data.company}}</a>.</strong> All rights reserved.
 </footer>

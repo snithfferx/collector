@@ -71,13 +71,13 @@ class ViewBuilderHelper {
     public function buildDefault($values)
     {
         $this->smarty->assign('data', $this->createPlainView($values));
-        $path = _VIEW_ . "_shared/_plain.tpl";
+        $path = _VIEW_ . "_shared/templates/_plain.tpl";
         $path = str_replace('/', '\\', $path);
         return $this->smarty->display($path);
     }
     public function buildMessage($values)
     {
-        $type = ($values['type']['name'] == "alert") ? "_shared/_alert.tpl" : "_shared/_message.tpl";
+        $type = ($values['type']['name'] == "alert") ? "_shared/templates/_alert.tpl" : "_shared/templates/_message.tpl";
         $path = ($values['view']['name'] != "default") ? _VIEW_ . $values['view']['name'] : _VIEW_ . $type;
         $path = str_replace('/', '\\', $path);
         if ($this->smarty->templateExists($path)) {
@@ -85,7 +85,7 @@ class ViewBuilderHelper {
             $this->smarty->assign('data', $values['data']);
         } else {
             $this->smarty->assign('data', $this->createPlainView($values));
-            $path = _VIEW_ . "_shared/_plain.tpl";
+            $path = _VIEW_ . "_shared/templates/_plain.tpl";
             $path = str_replace('/', '\\', $path);
         }
         return $this->smarty->fetch($path);
@@ -116,7 +116,7 @@ class ViewBuilderHelper {
             'content' => $values['data'],
             'layout' => [
                 'head' => [
-                    'template' => "_shared/_head.tpl",
+                    'template' => "_shared/templates/_head.tpl",
                     'data' => [
                         'author' => $config['author'],
                         'description' => $config['description'],
@@ -131,7 +131,7 @@ class ViewBuilderHelper {
                 ],
                 'body' => ['layout' => '', 'darkmode' => ''],
                 'footer' => [
-                    'tempalate' => "_shared/_footer.tpl",
+                    'tempalate' => "_shared/templates/_footer.tpl",
                     'data' => [
                         'version' => $config['version'],
                         'theme' => $theme,
@@ -145,7 +145,7 @@ class ViewBuilderHelper {
             ]
         ];
         /* 'navbar' => [
-            'template' => "_shared/_navbar.tpl",
+            'template' => "_shared/templates/_navbar.tpl",
             'data' => [
                 //'app_logo' => ($userData['mode'] == "dark") ? $config['darkLogo'] : $config['app_logo'],
                 'app_logo' => $config['app_logo'],
@@ -153,7 +153,7 @@ class ViewBuilderHelper {
             ]
         ],
         'sidebar' => [
-            'template' => "_shared/_sidebar.tpl",
+            'template' => "_shared/templates/_sidebar.tpl",
             'data' => [
                 'app_logo' => $config['app_logo'],
                 //'user_name' => (isset($userData['name'])) ? $userData['name'] : "",
@@ -202,7 +202,7 @@ class ViewBuilderHelper {
             'content' => $values,
             'layout' => [
                 'head' => [
-                    'template' => "_shared/_head.tpl",
+                    'template' => "_shared/templates/_head.tpl",
                     'data' => [
                         'author' => $config['author'],
                         'description' => $config['description'],
@@ -217,7 +217,7 @@ class ViewBuilderHelper {
                 ],
                 'body'=> ['layout'=>'', 'darkmode'=>null],
                 'footer' => [
-                    'tempalate' => "_shared/_footer.tpl",
+                    'tempalate' => "_shared/templates/_footer.tpl",
                     'data' => [
                         'version' => $config['version'],
                         'theme' => $theme,
@@ -231,7 +231,7 @@ class ViewBuilderHelper {
                     ]
                 ];
                 /* 'navbar' => [
-                    'template' => "_shared/_navbar.tpl",
+                    'template' => "_shared/templates/_navbar.tpl",
                     'data' => [
                         'app_logo' => $config['app_logo'],
                     ]
