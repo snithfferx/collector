@@ -203,14 +203,14 @@
                 $y = 0;
                 foreach ($query['fields'] as $tabla => $fields) {
                     $fc = count($fields);
-                    for ($x = 0; $x < ($fc - 1); $x++ ) {
+                    for ($x = 0; $x < $fc; $x++ ) {
                         $asignado = explode("=", $fields[$x]);
                         if (count($asignado) > 1) {
                             $string .= "`$tabla`.`$asignado[0]` AS '$asignado[1]'";
                         } else {
                             $string .= "`$tabla`.`$fields[$x]`";
                         }
-                        if ($x < $fc) $string .= ", ";
+                        if ($x < ($fc - 1)) $string .= ", ";
                     }
                     if ($y < $t) $string .= ", ";
                     $y++;
@@ -221,7 +221,7 @@
             $string .= " FROM `$table`";
             if ( !empty($query['joins']) ) {
                 foreach ( $query['joins'] as $join ) {
-                    $string .= " $join[type] JOIN `$join[table]` ON `$join[main_table]`.`$join[main_filter]` = `$join[compare_table]`.`$join[compare_filter]`";
+                    $string .= " $join[type] JOIN `$join[table]` ON `$join[table]`.`$join[filter]` = `$join[compare_table]`.`$join[compare_filter]`";
                 }
             }
             if (!is_null($query['params'])) {
