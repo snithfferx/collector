@@ -18,9 +18,9 @@ class ViewBuilderHelper {
     {
         $this->smarty = new Smarty;
         $this->smarty->setTemplateDir(_VIEW_);
-        $this->smarty->setConfigDir(_CONF_ . "smartyconfig");
-        $this->smarty->setCacheDir(_CACHE_ . 'smartycache/');
-        $this->smarty->setCompileDir(_CACHE_);
+        $this->smarty->setConfigDir(_CONF_ . "smarty/config");
+        $this->smarty->setCacheDir(_CACHE_ . "smarty/cache/");
+        $this->smarty->setCompileDir(_CACHE_ . "smarty/compiles/");
         $this->smarty->left_delimiter = '{{';
         $this->smarty->right_delimiter = '}}';
         //$this->smarty->testInstall();
