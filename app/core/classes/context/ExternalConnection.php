@@ -15,6 +15,7 @@ class ExternalConnection
     private $url;
     private $token;
     private $shop;
+    private $client;
     public function __construct()
     {
         $shopify = new ShopifyHelper;
@@ -23,6 +24,7 @@ class ExternalConnection
         $this->shop = $shopify->getAccess();
         //$this->shop->createAuthRequest($this->scopes, null, null, null, true);
         //$this->token = $this->shop->getAccessToken();
+        $this->client = $shopify->dsStore;
     }
     /**
      * Método para realizar una solicitud get a la tienda
@@ -87,5 +89,28 @@ class ExternalConnection
             $response = $e;
         }
         return ['data' => $response];
+    }
+    protected function getHttp($values)
+    {
+        try {
+            $response = ['data' => $this->dsStoreGet($values),'error'=>[]];
+        } catch (\Exception $e) {
+            $response = [
+                'error' => [
+                    'message' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                    'file' => $e->getFile(),
+                    'trace' => $e->getTraceAsString()
+                ],
+                'data' => $values
+            ];
+        }
+        return $response;
+    }
+
+    private function dsStoreGet($values) :array {
+        $result = $this->client->get($values);
+        return $result->getDecodedBody();
     }
 }

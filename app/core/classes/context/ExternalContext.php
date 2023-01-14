@@ -2,8 +2,6 @@
 
 namespace app\core\classes\context;
 
-use Shopify\Auth\Scopes;
-
 /**
  * Clase para las transacciones entre los modelos y la base de datos.
  * @author Jorge Echeverria <jecheverria@bytes4run.com>
@@ -31,6 +29,13 @@ class ExternalContext extends ExternalConnection
         ]);
         /*['error'=>['code'=>404,'message' => "No hay tabla para consultar."], 'data' => array()]; */
     }
+    public function getShopifyResponse($values)
+    {
+        echo "<pre>";
+        var_dump($this->getResponse($values));
+        echo "</pre>";
+        exit;
+    }
 
     private function getHttpResponse(array $values): array
     {
@@ -44,5 +49,8 @@ class ExternalContext extends ExternalConnection
             $response = ['type' => "error", 'data' => ['message'=>"Method not supported"]];
         }
         return $response;
+    }
+    private function getResponse($value) {
+        return $this->getHttp($value);
     }
 }
