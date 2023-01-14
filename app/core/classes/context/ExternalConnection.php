@@ -58,7 +58,12 @@ class ExternalConnection
                     $result = $this->shop->$elemento->get($campos);
                 }
             }
-            $response = $result;
+            $response = [
+                'error' =>
+                [],
+                'data' =>
+                $result
+            ];
         } catch (\Exception $e) {
             $response = [
                 'error' => [
@@ -71,7 +76,7 @@ class ExternalConnection
                 'data' => $values
             ];
         }
-        return ['data' => $response];
+        return $response;
     }
     protected function post($values): array
     {
