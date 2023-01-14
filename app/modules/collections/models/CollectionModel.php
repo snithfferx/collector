@@ -7,6 +7,7 @@
 namespace app\modules\collections\models;
 use app\core\classes\context\ContextClass;
 use app\core\classes\context\ExternalContext;
+use Shopify\Clients\Rest;
 
 class CollectionModel
 {
@@ -27,6 +28,10 @@ class CollectionModel
     public function localGet($values): array
     {
         return $this->getLocalColections($values);
+    }
+    public function shopify($values)
+    {
+        return $this->shopifyConnect();
     }
 
     private function getCollections(array $parameters = []) :array {
@@ -75,5 +80,8 @@ class CollectionModel
             $query['params'] = "nombre_comun=:$value";
         }
         return $this->local->select("nombre_comun",$query);
+    }
+    private function shopifyConnect () {
+        $response = $this->external->getShopifyResponse('custom_collections');
     }
 }

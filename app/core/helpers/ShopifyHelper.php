@@ -2,6 +2,7 @@
 
 namespace app\core\helpers;
 
+use Shopify\Clients\Rest;
 use PHPShopify\ShopifySDK;
 
 class ShopifyHelper
@@ -11,6 +12,7 @@ class ShopifyHelper
      * @var object $shopRequest
      */
     public $shopRequest;
+    public $dsStore;
     private $confs;
     function __construct()
     {
@@ -22,6 +24,7 @@ class ShopifyHelper
         return $this->accessToStore();
     }
     private function accessToStore() {
+        $this->dsStore = new Rest($this->confs['url']);
         return $this->shopRequest->config([
             'ShopUrl' => $this->confs['url'],
             'ApiKey' => $this->confs['key'],

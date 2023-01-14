@@ -51,7 +51,8 @@ class CollectionsController extends ControllerClass
      */
     public function read($values)
     {
-        $response =  (!empty($values)) ? $this->getCollections($values) : $this->getCollections();
+        //$response =  (!empty($values)) ? $this->getCollections($values) : $this->getCollections();
+        $response = $this->getAllCollections();
         return $response;
     }
     /**
@@ -169,5 +170,9 @@ class CollectionsController extends ControllerClass
             }
         }
         return ['data' => $mixedCollections, 'error' => $storeCollections['error'] ?? array()];
+    }
+    private function getAllCollections()
+    {
+        return $this->model->shopify("all");
     }
 }
