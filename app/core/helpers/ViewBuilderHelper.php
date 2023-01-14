@@ -127,7 +127,9 @@ class ViewBuilderHelper {
                         'version' => $config['shortversion'],
                         'app_url' => $config['app_url']
                     ],
-                    'css' => ''
+                    'css' => '
+                    <link rel="stylesheet" type="text/css" href="\assets\css\style.css">
+                    '
                 ],
                 'body' => ['layout' => '', 'darkmode' => ''],
                 'footer' => [
@@ -141,17 +143,18 @@ class ViewBuilderHelper {
                         'company' => $config['company']
                     ]
                 ],
+                'navbar' => [
+                    'template' => "_shared/templates/_navbar.tpl",
+                    'data' => [
+                        //'app_logo' => ($userData['mode'] == "dark") ? $config['darkLogo'] : $config['app_logo'],
+                        'app_logo' => $config['app_logo'],
+                        //'user' => $userData
+                    ]
+                ],
                 'scripts' => ''
             ]
         ];
-        /* 'navbar' => [
-            'template' => "_shared/templates/_navbar.tpl",
-            'data' => [
-                //'app_logo' => ($userData['mode'] == "dark") ? $config['darkLogo'] : $config['app_logo'],
-                'app_logo' => $config['app_logo'],
-                //'user' => $userData
-            ]
-        ],
+        /* 
         'sidebar' => [
             'template' => "_shared/templates/_sidebar.tpl",
             'data' => [
@@ -213,7 +216,7 @@ class ViewBuilderHelper {
                         'version' => $config['shortversion'],
                         'app_url' => $config['app_url']
                     ],
-                    'css' => ''
+                    'css' => '<link rel="stylesheet" type="text/css" href="\assets\css\style.css">'
                 ],
                 'body'=> ['layout'=>'', 'darkmode'=>null],
                 'footer' => [

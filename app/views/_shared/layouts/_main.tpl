@@ -21,74 +21,76 @@ style="height:auto;">
 </div>
 *}}
 
-<body style="height:auto;">
-    <div class="wrapper">
-        {{if isset($sidebar)}}
-            {{block name=navbar}}
-                <!--NAVBAR-->
-                {{if isset($navbar.template)}}
-                    {{include file=_VIEW_|cat:$navbar.template}}
-                {{else}}
-                    {{include file=_VIEW_|cat:"_shared/templates/_navbar.tpl"}}
-                {{/if}}
-                <!-- NAVBAR END -->
-            {{/block}}
-        {{/if}}
-        {{if isset($sidebar)}}
-            {{block name="sidebar"}}
-                <!-- SIDEBAR -->
-                {{if isset($sidebar.template)}}
-                    {{include file=_VIEW_|cat:$sidebar.template}}
-                {{else}}
-                    {{include file=_VIEW_|cat:"_shared/templates/_sidebar.tpl"}}
-                {{/if}}
-                <!-- SIDEBAR END -->
-            {{/block}}
-        {{/if}}
-        <!-- MAIN CONTENT -->
-        <div class="content-wrapper" id="mainContentWraper">
-            {{if isset($data.content.breadcrumbs) && !empty($data.content.breadcrumbs)}}
-                {{assign var="breadcrumb" value=$data.content.breadcrumbs}}
-            {{/if}}
-            {{block name="breadcrumbs"}}
-                <!-- Content Header (Page header) -->
-                {{if isset($data.content.breadcrumbs) && !empty($data.content.breadcrumbs)}}
-                    {{include file=_VIEW_|cat:"_shared/templates/_breadcrumbs.tpl"}}
-                {{/if}}
-                <!-- /.content-header -->
-            {{/block}}
-            <!-- Main content -->
-            <div class="content" id="mainContent">
-                {{if isset($data.content.datos)}}
-                    {{assign var="content" value=$data.content.datos}}
-                {{/if}}
-                {{block name="mainContent"}}
-                    {{if isset($data.content.template)}}
-                        {{include file=_VIEW_|cat:$data.content.template}}
-                    {{else}}
-                        {{var_dump($data)}}
-                    {{/if}}
-                {{/block}}
-            </div>
-            <!-- /.Main content -->
-        </div>
-        <!-- MAIN CONTENT END -->
-        {{block name="footer"}}
-            <!-- FOOTER -->
-            {{if isset($footer.template)}}
-                {{include file=_VIEW_|cat:$footer.template}}
+<body>
+    {{if isset($navbar)}}
+        {{block name=navbar}}
+            <!--NAVBAR-->
+            {{if isset($navbar.template)}}
+                {{include file=_VIEW_|cat:$navbar.template}}
             {{else}}
-                {{include file=_VIEW_|cat:"_shared/templates/_footer.tpl"}}
+                {{include file=_VIEW_|cat:"_shared/templates/_navbar.tpl"}}
             {{/if}}
-            <!-- FOOTER END -->
+            <!-- NAVBAR END -->
         {{/block}}
-    </div>
-    <script src="assets/js/jquery/jquery.min.js"></script>
-    <script src="assets/js/bootstrap/bootstrap.min.js"></script>
+    {{/if}}
+    <main>
+        <div class="wrapper">
+            {{if isset($sidebar)}}
+                {{block name="sidebar"}}
+                    <!-- SIDEBAR -->
+                    {{if isset($sidebar.template)}}
+                        {{include file=_VIEW_|cat:$sidebar.template}}
+                    {{else}}
+                        {{include file=_VIEW_|cat:"_shared/templates/_sidebar.tpl"}}
+                    {{/if}}
+                    <!-- SIDEBAR END -->
+                {{/block}}
+            {{/if}}
+            <!-- MAIN CONTENT -->
+            <div class="content-wrapper" id="mainContentWraper">
+                {{if isset($data.content.breadcrumbs) && !empty($data.content.breadcrumbs)}}
+                    {{assign var="breadcrumb" value=$data.content.breadcrumbs}}
+                {{/if}}
+                {{block name="breadcrumbs"}}
+                    <!-- Content Header (Page header) -->
+                    {{if isset($data.content.breadcrumbs) && !empty($data.content.breadcrumbs)}}
+                        {{include file=_VIEW_|cat:"_shared/templates/_breadcrumbs.tpl"}}
+                    {{/if}}
+                    <!-- /.content-header -->
+                {{/block}}
+                <!-- Main content -->
+                <div class="content" id="mainContent">
+                    {{if isset($data.content.datos)}}
+                        {{assign var="content" value=$data.content.datos}}
+                    {{/if}}
+                    {{block name="mainContent"}}
+                        {{if isset($data.content.template)}}
+                            {{include file=_VIEW_|cat:$data.content.template}}
+                        {{else}}
+                            {{var_dump($data)}}
+                        {{/if}}
+                    {{/block}}
+                </div>
+                <!-- /.Main content -->
+            </div>
+            <!-- MAIN CONTENT END -->
+            {{block name="footer"}}
+                <!-- FOOTER -->
+                {{if isset($footer.template)}}
+                    {{include file=_VIEW_|cat:$footer.template}}
+                {{else}}
+                    {{include file=_VIEW_|cat:"_shared/templates/_footer.tpl"}}
+                {{/if}}
+                <!-- FOOTER END -->
+            {{/block}}
+        </div>
+    </main>
+    <script src="/assets/js/jquery/jquery.min.js"></script>
+    <script src="/assets/js/bootstrap/bootstrap.bundle.min.js"></script>
     {{block name="jslibs"}}{{/block}}
     <!-- Toastr -->
-    <script src="assets/plugins/toastr/toastr.min.js"></script>
-    <script src="assets/js/functions.js"></script>
+    <script src="/assets/js/toastr/toastr.min.js"></script>
+    <script src="/assets/js/global/functions.js"></script>
     {{block name="scripts"}}{{/block}}
 </body>
 

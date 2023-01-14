@@ -1,0 +1,1 @@
+$.post('http://10.0.10.35/Core/Select/FindNotUpdatedProducts.php', {},function(show) {$("#spannotupdated").text(show);});$.post('http://10.0.10.35/Core/Select/FindWhichCampaignisToday.php', {},function(show) {$("#spancampaign").text(show);});$.post('orders/count/open', {},function(show) {var jason = JSON.parse(show);$("#lastOrders").text(jason.data);});
