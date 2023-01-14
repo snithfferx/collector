@@ -82,16 +82,16 @@
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-buttons/buttons.bootstrap4.min.css">
 {{/block}}
 {{block name="jslibs"}}
-    <script src="assets/js/datatables-buttons/dataTables.buttons.min.js"></script>
-    <script src="assets/js/datatables-buttons/buttons.bootstrap4.min.js"></script>
-    <script src="assets/js/jszip/jszip.min.js"></script>
-    <script src="assets/js/pdfmake/pdfmake.min.js"></script>
-    <script src="assets/js/pdfmake/vfs_fonts.js"></script>
-    <script src="assets/js/datatables-buttons/js/buttons.flash.min.js"></script>
-    <script src="assets/js/datatables-buttons/js/buttons.html5.min.js"></script>
-    <script src="assets/js/datatables-buttons/js/buttons.print.min.js"></script>
-    <script src="assets/js/datatables-buttons/js/buttons.colVis.min.js"></script>
-    <script src="assets/js/moment/moment-with-locales.min.js"></script>
+    <script src="/assets/js/datatables-buttons/dataTables.buttons.min.js"></script>
+    <script src="/assets/js/datatables-buttons/buttons.bootstrap4.min.js"></script>
+    <script src="/assets/js/jszip/jszip.min.js"></script>
+    <script src="/assets/js/pdfmake/pdfmake.min.js"></script>
+    <script src="/assets/js/pdfmake/vfs_fonts.js"></script>
+    <script src="/assets/js/datatables-buttons/js/buttons.flash.min.js"></script>
+    <script src="/assets/js/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="/assets/js/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="/assets/js/datatables-buttons/js/buttons.colVis.min.js"></script>
+    <script src="/assets/js/moment/moment-with-locales.min.js"></script>
 {{/block}}
 {{block name="scripts"}}
     <script>
