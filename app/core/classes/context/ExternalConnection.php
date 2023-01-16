@@ -108,9 +108,29 @@ class ExternalConnection
         }
         return $response;
     }
+    protected function guzzleConnect($values) {
+        try {
+            $response = ['data' => $this->guzzle($values), 'error' => []];
+        } catch (\Exception $e) {
+            $response = [
+                'error' => [
+                    'message' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                    'file' => $e->getFile(),
+                    'trace' => $e->getTraceAsString()
+                ],
+                'data' => $values
+            ];
+        }
+        return $response;
+    }
 
     private function dsStoreGet($values) :array {
         $result = $this->client->get($values);
         return $result->getDecodedBody();
+    }
+    private function guzzle ($values) {
+        return $this->shop->getGuzzleResponse($values);
     }
 }

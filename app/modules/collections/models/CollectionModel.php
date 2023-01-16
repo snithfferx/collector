@@ -13,6 +13,7 @@ class CollectionModel
 {
     private $external;
     private $local;
+    public $fields;
     public function __construct() {
         $this->external = new ExternalContext;
         $this->local = new ContextClass;
@@ -32,6 +33,9 @@ class CollectionModel
     public function shopify($values)
     {
         return $this->shopifyConnect();
+    }
+    protected function _get() {
+        return $this->getGuz();
     }
 
     private function getCollections(array $parameters = []) :array {
@@ -83,5 +87,29 @@ class CollectionModel
     }
     private function shopifyConnect () {
         $response = $this->external->getShopifyResponse('custom_collections');
+    }
+    private function getGuz()
+    {
+        $product_ids = [];
+        $nextPageToken = null;
+        if (!empty($this->fields)) {
+            $request = [
+                'method' => "get",
+                'element' => 'collections.json?limit=250&page_info=' . $nextPageToken,
+                'query' => $this->fields
+            ];
+        } else {
+            $request = [
+                'method' => "get",
+                'element' => 'collections.json?limit=250&page_info=' . $nextPageToken
+            ];
+        }
+        do {
+            $response = $this->external->getShopifyGuzResponse($request);
+            foreach ($response['resource'] as $product) {
+                array_push($product_ids, $product['id']);
+            }
+            $nextPageToken = $response['next']['page_token'] ?? null;
+        } while ($nextPageToken != null);
     }
 }

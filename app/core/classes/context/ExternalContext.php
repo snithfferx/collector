@@ -36,6 +36,13 @@ class ExternalContext extends ExternalConnection
         echo "</pre>";
         exit;
     }
+    public function getShopifyGuzResponse($values)
+    {
+        echo "<pre>";
+        var_dump($this->getGuzResponse($values));
+        echo "</pre>";
+        exit;
+    }
 
     private function getHttpResponse(array $values): array
     {
@@ -52,5 +59,8 @@ class ExternalContext extends ExternalConnection
     }
     private function getResponse($value) {
         return $this->getHttp($value);
+    }
+    private function getGuzResponse ($values) {
+        return $this->guzzleConnect($values);
     }
 }

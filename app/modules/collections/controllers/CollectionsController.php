@@ -53,6 +53,7 @@ class CollectionsController extends ControllerClass
     {
         //$response =  (!empty($values)) ? $this->getCollections($values) : $this->getCollections();
         $response = $this->getAllCollections();
+        //$response = $this->getAll();
         return $response;
     }
     /**
@@ -133,6 +134,10 @@ class CollectionsController extends ControllerClass
         }
         return $response;
     }
+    protected function getAll()
+    {
+        return $this->getCollectionList([]);
+    }
 
     private function getStoreCollections($value = "all"): array
     {
@@ -174,5 +179,10 @@ class CollectionsController extends ControllerClass
     private function getAllCollections()
     {
         return $this->model->shopify("all");
+    }
+    private function getCollectionList(array $fields)
+    {
+        if (!empty($fields)) $this->model->fields = $fields;
+        return $this->model->_get();
     }
 }
