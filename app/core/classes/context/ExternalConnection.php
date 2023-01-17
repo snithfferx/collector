@@ -95,13 +95,17 @@ class ExternalConnection
         $datos = array();
         try {
             $resultados = $this->storeGet($values);
-            $pagination = unserialize($resultados['pagination']);
-            do {
-                array_push($datos, $resultados['data']);
-                $values['page'] = $pagination->getNextPageQuery();
-                $resultados = $this->storeGetNext($values['element'],$values['page']);
-            } while ($pagination->hasNextPage() === true);
-            $response = ['data' => $resultados,'error' => []];
+            if (!empty($resultados['error'])) {
+                throw new \Exception("Error Processing Request", $resultados['error']);
+            } else {
+                $pagination = unserialize($resultados['pagination']);
+                $response = [
+                    'data' => [
+                        'list'=>$resultados['data']['custom_collections'],
+                        'next'=> ($pagination->hasNextPage()) ? $pagination->getNextPageQuery() : null,
+                        'prev'=> ($pagination->hasPreviousPage()) ? $pagination->getPreviousPageQuery() : null],
+                    'error' => []];
+            }
         } catch (\Exception $e) {
             $response = [
                 'error' => [
@@ -135,29 +139,13 @@ class ExternalConnection
     }
 
     private function storeGet($values) :array {
-        $result = $this->client->get($values['element'],$values['headers'],$values['fields'],3);
+        $result = $this->client->get($values['element'],[],$values['query'],3);
         if ($result->getStatusCode() == 200) {
             $serializedPageInfo = serialize($result->getPageInfo());
             $datos = $result->getDecodedBody();
-            return ['data'=>$datos,'pagination'=>$serializedPageInfo];
+            return ['data'=>$datos,'pagination'=>$serializedPageInfo,'error'=>[]];
         }
         return ['data'=>[],'error'=> $result->getStatusCode()];
-    }
-    private function storeGetNext(string $elemento,$page) {
-        try {
-            return $this->client->get($elemento, [],$page);
-        } catch (\Exception $e) {
-            return [
-                'error' => [
-                    'message' => $e->getMessage(),
-                    'line' => $e->getLine(),
-                    'code' => $e->getCode(),
-                    'file' => $e->getFile(),
-                    'trace' => $e->getTraceAsString()
-                ],
-                'data' => array()
-            ];
-        }
     }
     private function guzzle ($values) {
         return $this->shop->getGuzzleResponse($values);

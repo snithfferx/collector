@@ -31,10 +31,11 @@ class ExternalContext extends ExternalConnection
     }
     public function getShopifyResponse($values)
     {
-        echo "<pre>";
-        var_dump($this->getResponse($values));
+        /* echo "<pre>";
+        var_dump();
         echo "</pre>";
-        exit;
+        exit; */
+        return $this->getResponse($values);
     }
     public function getShopifyGuzResponse($values)
     {
