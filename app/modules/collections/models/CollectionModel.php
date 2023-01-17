@@ -14,31 +14,29 @@ class CollectionModel
     private $external;
     private $local;
     public $fields;
+    public $limit;
+    public $id;
+    private $table;
+    private $element;
     public function __construct() {
         $this->external = new ExternalContext;
         $this->local = new ContextClass;
+        $this->table = 'nombre_comun';
+        $this->element = 'custom_collections';
     }
-    public function storeGet ($values) :array {
-        if (is_string($values) && $values == "all") {
-            $response = $this->getCollections();
-        } else {
-            $response = $this->getCollections($values);
-        }
+    public function storeGet () :array {
+        $response = $this->getStoreCollections();
         return $response;
     }
-    public function localGet($values): array
+    public function localGet($value = 'all'): array
     {
-        return $this->getLocalColections($values);
+        return $this->getLocalColections($value);
     }
-    public function shopify($values)
+    public function getNextPage()
     {
-        return $this->shopifyConnect();
+        return $this->getStoreCollections();
     }
-    protected function _get() {
-        return $this->getGuz();
-    }
-
-    private function getCollections(array $parameters = []) :array {
+    /* private function getCollections(array $parameters = []) :array {
         if (!empty($parameters['value'])) {
             if (!empty($parameters['fields'])) {
                 $result = $this->external->makeRequest("get", "CustomCollection", $parameters['value'], $parameters['fields']);
@@ -50,8 +48,8 @@ class CollectionModel
             $result = $this->external->makeRequest("get", "CustomCollection");
         }
         return $result;
-    }
-    private function getLocalColections (string $value) :array {
+    } */
+    private function getLocalColections ($value) :array {
         $query = [
             'fields'=>[
                 'nombre_comun'=>[
@@ -80,15 +78,23 @@ class CollectionModel
             $query['params'] ="";
         } elseif (is_numeric($value)) {
             $query['params'] = "id_nombre_comun=:$value";
+        } elseif (is_array($value)) {
+            $top = $value['last'] + $this->limit;
+            $query['params'] = "id_nombre_comun >: " . $value['last'] . ", id_nombre_comun <=:" . $top;
         } else {
             $query['params'] = "nombre_comun=:$value";
         }
-        return $this->local->select("nombre_comun",$query);
+        return $this->local->select("nombre_comun",$query,$this->limit);
     }
-    private function shopifyConnect () {
-        $response = $this->external->getShopifyResponse('custom_collections');
+    private function getStoreCollections () {
+        $request['element'] = $this->element;
+        $request['query'] = array();
+        if (!empty($this->id)) $request['query']['custom_collection_id'] = $this->id;
+        $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id', 'handle', 'title'];
+        $request['query']['limit'] = $this->limit;
+        return $this->external->getShopifyResponse($request);
     }
-    private function getGuz()
+    /* private function getGuz()
     {
         $product_ids = [];
         $nextPageToken = null;
@@ -111,5 +117,5 @@ class CollectionModel
             }
             $nextPageToken = $response['next']['page_token'] ?? null;
         } while ($nextPageToken != null);
-    }
+    } */
 }

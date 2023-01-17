@@ -224,7 +224,7 @@
                     $string .= " $join[type] JOIN `$join[table]` ON `$join[table]`.`$join[filter]` = `$join[compare_table]`.`$join[compare_filter]`";
                 }
             }
-            if (!is_null($query['params'])) {
+            if (!is_null($query['params']) && !empty($query['params'])) {
                 $string .= " WHERE ";
                 $params = $query['params'];
                 $condiciones = preg_split('/([,|;|~|#])/',$params,-1,PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);

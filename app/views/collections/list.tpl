@@ -17,44 +17,32 @@
                         <table class="table table-responsive table-striped" id="collectionsList">
                             <thead class="thead-dark">
                                 <tr>
-                                    <th class="uppercase text-center">id</th>
-                                    <th class="uppercase text-center">handle</th>
-                                    <th class="uppercase text-center">title</th>
-                                    <th class="text-center"><b>~</b></th>
+                                    <th class="uppercase text-center">ID Tienda</th>
                                     <th class="uppercase text-center">Fecha</th>
-                                    <th class="uppercase text-center">Nombre</th>
+                                    <th class="uppercase text-center">Nombre Común</th>
+                                    <th class="uppercase text-center">Titulo</th>
+                                    <th class="uppercase text-center">CEO</th>
                                     <th class="uppercase text-center">Categoría</th>
-                                    <th class="uppercase text-center">Tipo</th>
+                                    <th class="uppercase text-center">Sub-Categoría</th>
                                     <th class="uppercase text-center">Activo</th>
                                     <th class="uppercase text-center">Posición</th>
                                     <th class="uppercase text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{foreach $data.content as $item}}
+                                {{*foreach $data.content as $item}}
                                     <tr>
-                                        <td class="text-center">{{$item.store.id}}</td>
-                                        <td class="text-center">{{$item.store.title}}</td>
-                                        <td class="text-center">{{$item.store.handle}}</td>
-                                        <td class="text-center">
-                                            <-=->
-                                        </td>
-                                        {{if empty($item.local) || is_null($item.local)}}
-                                            <td colspan="6" class="text-center">- Sin Datos -</td>
-                                            <td style="display: none;"></td>
-                                            <td style="display: none;"></td>
-                                            <td style="display: none;"></td>
-                                            <td style="display: none;"></td>
-                                            <td style="display: none;"></td>
-                                        {{else}}
-                                            <td class="text-center">{{$item.local.fecha}}</td>
-                                            <td class="text-center">{{$item.local.name}}</td>
+<td class="text-center"><a href="collections/read/{{$item.store.store_id}}">{{$item.store.store_id}}</a></td>
+                                    <td class="text-center">{{$item.fecha}}</td>
+                                    <td class="text-center">{{$item.local.name}}</td>
+<td class="text-center">{{$item.store.store_title}}</td>
+<td class="text-center">{{$item.store.store_handle}}</td>
                                             <td class="text-center">{{$item.local.category}}</td>
                                             <td class="text-center">{{$item.local.type}}</td>
-                                            <td class="text-center">{{if $item.local.active == 0}}Falso{{else}}Verdadero{{/if}}
+                                            <td class="text-center">
+                                            {{if $item.local.active == 0}}Falso{{else}}Verdadero{{/if}}
                                             </td>
                                             <td class="text-center">{{$item.local.possition}}</td>
-                                        {{/if}}
                                         <td class="text-center">
                                             <div class='btn-group'>
                                                 <button type='button' class='btn btn-outline-info dropdown-toggle dropdown-icon'
@@ -82,7 +70,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                {{/foreach}}
+                                {{/foreach*}}
                             </tbody>
                         </table>
                     </div>
@@ -90,6 +78,7 @@
             </div>
         </div>
     </div>
+    {{var_dump($data)}}
 {{/block}}
 {{block name='css'}}
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
