@@ -21,10 +21,10 @@ class ExternalConnection
         $shopify = new ShopifyHelper;
         $this->scopes = "read_products,write_products,read_script_tags,write_script_tags";
         $this->url = "";
-        $this->shop = $shopify->getAccess();
+        $this->client = $shopify->getAccess();
         //$this->shop->createAuthRequest($this->scopes, null, null, null, true);
         //$this->token = $this->shop->getAccessToken();
-        $this->client = $shopify->dsStore;
+        //$this->client = $shopify->dsStore;
     }
     /**
      * Método para realizar una solicitud get a la tienda
@@ -92,8 +92,16 @@ class ExternalConnection
     }
     protected function getHttp($values)
     {
+        $datos = array();
         try {
-            $response = ['data' => $this->dsStoreGet($values),'error'=>[]];
+            $resultados = $this->storeGet($values);
+            $pagination = unserialize($resultados['pagination']);
+            do {
+                array_push($datos, $resultados['data']);
+                $values['page'] = $pagination->getNextPageQuery();
+                $resultados = $this->storeGetNext($values['element'],$values['page']);
+            } while ($pagination->hasNextPage() === true);
+            $response = ['data' => $resultados,'error' => []];
         } catch (\Exception $e) {
             $response = [
                 'error' => [
@@ -126,9 +134,30 @@ class ExternalConnection
         return $response;
     }
 
-    private function dsStoreGet($values) :array {
-        $result = $this->client->get($values);
-        return $result->getDecodedBody();
+    private function storeGet($values) :array {
+        $result = $this->client->get($values['element'],$values['headers'],$values['fields'],3);
+        if ($result->getStatusCode() == 200) {
+            $serializedPageInfo = serialize($result->getPageInfo());
+            $datos = $result->getDecodedBody();
+            return ['data'=>$datos,'pagination'=>$serializedPageInfo];
+        }
+        return ['data'=>[],'error'=> $result->getStatusCode()];
+    }
+    private function storeGetNext(string $elemento,$page) {
+        try {
+            return $this->client->get($elemento, [],$page);
+        } catch (\Exception $e) {
+            return [
+                'error' => [
+                    'message' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                    'file' => $e->getFile(),
+                    'trace' => $e->getTraceAsString()
+                ],
+                'data' => array()
+            ];
+        }
     }
     private function guzzle ($values) {
         return $this->shop->getGuzzleResponse($values);

@@ -22,8 +22,9 @@ class ShopifyHelper
     {
         $confController = new ConfigHelper;
         $this->confs = $confController->get("shopify");
-        $this->app_cnf = $confController->get("shopify");
+        $this->app_cnf = $confController->get("config");
         //$this->shopRequest = new ShopifySDK();
+        $this->shopifyInit();
     }
     function getAccess()
     {
@@ -36,7 +37,7 @@ class ShopifyHelper
     }
     private function accessToStore()
     {
-        $this->dsStore = new Rest($this->confs['store_url']);
+        return $this->dsStore = new Rest($this->confs['store_url'] . ".myshopify.com", $this->confs['api_token']);
         /* return $this->shopRequest->config([
             'ShopUrl' => $this->confs['url'],
             'ApiKey' => $this->confs['key'],
@@ -57,7 +58,6 @@ class ShopifyHelper
                 $this->app_cnf['app_url'],
                 $storage
             );
-
         } catch (ApiException $apiex) {
             return ['error' => ['message' => $apiex->getMessage(), 'code' => $apiex->getCode(), 'trace' => $apiex->getTraceAsString()], 'data' => array()];
         }
