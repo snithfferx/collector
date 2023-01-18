@@ -5,7 +5,6 @@ namespace app\core\helpers;
 use PHPShopify\Exception\ApiException;
 use Shopify\Auth\FileSessionStorage;
 use Shopify\Clients\Rest;
-use PHPShopify\ShopifySDK;
 use Shopify\Context;
 
 class ShopifyHelper
@@ -18,12 +17,14 @@ class ShopifyHelper
     public $dsStore;
     private $confs;
     private $app_cnf;
+    public $version;
     function __construct()
     {
         $confController = new ConfigHelper;
         $this->confs = $confController->get("shopify");
         $this->app_cnf = $confController->get("config");
         //$this->shopRequest = new ShopifySDK();
+        $this->version = $this->confs['api_version'];
         $this->shopifyInit();
     }
     function getAccess()
@@ -49,7 +50,7 @@ class ShopifyHelper
     private function shopifyInit()
     {
         $scopes = ['read_products', 'write_products', 'read_product_listings', 'read_publications', 'write_publications'];
-        $storage = new FileSessionStorage("/tmp/php_sessions");
+        $storage = new FileSessionStorage(_CACHE_ . "tmp/php_sessions");
         try {
             Context::initialize(
                 $this->confs['api_key'],
@@ -58,6 +59,7 @@ class ShopifyHelper
                 $this->app_cnf['app_url'],
                 $storage
             );
+            //OAuth::begin($this->confs['store_url'], "auth/login/callback", false);
         } catch (ApiException $apiex) {
             return ['error' => ['message' => $apiex->getMessage(), 'code' => $apiex->getCode(), 'trace' => $apiex->getTraceAsString()], 'data' => array()];
         }
