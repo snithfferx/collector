@@ -7,7 +7,6 @@
 namespace app\modules\collections\models;
 use app\core\classes\context\ContextClass;
 use app\core\classes\context\ExternalContext;
-use Shopify\Clients\Rest;
 
 class CollectionModel
 {
@@ -16,19 +15,23 @@ class CollectionModel
     public $fields;
     public $limit;
     public $id;
+    public $title;
+    public $categoria;
+    public $tipo;
+    public $activo;
     private $table;
     private $element;
     public function __construct() {
         $this->external = new ExternalContext;
         $this->local = new ContextClass;
         $this->table = 'nombre_comun';
-        $this->element = 'custom_collections';
+        $this->element = 'collections';
     }
     public function storeGet () :array {
         $response = $this->getStoreCollections();
         return $response;
     }
-    public function localGet($value = 'all'): array
+    public function localGet($value = ''): array
     {
         return $this->getLocalColections($value);
     }
@@ -53,10 +56,11 @@ class CollectionModel
         $query = [
             'fields'=>[
                 'nombre_comun'=>[
-                    'id_nombre_comun=id', 'nombre_comun=name', 'posicion=possition', 'fecha_creacion=date', 'activo=active'
+                    'id_nombre_comun=id', 'nombre_comun=name', 'posicion=possition', 'fecha_creacion=date', 
+                    'activo=active','id_tienda=store_id','handle','terminos_de_busqueda=keywords'
                 ],
-                'tipo_categoria'=>['tipo_categoria=categoria'],
-                'tipo_producto'=>['tipo_producto=tipo']
+                'tipo_producto'=>['tipo_producto=sub_category'],
+                'tipo_categoria'=>['tipo_categoria=category']
             ],
             'joins'=>[
                 [
@@ -77,19 +81,26 @@ class CollectionModel
         if ($value == "all") {
             $query['params'] ="";
         } elseif (is_numeric($value)) {
-            $query['params'] = "id_nombre_comun=:$value";
+            $query['params'] = "nombre_comun.id_nombre_comun=:$value";
         } elseif (is_array($value)) {
             $top = $value['last'] + $this->limit;
-            $query['params'] = "id_nombre_comun >: " . $value['last'] . ", id_nombre_comun <=:" . $top;
+            $query['params'] = "nombre_comun.id_nombre_comun>:$value[last],nombre_comun.id_nombre_comun<=:$top";
+        } elseif (!empty($value) || !is_null($value)) {
+                $query['params'] = "nombre_comun.nombre_comun=:$value";
         } else {
-            $query['params'] = "nombre_comun=:$value";
+            if (!empty($this->title)) {
+                $query['params'] = "nombre_comun.nombre_comun~:$this->title";
+            } else {
+                $response = ['data' => [], 'error' => ['message' => "Too few parameters", 'code' => 400]];
+            }
         }
-        return $this->local->select("nombre_comun",$query,$this->limit);
+        if (!isset($response)) $response = $this->local->select("nombre_comun",$query,$this->limit);
+        return $response;
     }
     private function getStoreCollections () {
         $request['element'] = $this->element;
         $request['query'] = array();
-        if (!empty($this->id)) $request['query']['custom_collection_id'] = $this->id;
+        if (!empty($this->id)) $request['query']['id'] = $this->id;
         $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id', 'handle', 'title'];
         $request['query']['limit'] = $this->limit;
         return $this->external->getShopifyResponse($request);
