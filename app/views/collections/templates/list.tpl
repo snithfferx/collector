@@ -1,13 +1,11 @@
 {{extends file=_VIEW_|cat:"_shared/_layout.tpl"}}
 {{* /**
      * @author Snithfferx <snithfferx@outlook.com>
-     * @version 1.2.0
-     * 23/06/22
+     * @version 1.4.0
+     * 18/01/23
     */
 *}}
-{{block name="breadcrumb"}}
-
-{{/block}}
+{{block name="breadcrumb"}}{{/block}}
 {{block name="mainContent"}}
     <div class="container-fluid">
         <div class="row">
@@ -106,13 +104,16 @@
                     <div class="card-footer">
                         <nav aria-label="Page navigation example">
                             <ul class="pagination">
-                                <li class="page-item {{if $data.content.pre_page <= 1}}
-                            disabled
-                            {{/if}}"><a class="page-link" href="/collections/read/previous">Previo</a>
+                                <li class="page-item {{if $data.content.pre_page <= 1}}disabled{{/if}}">
+                                    <a class="page-link" href="/collections/read/previous">
+                                        Previo
+                                    </a>
                                 </li>
-                                <li class="page-item {{if $data.content.next_page < 1}}
-                                disabled
-{{/if}}"><a class="page-link" href="/collections/read/next">Next</a></li>
+                                <li class="page-item {{if $data.content.next_page < 1}}disabled{{/if}}">
+                                    <a class="page-link" href="/collections/read/next">
+                                        Siguiente
+                                    </a>
+                                </li>
                             </ul>
                         </nav>
                     </div>
