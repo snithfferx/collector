@@ -145,10 +145,6 @@ class ExternalConnection
 
     private function storeGet($values): array
     {
-        /* 
-            //$collection = CustomCollection::find($this->session, $values['query']['id'], [], $values['query']['fields']);
-            //return ['data' => $collection, 'error' => []];
-         */
         if (isset($values['query']['id']) && !empty($values['query']['id'])) {
             $url = $values['element'] . "/" . $values['query']['id'];
             array_shift($values['query']);

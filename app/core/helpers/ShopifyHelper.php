@@ -50,7 +50,8 @@ class ShopifyHelper
     private function shopifyInit()
     {
         $scopes = ['read_products', 'write_products', 'read_product_listings', 'read_publications', 'write_publications'];
-        $storage = new FileSessionStorage(_CACHE_ . "tmp/php_sessions");
+        $path = dirname(_APP_, 4);
+        $storage = new FileSessionStorage("$path/tmp/php_sessions");
         try {
             Context::initialize(
                 $this->confs['api_key'],
