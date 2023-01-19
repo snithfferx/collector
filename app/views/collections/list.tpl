@@ -5,6 +5,9 @@
      * 23/06/22
     */
 *}}
+{{block name="breadcrumb"}}
+
+{{/block}}
 {{block name="mainContent"}}
     <div class="container-fluid">
         <div class="row">
@@ -12,49 +15,46 @@
                 <div class="card">
                     <div class="card-header">
                         <h5 class="m-0">Lista de Colecciones</h5>
+
                     </div>
                     <div class="card-body">
                         <table class="table table-responsive table-striped" id="collectionsList">
                             <thead class="thead-dark">
                                 <tr>
-                                    <th class="uppercase text-center">id</th>
-                                    <th class="uppercase text-center">handle</th>
-                                    <th class="uppercase text-center">title</th>
-                                    <th class="text-center"><b>~</b></th>
+                                    <th class="uppercase text-center">ID Tienda</th>
                                     <th class="uppercase text-center">Fecha</th>
-                                    <th class="uppercase text-center">Nombre</th>
+                                    <th class="uppercase text-center">Nombre Común</th>
+                                    <th class="uppercase text-center">Titulo</th>
+                                    <th class="uppercase text-center">CEO</th>
                                     <th class="uppercase text-center">Categoría</th>
-                                    <th class="uppercase text-center">Tipo</th>
+                                    <th class="uppercase text-center">Sub-Categoría</th>
                                     <th class="uppercase text-center">Activo</th>
                                     <th class="uppercase text-center">Posición</th>
                                     <th class="uppercase text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{foreach $data.content as $item}}
+                                {{foreach $data.content.datos as $item}}
                                     <tr>
-                                        <td class="text-center">{{$item.store.id}}</td>
-                                        <td class="text-center">{{$item.store.title}}</td>
-                                        <td class="text-center">{{$item.store.handle}}</td>
                                         <td class="text-center">
-                                            <-=->
+                                            <a href="collections/read/{{$item.store.store_id}}">
+                                                {{$item.store.store_id}}
+                                            </a>
                                         </td>
-                                        {{if empty($item.local) || is_null($item.local)}}
-                                            <td colspan="6" class="text-center">- Sin Datos -</td>
-                                            <td style="display: none;"></td>
-                                            <td style="display: none;"></td>
-                                            <td style="display: none;"></td>
-                                            <td style="display: none;"></td>
-                                            <td style="display: none;"></td>
-                                        {{else}}
-                                            <td class="text-center">{{$item.local.fecha}}</td>
-                                            <td class="text-center">{{$item.local.name}}</td>
-                                            <td class="text-center">{{$item.local.category}}</td>
-                                            <td class="text-center">{{$item.local.type}}</td>
-                                            <td class="text-center">{{if $item.local.active == 0}}Falso{{else}}Verdadero{{/if}}
-                                            </td>
-                                            <td class="text-center">{{$item.local.possition}}</td>
-                                        {{/if}}
+                                        <td class="text-center">{{$item.local.date}}</td>
+                                        <td class="text-center">
+                                            <a href="collections/read/{{$item.local.id}}">
+                                                {{$item.local.name}}
+                                            </a>
+                                        </td>
+                                        <td class="text-center">{{$item.store.store_title}}</td>
+                                        <td class="text-center">{{$item.store.store_handle}}</td>
+                                        <td class="text-center">{{$item.local.category}}</td>
+                                        <td class="text-center">{{$item.local.sub_category}}</td>
+                                        <td class="text-center">
+                                            {{if $item.local.active == 0}}Inactivo{{else}}Activo{{/if}}
+                                        </td>
+                                        <td class="text-center">{{$item.local.possition}}</td>
                                         <td class="text-center">
                                             <div class='btn-group'>
                                                 <button type='button' class='btn btn-outline-info dropdown-toggle dropdown-icon'
@@ -63,20 +63,37 @@
                                                 </button>
                                                 <span class='sr-only'>Acciones</span>
                                                 <div class='dropdown-menu' role='menu'>
-                                                    <a href="collections/read/{{$item.store.id}}"
+                                                    <a href="collections/read/{{$item.local.id}}"
                                                         class="dropdown-item btn btn-primary">
                                                         <i class="fas fa-eye mr-3"></i>
                                                         Detalles
                                                     </a>
-                                                    <a href="collections/edit/{{$item.store.id}}"
+                                                    <a href="collections/compare/{{$item.local.id}}"
+                                                        class="dropdown-item btn btn-primary">
+                                                        <i class="fas fa-eye mr-3"></i>
+                                                        Comparar
+                                                    </a>
+                                                    <div class="dropdown-divider"></div>
+                                                    <a href="collections/edit/{{$item.local.id}}"
                                                         class="dropdown-item btn btn-warning">
                                                         <i class="fas fa-edit mr-3"></i>
-                                                        Editar
+                                                        Editar Local
                                                     </a>
-                                                    <a href="collections/delete/{{$item.store.id}}"
+                                                    <a href="collections/delete/{{$item.local.id}}"
                                                         class="dropdown-item btn btn-danger">
                                                         <i class="fas fa-trash mr-3"></i>
-                                                        Borrar
+                                                        Borrar Local
+                                                    </a>
+                                                    <div class="dropdown-divider"></div>
+                                                    <a href="collections/edit/{{$item.store.store_id}}"
+                                                        class="dropdown-item btn btn-warning">
+                                                        <i class="fas fa-edit mr-3"></i>
+                                                        Editar Local
+                                                    </a>
+                                                    <a href="collections/delete/{{$item.store.store_id}}"
+                                                        class="dropdown-item btn btn-danger">
+                                                        <i class="fas fa-trash mr-3"></i>
+                                                        Borrar Local
                                                     </a>
                                                 </div>
                                             </div>
@@ -86,10 +103,24 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="card-footer">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination">
+                                <li class="page-item {{if $data.content.pre_page <= 1}}
+                            disabled
+                            {{/if}}"><a class="page-link" href="/collections/read/previous">Previo</a>
+                                </li>
+                                <li class="page-item {{if $data.content.next_page < 1}}
+                                disabled
+{{/if}}"><a class="page-link" href="/collections/read/next">Next</a></li>
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    {{*var_dump($data.content)*}}
 {{/block}}
 {{block name='css'}}
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
