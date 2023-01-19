@@ -10,9 +10,6 @@
     use app\core\helpers\ConfigHelper;
     class ConnectionClass {
         private $globalConf;
-        public function __construct() {
-            $this->globalConf = new ConfigHelper;
-        }
         private $ds_context;
         private $conexion;
         private $host;
@@ -101,6 +98,7 @@
         }
         private function getConfig()
         {
+            $this->globalConf = new ConfigHelper;
             $__CONF = $this->globalConf->get('config');
             if (!empty($__CONF)) {
                 $this->host     = $__CONF['dbhost'];
