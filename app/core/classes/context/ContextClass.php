@@ -116,7 +116,7 @@ class ContextClass extends ConnectionClass
         if (empty($table)) {
             return ['error' => ['code' => 400, 'message' => "A table name is need it."], 'data' => array()];
         } else {
-            return $this->getDBDataFunction($function,$table, $field, $cond);
+            return $this->getDBDataFunction($function, $table, $field, $cond);
         }
     }
 
@@ -202,8 +202,8 @@ class ContextClass extends ConnectionClass
                 }
             }
             $query_request .= " ;";
-        }else {
-            return ['data'  => array(), 'error' => ['code'=>400,'message'=>"The statement is not admited"]];
+        } else {
+            return ['data'  => array(), 'error' => ['code' => 400, 'message' => "The statement is not admited"]];
         }
         $result = $this->getResponse($type, ['prepare_string' => $query_request, 'params' => $query_Values]);
         return $this->interpreter($type, $result);
@@ -254,6 +254,7 @@ class ContextClass extends ConnectionClass
             $string .= " WHERE ";
             $params = $query['params'];
             $condiciones = preg_split('/([,|;|~|#])/', $params, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+            $isLike = false;
             foreach ($condiciones as $cond) {
                 switch ($cond) {
                     case ",":
@@ -264,27 +265,40 @@ class ContextClass extends ConnectionClass
                         break;
                     case "~":
                         $string .= " LIKE ";
+                        $isLike = true;
                         break;
                     case "#":
                         $string .= " BETWEEN ";
                         break;
                     default:
-                        $pairCond = explode(".", $cond);
-                        $string .= "`$pairCond[0]`.";
-                        $oprtCond = preg_split('/([=|<|>|<=|>=|!=])/', $pairCond[1], -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-                        if (count($oprtCond) > 1) {
-                            foreach ($oprtCond as $value) {
-                                if ($value == "=" || $value == "<" || $value == ">" || $value == "<=" || $value == ">=" || $value == "!=") {
-                                    $string .= $value;
-                                } else {
-                                    $pair = explode(":", $value);
-                                    if (count($pair) > 1) {
-                                        $string .= " ?";
-                                        array_push($values, $pair[1]);
+                        if ($isLike === true) {
+                            $pair = explode(":", $cond);
+                            if (count($pair) > 1) {
+                                $string .= "CONCAT('%', ?, '%')";
+                                array_push($values, $pair[1]);
+                            } else {
+                                $string .= "$pair[0]";
+                            }
+                        } else {
+                            $pairCond = explode(".", $cond);
+                            $string .= "`$pairCond[0]`.";
+                            $oprtCond = preg_split("/([\=<>])|(\'<=\')|(\'>=\')|(\'!=\')/", $pairCond[1], -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+                            if (count($oprtCond) > 1) {
+                                foreach ($oprtCond as $value) {
+                                    if ($value == "=" || $value == "<" || $value == ">" || $value == "<=" || $value == ">=" || $value == "!=") {
+                                        $string .= $value;
                                     } else {
-                                        $string .= "`$pair[0]`";
+                                        $pair = explode(":", $value);
+                                        if (count($pair) > 1) {
+                                            $string .= " ?";
+                                            array_push($values, $pair[1]);
+                                        } else {
+                                            $string .= "`$pair[0]`";
+                                        }
                                     }
                                 }
+                            } else {
+                                $string .= "`$pairCond[1]`";
                             }
                         }
                 }
@@ -324,7 +338,7 @@ class ContextClass extends ConnectionClass
      * @param string $condicion Condition that have to be perform before data is retrieve
      * @return array
      */
-    private function getDBDataFunction ($function, $table, $campo, $condicion): array
+    private function getDBDataFunction($function, $table, $campo, $condicion): array
     {
         $dbConnection = new ConnectionClass;
         $string = "SELECT ";
@@ -344,12 +358,13 @@ class ContextClass extends ConnectionClass
             default:
                 $string .= "COUNT";
                 break;
-            }
+        }
         $string .= "(?) AS 'res' FROM `$table`";
         $values[] = "`$table`.`$campo`";
         if (!is_null($condicion)) {
             $string .= " WHERE ";
             $pspt = preg_split('/([,|;|~|#])/', $condicion, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+            $isLike = false;
             foreach ($pspt as $ps) {
                 switch ($ps) {
                     case ",":
@@ -360,25 +375,36 @@ class ContextClass extends ConnectionClass
                         break;
                     case "~":
                         $string .= " LIKE ";
+                        $isLike = true;
                         break;
                     case "#":
                         $string .= " BETWEEN ";
                         break;
                     default:
-                        $pairCond = explode(".", $ps);
-                        $string .= "`$pairCond[0]`.";
-                        $oprtCond = preg_split('/([=|<|>|<=|>=|!=])/', $pairCond[1], -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-                        if (count($oprtCond) > 1) {
-                            foreach ($oprtCond as $value) {
-                                if ($value == "=" || $value == "<" || $value == ">" || $value == "<=" || $value == ">=" || $value == "!=") {
-                                    $string .= $value;
-                                } else {
-                                    $pair = explode(":", $value);
-                                    if (count($pair) > 1) {
-                                        $string .= " ?";
-                                        array_push($values, $pair[1]);
+                        if ($isLike === true) {
+                            $pair = explode(":", $ps);
+                            if (count($pair) > 1) {
+                                $string .= "CONCAT('%', ?, '%')";
+                                array_push($values, $pair[1]);
+                            } else {
+                                $string .= "$pair[0]";
+                            }
+                        } else {
+                            $pairCond = explode(".", $ps);
+                            $string .= "`$pairCond[0]`.";
+                            $oprtCond = preg_split('/([\=<>])|(\'<=\')|(\'>=\')|(\'!=\')/', $pairCond[1], -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+                            if (count($oprtCond) > 1) {
+                                foreach ($oprtCond as $value) {
+                                    if ($value == "=" || $value == "<" || $value == ">" || $value == "<=" || $value == ">=" || $value == "!=") {
+                                        $string .= $value;
                                     } else {
-                                        $string .= "`$pair[0]`";
+                                        $pair = explode(":", $value);
+                                        if (count($pair) > 1) {
+                                            $string .= " ?";
+                                            array_push($values, $pair[1]);
+                                        } else {
+                                            $string .= "`$pair[0]`";
+                                        }
                                     }
                                 }
                             }

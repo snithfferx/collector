@@ -91,21 +91,28 @@ class ExternalConnection
     }
     protected function getHttp($values)
     {
+        $el = $values['element'];
         $datos = array();
+        $hasNext = false;
+        $hasPrev = false;
         try {
             $resultados = $this->storeGet($values);
             if (!empty($resultados['error'])) {
                 throw new \Exception("Error Processing Request", $resultados['error']);
             } else {
                 $pagination = unserialize($resultados['pagination']);
-                $data = (isset($values['query']['id'])) ? $resultados['data']['collection'] : $resultados['data']['collections'];
-                if (is_null($pagination) || $pagination->hasNextPage() != true) $hasNext = null;
-                if (is_null($pagination) || $pagination->hasPreviousPage() != true) $hasPrev = null;
+                if (isset($values['query']['id'])) {
+                    $data = ($values['query']['id'] == "count") ? $resultados['data'] : ($resultados['data'][$el]);
+                } else {
+                    $data = $resultados['data'][$el];
+                }
+                if (!is_null($pagination)) $hasNext = $pagination->hasNextPage();
+                if (!is_null($pagination)) $hasPrev = $pagination->hasPreviousPage();
                 $response = [
                     'data' => [
                         'collections' => $data,
-                        'next' => (is_null($hasNext)) ?? $pagination->getNextPageQuery(),
-                        'prev' => (is_null($hasPrev)) ?? $pagination->getPreviousPageQuery()
+                        'next' => $hasNext,
+                        'prev' => $hasPrev
                     ],
                     'error' => []
                 ];

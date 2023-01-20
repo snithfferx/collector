@@ -26,7 +26,7 @@ class CollectionModel extends ContextClass
     public function __construct()
     {
         $this->external = new ExternalContext;
-        $this->element = 'collections';
+        $this->element = 'custom_collections';
     }
     public function storeGet(): array
     {
