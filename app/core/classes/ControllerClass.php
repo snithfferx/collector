@@ -241,12 +241,12 @@ class ControllerClass
         if (empty($breadcrumbs)) $breadcrumbs = $this->createBreadcrumbs($name);
         return [
             'view' => [
-                'type' => [
-                    'name' => $type,
-                    'code' => $code
-                ],
+                'type' => $type,
                 'name' => $name,
-                'data' => $style
+                'data' => [
+                    'code' => $code,
+                    'style' => $style
+                ],
             ],
             'data' => [
                 'breadcrumbs' => $breadcrumbs,
@@ -274,7 +274,7 @@ class ControllerClass
                     'text' => $mdl, 
                     'controller' => $mdl, 
                     'method' => 'read', 
-                    'param' => []],
+                    'param' => null],
                 [
                     'text' => $mdl, 
                     'controller' => $ctr, 
