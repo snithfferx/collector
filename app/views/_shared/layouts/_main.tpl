@@ -90,7 +90,7 @@ style="height:auto;">
     {{block name="jslibs"}}{{/block}}
     <!-- Toastr -->
     <script type="text/javascript" src="/assets/js/toastr/toastr.min.js"></script>
-    <script type="text/javascript" src="/assets/js/global/functions.js"></script>
+    {{* <script type="text/javascript" src="/assets/js/global/functions.js"></script> *}}
     {{block name="scripts"}}{{/block}}
 </body>
 

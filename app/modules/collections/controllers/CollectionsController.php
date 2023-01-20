@@ -53,7 +53,7 @@ class CollectionsController extends ControllerClass
      */
     public function read($values)
     {
-        $response = (!empty($values)) ? $this->getCollections($values) : $this->getCollections();
+        $response = (!empty($values)) ? $this->getCollections($values) : $this->createViewData('collections/list');
         return $response;
     }
     /**
@@ -95,6 +95,10 @@ class CollectionsController extends ControllerClass
     {
         return $this->getPreviousPage($value);
     }
+    public function lista()
+    {
+        return (!empty($values)) ? $this->getCollections($values) : $this->getCollections();
+    }
     /* #################### Protecteds #################### */
     /**
      * Función que devuelve la lista de colecciones o una colección a partir del ID de tienda o local
@@ -105,9 +109,9 @@ class CollectionsController extends ControllerClass
     protected function getCollections($value = 'all'): array
     {
         $viewData = [];
-        $viewtype = "template";
+        $viewtype = "view";
         $viewCode = null;
-        $viewName = "collections/list";
+        $viewName = "";
         if (is_numeric($value) && strlen($value) > 4) {
             $result = $this->getCollection($value);
             if (!empty($result['error'])) {
@@ -115,6 +119,7 @@ class CollectionsController extends ControllerClass
                 $viewCode = $result['error']['code'];
                 $viewName = "collections/detail";
             } else {
+                $viewtype = "template";
                 $viewName = "collections/detail";
             }
         } else {
@@ -128,11 +133,12 @@ class CollectionsController extends ControllerClass
                     $viewName = "collections/detail";
                 }
             } else {
-                $result = ($value == "all") ? $this->getCommonNames() : $this->getCommonNames($value);
+                /* $result = ($value == "all") ? $this->getCommonNames() : $this->getCommonNames($value);
                 if (!empty($result['error'])) {
                     $viewtype = "error_view";
                     $viewCode = $result['error']['code'];
-                }
+                } */
+                return $this->getCommonNames();
             }
         }
         $breadcrumbs = $this->createBreadcrumbs(['view'=>$viewName,'method'=>'read','params'=>$value]);
@@ -152,7 +158,7 @@ class CollectionsController extends ControllerClass
             $viewCode = $collections['error']['code'];
         }
         $breadcrumbs = $this->createBreadcrumbs(['view'=>$viewName,'method'=>'compare','params'=>$value]);
-        $response = $this->createViewData($viewName, $collections['data'],$breadcrumbs,$viewtype,$viewCode,$viewData);
+        $response = $this->createViewData($viewName, $collections,$breadcrumbs,$viewtype,$viewCode,$viewData);
         return $response;
     }
     protected function getNextPage($values)
@@ -225,7 +231,7 @@ class CollectionsController extends ControllerClass
      * @param int $limit
      * @return array
      */
-    private function getCommonNames($value = 10): array
+    private function getCommonNames($value = 25): array
     {
         if (is_array($value)) {
             $this->model->page = ($value['page']) ?? '';
@@ -233,38 +239,35 @@ class CollectionsController extends ControllerClass
             $this->model->limit = $value['limit'];
         }
         $this->model->limit = $value;
-        $commonNames = $this->model->localGet();
-        $times = 1;
+        $collections = $this->model->storeGet();
         $limit = ($value['limit']) ?? $value;
-        $count = $this->model->calcular('local');
-        $max = ceil($count['data'][0]['res'] / $limit);
-        $prev = 0;
-        $next = 0;
         $mixedcommonNames = [];
-        if (empty($commonNames['error'])) {
-            foreach ($commonNames['data'] as $key => $commonName) {
-                if ($key == 0 && $commonName['id'] > 1) $prev = $commonName['id'];
-                if ($key <= ($limit - 1))  $next = $commonName['id'];
-                $this->model->id = $commonName['store_id'];
-                $result = $this->model->storeGet();
-                $mixedcommonNames['data'][$key]['local'] = $commonName;
-                $mixedcommonNames['data'][$key]['store'] = [
-                    'store_id' => ($result['data']['collections']['id']) ?? null,
-                    'store_title' => ($result['data']['collections']['title']) ?? null,
-                    'store_handle' => ($result['data']['collections']['handle']) ?? null
+        if (empty($collections['error'])) {
+            $count = $this->model->calcular('store');
+            $max = ceil($count['data']['collections']['count'] / $limit);
+            $mixedcommonNames['prev_page'] = $collections['data']['prev']; /* != "N;") ? $collections['prev'] : 0;*/
+            $mixedcommonNames['next_page'] = $collections['data']['next']; /* != "N;") ? $collections['next'] : 0;*/
+            $mixedcommonNames['max_page'] = $max;
+            foreach ($collections['data']['collections'] as $key => $collection) {
+                $this->model->title = $collection['title'];
+                $result = $this->model->localGet();
+                $mixedcommonNames['data'][$key] = [
+                    'id' => ($result['data'][0]['id'])??null,
+                    'name' => ($result['data'][0]['name']) ?? null,
+                    'possition' => ($result['data'][0]['possition']) ?? null,
+                    'date' => ($result['data'][0]['date']) ?? null,
+                    'active' => ($result['data'][0]['active']) ?? null,
+                    'sub_category' => ($result['data'][0]['sub_category']) ?? null,
+                    'category' => ($result['data'][0]['category']) ?? null,
+                    'handle' => ($result['data'][0]['handle']) ?? null,
+                    'keywords' => ($result['data'][0]['keywords']) ?? null,
+                    'store_id' => ($collection['id']) ?? null,
+                    'store_title' => ($collection['title']) ?? null,
+                    'store_handle' => ($collection['handle']) ?? null
                 ];
-                if ($times == 50) {
-                    sleep(2);
-                    $times = 1;
-                } else {
-                    $times++;
-                }
             }
-            $mixedcommonNames['data']['prev_page'] = $prev;
-            $mixedcommonNames['data']['next_page'] = $next;
-            $mixedcommonNames['data']['max_page'] = $max;
         }
-        return $commonNames;
+        return $mixedcommonNames;
     }
     private function getCollectionsPage ($values) {
         $this->model->page = $values;
