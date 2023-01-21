@@ -85,12 +85,12 @@ style="height:auto;">
             {{/block}}
         </div>
     </main>
-    <script src="/assets/js/jquery/jquery.min.js"></script>
-    <script src="/assets/js/bootstrap/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/assets/js/bootstrap/bootstrap.bundle.min.js"></script>
     {{block name="jslibs"}}{{/block}}
     <!-- Toastr -->
-    <script src="/assets/js/toastr/toastr.min.js"></script>
-    <script src="/assets/js/global/functions.js"></script>
+    <script type="text/javascript" src="/assets/js/toastr/toastr.min.js"></script>
+    {{* <script type="text/javascript" src="/assets/js/global/functions.js"></script> *}}
     {{block name="scripts"}}{{/block}}
 </body>
 

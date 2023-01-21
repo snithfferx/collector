@@ -10,7 +10,16 @@
                         {{if $item@last}}
                             <li class="breadcrumb-item active">{{$item.text}}</li>
                         {{else}}
-                            <li class="breadcrumb-item"><a href="?ctr={{$item.controller}}&mtd={{$item.method}}&prm={{$item.param}}">{{$item.text}}</a></li>
+                            <li class="breadcrumb-item">
+                                <a href="
+                                    /{{$item.controller}}
+                                    /{{$item.method}}
+                                    {{if !empty($item.param) or !is_null($item.param)}}
+                                        /{{$item.param}}
+                                    {{/if}}">
+                                    {{$item.text}}
+                                </a>
+                            </li>
                         {{/if}}
                     {{/foreach}}
                 </ol>

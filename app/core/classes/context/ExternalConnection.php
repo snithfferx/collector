@@ -13,18 +13,17 @@ class ExternalConnection
 {
     private $scopes;
     private $url;
-    private $token;
+    private $session;
     private $shop;
     private $client;
+    private $version;
     public function __construct()
     {
         $shopify = new ShopifyHelper;
         $this->scopes = "read_products,write_products,read_script_tags,write_script_tags";
         $this->url = "";
-        $this->shop = $shopify->getAccess();
-        //$this->shop->createAuthRequest($this->scopes, null, null, null, true);
-        //$this->token = $this->shop->getAccessToken();
-        $this->client = $shopify->dsStore;
+        $this->client = $shopify->getAccess();
+        $this->version = $shopify->version;
     }
     /**
      * Método para realizar una solicitud get a la tienda
@@ -97,8 +96,50 @@ class ExternalConnection
     }
     protected function getHttp($values)
     {
+        $el = $values['element'];
+        $datos = array();
+        $hasNext = false;
+        $hasPrev = false;
         try {
-            $response = ['data' => $this->dsStoreGet($values),'error'=>[]];
+            $resultados = $this->storeGet($values);
+            if (!empty($resultados['error'])) {
+                throw new \Exception("Error Processing Request", $resultados['error']);
+            } else {
+                $pagination = unserialize($resultados['pagination']);
+                if (isset($values['query']['id'])) {
+                    $data = ($values['query']['id'] == "count") ? $resultados['data'] : ($resultados['data'][$el]);
+                } else {
+                    $data = $resultados['data'][$el];
+                }
+                if (!is_null($pagination)) $hasNext = $pagination->hasNextPage();
+                if (!is_null($pagination)) $hasPrev = $pagination->hasPreviousPage();
+                $response = [
+                    'data' => [
+                        'collections' => $data,
+                        'next' => $hasNext,
+                        'prev' => $hasPrev
+                    ],
+                    'error' => []
+                ];
+            }
+        } catch (\Exception $e) {
+            $response = [
+                'error' => [
+                    'message' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                    'file' => $e->getFile(),
+                    'trace' => $e->getTraceAsString()
+                ],
+                'data' => $values
+            ];
+        }
+        return $response;
+    }
+    protected function guzzleConnect($values)
+    {
+        try {
+            $response = ['data' => $this->guzzle($values), 'error' => []];
         } catch (\Exception $e) {
             $response = [
                 'error' => [
@@ -114,8 +155,24 @@ class ExternalConnection
         return $response;
     }
 
-    private function dsStoreGet($values) :array {
-        $result = $this->client->get($values);
-        return $result->getDecodedBody();
+    private function storeGet($values): array
+    {
+        if (isset($values['query']['id']) && !empty($values['query']['id'])) {
+            $url = $values['element'] . "/" . $values['query']['id'];
+            array_shift($values['query']);
+        } else {
+            $url = $values['element'];
+        }
+        $result = $this->client->get($url, [], $values['query'], 3);
+        if ($result->getStatusCode() == 200) {
+            $serializedPageInfo = serialize($result->getPageInfo());
+            $datos = $result->getDecodedBody();
+            return ['data' => $datos, 'pagination' => $serializedPageInfo, 'error' => []];
+        }
+        return ['data' => [], 'error' => $result->getStatusCode()];
+    }
+    private function guzzle($values)
+    {
+        return $this->shop->getGuzzleResponse($values);
     }
 }

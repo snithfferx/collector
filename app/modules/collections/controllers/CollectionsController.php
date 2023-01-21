@@ -4,9 +4,9 @@
  * Controlador de colecciones
  * @author Jorge Echeverria <jecheverria@bytes4run.com>
  * @category Controller
- * @version 1.2.0
+ * @version 1.6.4
  * @package app\modules\collections\controllers
- * 12-01-2023
+ * 18-01-2023
  */
 
 namespace app\modules\collections\controllers;
@@ -41,138 +41,270 @@ class CollectionsController extends ControllerClass
      */
     public function create($values)
     {
-        return true;
+        return $this->createViewData('collections/create');
     }
     /**
      * Función que devuelve la lista de colecciones creadas en la base de datos y la tienda
      * 
      * @param mixed $values
      * @return array
+     * @version 1.0.0
+     * 18/01/23
      */
     public function read($values)
     {
-        //$response =  (!empty($values)) ? $this->getCollections($values) : $this->getCollections();
-        $response = $this->getAllCollections();
+        $response = (!empty($values)) ? $this->getCollections($values) : $this->createViewData('collections/list');
         return $response;
     }
     /**
      * Función que edita la información de una colección.
      * @param mixed $values
-     * @return bool
+     * @return array
      */
     public function update($values)
     {
-        return true;
+        return $this->createViewData('collections/update');
     }
+    /**
+     * Summary of delete
+     * @param mixed $values
+     * @return array<array>
+     */
     public function delete($values)
     {
-        return true;
+        return $this->createViewData('collections/delete');
     }
+    /**
+     * Función que devuelve la lista de colecciones en comparativa
+     * Puede recibir un nombre de colección o nombre común, limite de datos a representar [max:250 | default:100]
+     * 
+     * @param string $value
+     * @return array
+     * @version 1.0.0
+     * 18/01/23
+     */
     public function compare($value)
     {
         return (!is_null($value)) ? $this->getCompareData($value) : $this->getCompareData();
     }
-
-    protected function getCollections($value = "all")
+    public function next($value)
     {
-        $result = $this->getStoreCollections($value);
-        if (!empty($result['error'])) {
-            $response = [
-                'view' => [
-                    'type' => [
-                        'name' => "error_view",
-                        'code' => $result['error']['code']
-                    ],
-                    'name' => "collections/list",
-                    'data' => []
-                ],
-                'data' => $result
-            ];
+        return $this->getNextPage($value);
+    }
+    public function previous($value)
+    {
+        return $this->getPreviousPage($value);
+    }
+    public function lista()
+    {
+        return (!empty($values)) ? $this->getCollections($values) : $this->getCollections();
+    }
+    /* #################### Protecteds #################### */
+    /**
+     * Función que devuelve la lista de colecciones o una colección a partir del ID de tienda o local
+     * 
+     * @param string|int $value Puede contener el nombre de la colección o el ID de la colección
+     * @return array
+     */
+    protected function getCollections($value = 'all'): array
+    {
+        $viewData = [];
+        $viewtype = "view";
+        $viewCode = null;
+        $viewName = "";
+        if (is_numeric($value) && strlen($value) > 4) {
+            $result = $this->getCollection($value);
+            if (!empty($result['error'])) {
+                $viewtype = "error_view";
+                $viewCode = $result['error']['code'];
+                $viewName = "collections/detail";
+            } else {
+                $viewtype = "template";
+                $viewName = "collections/detail";
+            }
         } else {
-            $response = [
-                'view' => [
-                    'type' => [
-                        'name' => "view",
-                        'code' => ""
-                    ],
-                    'name' => "collections/list",
-                    'data' => []
-                ],
-                'data' => $result['data']
-            ];
+            if (is_numeric($value)) {
+                $result = $this->getCommonName($value);
+                if (!empty($result['error'])) {
+                    $viewtype = "error_view";
+                    $viewCode = $result['error']['code'];
+                    $viewName = "collections/detail";
+                } else {
+                    $viewName = "collections/detail";
+                }
+            } else {
+                /* $result = ($value == "all") ? $this->getCommonNames() : $this->getCommonNames($value);
+                if (!empty($result['error'])) {
+                    $viewtype = "error_view";
+                    $viewCode = $result['error']['code'];
+                } */
+                return $this->getCommonNames();
+            }
         }
+        $breadcrumbs = $this->createBreadcrumbs(['view'=>$viewName,'method'=>'read','params'=>$value]);
+        $datos = (!empty($result['error'])) ? $result['error'] : $result['data'];
+        $response = $this->createViewData($viewName,$datos,$breadcrumbs, $viewtype,$viewCode,$viewData);
         return $response;
     }
     protected function getCompareData($value = "all"): array
     {
+        $viewData = [];
+        $viewtype = "view";
+        $viewCode = null;
+        $viewName = "collections/compareList";
         $collections = $this->getCompareCollections($value);
         if (!empty($collections['error'])) {
-            $response = [
-                'view' => [
-                    'type' => [
-                        'name' => "error_view",
-                        'code' => $collections['error']['code']
-                    ],
-                    'name' => "collections/list",
-                    'data' => []
-                ],
-                'data' => $collections
-            ];
-        } else {
-            $response = [
-                'view' => [
-                    'type' => [
-                        'name' => "view",
-                        'code' => ""
-                    ],
-                    'name' => "collections/list",
-                    'data' => []
-                ],
-                'data' => $collections['data']
-            ];
+            $viewtype = "error_view";
+            $viewCode = $collections['error']['code'];
         }
+        $breadcrumbs = $this->createBreadcrumbs(['view'=>$viewName,'method'=>'compare','params'=>$value]);
+        $response = $this->createViewData($viewName, $collections,$breadcrumbs,$viewtype,$viewCode,$viewData);
         return $response;
     }
-
-    private function getStoreCollections($value = "all"): array
+    protected function getNextPage($values)
     {
-        if ($value == "all") {
-            $result = $this->model->storeGet($value);
-        } elseif (is_numeric($value)) {
-            $result = $this->model->storeGet([
-                'value' => ['id' => $value]
-            ]);
+        if (is_array($values)) {
+            if ($values['view'] == "compare") {
+                $result = $this->getCollectionsPage($values['page']);
+            } else {
+                $result = $this->getCommonNames($values);
+            }
         } else {
-            $result = $this->model->storeGet([
-                'value' => ['title' => $value, 'handle' => $value]
-            ]);
+            ## Error ###
         }
-        return $result;
     }
-    private function getCompareCollections($value)
+    protected function getPreviousPage ($values) : array {
+        if (is_array($values)) {
+            if ($values['view'] == "compare") {
+                $result = $this->getCollectionsPage($values['page']);
+            } else {
+                $result = $this->getCommonNames($values['page']);
+            }
+        } else {
+            ## Error ###
+        }
+    }
+
+    
+    private function getCompareCollections($value = 100)
     {
-        $storeCollections = $this->getStoreCollections($value);
+        if (is_numeric($value)) {
+            if ($value <= 250) {
+                $limit = $value;
+            } else {
+                $this->model->id = $value;
+            }
+        } elseif (is_array($value)) {
+            $limit = $value['limit'];
+            $this->model->id = $value['sort'];
+        } else {
+            $limit = 100;
+            $this->model->id = $value;
+        }
+        $this->model->limit = $limit;
+        $collections = $this->model->storeGet();
+        $times = 1;
+        $count = $this->model->calcular('store');
+        $max = ceil(1 / $limit);
         $mixedCollections = array();
-        if (empty($storeCollections['error'])) {
-            foreach ($storeCollections['data'] as $store) {
-                $localCollection = $this->model->localGet($store['id']);
-                if (empty($localCollection['error'])) {
-                    $mixedCollections[] = [
-                        'local' => $localCollection['data'],
-                        'store' => $store
-                    ];
-                } else {
-                    $mixedCollections[] = [
-                        'local' => null,
-                        'store' => $store
-                    ];
-                }
+        $error = array();
+        if (empty($collections['error'])) {
+            foreach ($collections['data'] as $collection) {
+                $mixedCollections['store'] = $collection;
+                $this->model->title = $collection['title'];
+                $commonName = $this->model->localGet();
+                $mixedCollections['local'] = (empty($commonName['error'])) ? $commonName['data'] : null;
+            }
+            $mixedCollections['prev_page'] = $collections['prev'];
+            $mixedCollections['next_page'] = $collections['next'];
+            $mixedCollections['max_page'] = $max;
+        } else {
+            $error = $collections['error'];
+        }
+        return [
+            'data' => $mixedCollections,
+            'error' => $error
+        ];
+    }
+    /**
+     * Función que devuelve las colecciones creadas
+     * @param int $limit
+     * @return array
+     */
+    private function getCommonNames($value = 25): array
+    {
+        if (is_array($value)) {
+            $this->model->page = ($value['page']) ?? '';
+            $this->model->id = ($value['page']) ?? '';
+            $this->model->limit = $value['limit'];
+        }
+        $this->model->limit = $value;
+        $collections = $this->model->storeGet();
+        $limit = ($value['limit']) ?? $value;
+        $mixedcommonNames = [];
+        if (empty($collections['error'])) {
+            $count = $this->model->calcular('store');
+            $max = ceil($count['data']['collections']['count'] / $limit);
+            $mixedcommonNames['prev_page'] = $collections['data']['prev']; /* != "N;") ? $collections['prev'] : 0;*/
+            $mixedcommonNames['next_page'] = $collections['data']['next']; /* != "N;") ? $collections['next'] : 0;*/
+            $mixedcommonNames['max_page'] = $max;
+            foreach ($collections['data']['collections'] as $key => $collection) {
+                $this->model->title = $collection['title'];
+                $result = $this->model->localGet();
+                $mixedcommonNames['data'][$key] = [
+                    'id' => ($result['data'][0]['id'])??null,
+                    'name' => ($result['data'][0]['name']) ?? null,
+                    'possition' => ($result['data'][0]['possition']) ?? null,
+                    'date' => ($result['data'][0]['date']) ?? null,
+                    'active' => ($result['data'][0]['active']) ?? null,
+                    'sub_category' => ($result['data'][0]['sub_category']) ?? null,
+                    'category' => ($result['data'][0]['category']) ?? null,
+                    'handle' => ($result['data'][0]['handle']) ?? null,
+                    'keywords' => ($result['data'][0]['keywords']) ?? null,
+                    'store_id' => ($collection['id']) ?? null,
+                    'store_title' => ($collection['title']) ?? null,
+                    'store_handle' => ($collection['handle']) ?? null
+                ];
             }
         }
-        return ['data' => $mixedCollections, 'error' => $storeCollections['error'] ?? array()];
+        return $mixedcommonNames;
     }
-    private function getAllCollections()
+    private function getCollectionsPage ($values) {
+        $this->model->page = $values;
+        return $this->model->storeGet();
+    }
+    private function getCollection(int $id): array
     {
-        return $this->model->shopify("all");
+        $response = [];
+        $this->model->id = $id;
+        $result = $this->model->storeGet();
+        if (!$result['error']) {
+            foreach ($result['data'] as $k => $collection) {
+                $this->model->title = $collection['title'];
+                $coleccion = $this->model->localGet();
+                $response['data'][$k] = [
+                    'store' => $collection,
+                    'local' => (empty($coleccion['error'])) ? $coleccion['data'] : null
+                ];
+            }
+        }
+        return (!empty($response)) ?? $result;
+    }
+    private function getCommonName(int $id): array
+    {
+        $this->model->id = $id;
+        $result = $this->model->localGet();
+        $response = [];
+        if (!$result['error']) {
+            foreach ($result['data'] as $k => $coleccion) {
+                $this->model->id = $coleccion['id'];
+                $collection = $this->model->storeGet();
+                $response['data'][$k] = [
+                    'local' => $coleccion,
+                    'store' => (!$collection['error']) ? $collection['data'] : ['id' => null, 'title' => null, 'handle' => null]
+                ];
+            }
+        }
+        return (!empty($response)) ?? $result;
     }
 }

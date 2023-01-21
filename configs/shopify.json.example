@@ -1,6 +1,7 @@
 {
-    "shop_url" : "my_store.myshopify.com",
+    "store_url" : "my_store", //Sólo es necesario el nombre de la tienda
     "api_key" : "API_KEY",
     "api_pass" : "API_PASSWORD",
-    "api_secr" : "API_SECRET"
+    "api_secret" : "API_SECRET",
+    "api_token":"API_ACCESS_TOKEN"
 }

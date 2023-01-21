@@ -34,15 +34,11 @@ class ViewBuilderHelper {
      */
     public function find(array $view) :bool
     {
-        $path = $this->getViewPath($view);
-        /* if (is_string($viewName)) {
-            $path = _VIEW_ . $viewName . ".tpl"; */
+        if ($view['type'] != 'json') {
+            $path = $this->getViewPath($view);
             return file_exists($path);
-        /* } else {
-            $name = $viewName['name'] ?? null;
-            if (!is_null($name)) $path = _VIEW_ . $name . ".tpl";
-            return file_exists($path);
-        } */
+        }
+        return true;
     }
     /**
      * Renderiza la vista a ser presentada
@@ -51,20 +47,16 @@ class ViewBuilderHelper {
      */
     public function build(array $viewData) :bool
     {
-        /*[
-                    'type' => [
-                        'name' => "template", 
-                        'code' => ""],
-                    'name' => "collections/list", 
-                    'data' => []]*/
-        $path = $this->getViewPath($viewData['view']);
-        $datos = $this->createView($viewData);
-        if ($this->smarty->templateExists($path)) {
-            $this->smarty->assign('data', $datos);
-            $this->smarty->display($path);
-            $response = true;
+        if ($viewData['view']['type'] != 'json') {
+            $path = $this->getViewPath($viewData['view']);
+            $datos = $this->createView($viewData);
+            if ($this->smarty->templateExists($path)) {
+                $this->smarty->assign('data', $datos);
+                $this->smarty->display($path);
+                $response = true;
+            }
         } else {
-            $response = false;
+            $response = json_encode($viewData);
         }
         return $response;
     }
@@ -242,7 +234,7 @@ class ViewBuilderHelper {
         return $response;
     }
     protected function getViewPath (array $view) :string {
-        $type = $view['type']['name'];
+        $type = $view['type'];
         $name = $view['name'];
         $path = _VIEW_;
         switch ($type) {

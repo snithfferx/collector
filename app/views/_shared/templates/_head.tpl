@@ -13,5 +13,5 @@ integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fW
 <link rel="stylesheet" type="text/css" href="/assets/css/jquery-ui\jquery-ui.min.css">
 {{if isset($head.css)}}{{$head.css}}{{/if}}
 {{block name="css"}}{{/block}}
-<link rel="stylesheet" type="text/css" href="/assets/plugins/toastr/toastr.min.css">
+<link rel="stylesheet" type="text/css" href="/assets/css/toastr/toastr.min.css">
 <link rel="stylesheet" type="text/css" href="/assets/css/style.css">
