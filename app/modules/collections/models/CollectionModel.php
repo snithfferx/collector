@@ -97,7 +97,7 @@ class CollectionModel extends ContextClass
         if (!empty($this->tipo)) $query['params'] = "nombre_comun.id_tipo_producto=:$this->tipo";
         if (!empty($this->page)) {
             $top = $this->id + $this->limit;
-            $query['params'] = "nombre_comun.id_nombre_comun >: $this->page,nombre_comun.id_nombre_comun<=:$top";
+            $query['params'] = "nombre_comun.id_nombre_comun>:$this->page,nombre_comun.id_nombre_comun<=:$top";
         }
         if (!isset($response)) $response = $this->select("nombre_comun", $query, $this->limit);
         return $response;

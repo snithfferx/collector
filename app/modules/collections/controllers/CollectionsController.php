@@ -53,7 +53,7 @@ class CollectionsController extends ControllerClass
      */
     public function read($values)
     {
-        $response = (!empty($values)) ? $this->getCollections($values) : $this->createViewData('collections/list');
+        $response = (!empty($values)) ? $this->getCollections($values) : $this->getCollections();
         return $response;
     }
     /**
@@ -109,9 +109,9 @@ class CollectionsController extends ControllerClass
     protected function getCollections($value = 'all'): array
     {
         $viewData = [];
-        $viewtype = "view";
+        $viewtype = "template";
         $viewCode = null;
-        $viewName = "";
+        $viewName = "collections/list";
         if (is_numeric($value) && strlen($value) > 4) {
             $result = $this->getCollection($value);
             if (!empty($result['error'])) {
@@ -133,17 +133,17 @@ class CollectionsController extends ControllerClass
                     $viewName = "collections/detail";
                 }
             } else {
-                /* $result = ($value == "all") ? $this->getCommonNames() : $this->getCommonNames($value);
+                $result = ($value == "all") ? $this->getCommonNames() : $this->getCommonNames($value);
                 if (!empty($result['error'])) {
                     $viewtype = "error_view";
                     $viewCode = $result['error']['code'];
-                } */
-                return $this->getCommonNames();
+                }
+                //return $this->getCommonNames();
             }
         }
-        $breadcrumbs = $this->createBreadcrumbs(['view'=>$viewName,'method'=>'read','params'=>$value]);
+        $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $value]);
         $datos = (!empty($result['error'])) ? $result['error'] : $result['data'];
-        $response = $this->createViewData($viewName,$datos,$breadcrumbs, $viewtype,$viewCode,$viewData);
+        $response = $this->createViewData($viewName, $datos, $breadcrumbs, $viewtype, $viewCode, $viewData);
         return $response;
     }
     protected function getCompareData($value = "all"): array
@@ -157,8 +157,8 @@ class CollectionsController extends ControllerClass
             $viewtype = "error_view";
             $viewCode = $collections['error']['code'];
         }
-        $breadcrumbs = $this->createBreadcrumbs(['view'=>$viewName,'method'=>'compare','params'=>$value]);
-        $response = $this->createViewData($viewName, $collections,$breadcrumbs,$viewtype,$viewCode,$viewData);
+        $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'compare', 'params' => $value]);
+        $response = $this->createViewData($viewName, $collections, $breadcrumbs, $viewtype, $viewCode, $viewData);
         return $response;
     }
     protected function getNextPage($values)
@@ -173,7 +173,8 @@ class CollectionsController extends ControllerClass
             ## Error ###
         }
     }
-    protected function getPreviousPage ($values) : array {
+    protected function getPreviousPage($values): array
+    {
         if (is_array($values)) {
             if ($values['view'] == "compare") {
                 $result = $this->getCollectionsPage($values['page']);
@@ -183,10 +184,11 @@ class CollectionsController extends ControllerClass
         } else {
             ## Error ###
         }
+        return array();
     }
 
-    
-    private function getCompareCollections($value = 100)
+
+    private function getCompareCollections($value = 5)
     {
         if (is_numeric($value)) {
             if ($value <= 250) {
@@ -209,14 +211,16 @@ class CollectionsController extends ControllerClass
         $mixedCollections = array();
         $error = array();
         if (empty($collections['error'])) {
+            $mixedCollections['prev_page'] = "/collections/previous";
+            $mixedCollections['next_page'] = "/collections/next";
             foreach ($collections['data'] as $collection) {
                 $mixedCollections['store'] = $collection;
                 $this->model->title = $collection['title'];
                 $commonName = $this->model->localGet();
                 $mixedCollections['local'] = (empty($commonName['error'])) ? $commonName['data'] : null;
             }
-            $mixedCollections['prev_page'] = $collections['prev'];
-            $mixedCollections['next_page'] = $collections['next'];
+            $mixedCollections['prev_page'] .= $this->makeURL($collections['prev']);
+            $mixedCollections['next_page'] .= $this->makeURL($collections['next']);
             $mixedCollections['max_page'] = $max;
         } else {
             $error = $collections['error'];
@@ -231,7 +235,7 @@ class CollectionsController extends ControllerClass
      * @param int $limit
      * @return array
      */
-    private function getCommonNames($value = 25): array
+    private function getCommonNames($value = 50): array
     {
         if (is_array($value)) {
             $this->model->page = ($value['page']) ?? '';
@@ -245,14 +249,15 @@ class CollectionsController extends ControllerClass
         if (empty($collections['error'])) {
             $count = $this->model->calcular('store');
             $max = ceil($count['data']['collections']['count'] / $limit);
-            $mixedcommonNames['prev_page'] = $collections['data']['prev']; /* != "N;") ? $collections['prev'] : 0;*/
-            $mixedcommonNames['next_page'] = $collections['data']['next']; /* != "N;") ? $collections['next'] : 0;*/
+            $mixedcommonNames['prev_page'] = $this->makeURL($collections['data']['prev']); /* != "N;") ? $collections['prev'] : 0;*/
+            $mixedcommonNames['next_page'] = $this->makeURL($collections['data']['next']); /* != "N;") ? $collections['next'] : 0;*/
+            //echo $mixedcommonNames['next_page'];
             $mixedcommonNames['max_page'] = $max;
             foreach ($collections['data']['collections'] as $key => $collection) {
                 $this->model->title = $collection['title'];
                 $result = $this->model->localGet();
                 $mixedcommonNames['data'][$key] = [
-                    'id' => ($result['data'][0]['id'])??null,
+                    'id' => ($result['data'][0]['id']) ?? null,
                     'name' => ($result['data'][0]['name']) ?? null,
                     'possition' => ($result['data'][0]['possition']) ?? null,
                     'date' => ($result['data'][0]['date']) ?? null,
@@ -269,7 +274,8 @@ class CollectionsController extends ControllerClass
         }
         return $mixedcommonNames;
     }
-    private function getCollectionsPage ($values) {
+    private function getCollectionsPage($values)
+    {
         $this->model->page = $values;
         return $this->model->storeGet();
     }
@@ -306,5 +312,19 @@ class CollectionsController extends ControllerClass
             }
         }
         return (!empty($response)) ?? $result;
+    }
+    private function makeURL ($datos) {
+        $urlString = "";
+        if (is_array($datos)) {
+            $x = 0;
+            $s = sizeof($datos);
+            foreach ($datos as $k => $v) {
+                if ($x == 0) $urlString .= "?";
+                $urlString .= $k . "=" . $v;
+                if ($x < $s) $urlString .= "&";
+                $x++;
+            }
+        }
+        return $urlString;
     }
 }
