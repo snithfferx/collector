@@ -92,7 +92,6 @@ class ExternalConnection
     protected function getHttp($values)
     {
         $el = $values['element'];
-        $datos = array();
         $hasNext = false;
         $hasPrev = false;
         try {
@@ -106,13 +105,17 @@ class ExternalConnection
                 } else {
                     $data = $resultados['data'][$el];
                 }
-                if (!is_null($pagination)) $hasNext = $pagination->hasNextPage();
-                if (!is_null($pagination)) $hasPrev = $pagination->hasPreviousPage();
+                if (!is_null($pagination)) {
+                    if ($pagination->hasNextPage()) $hasNext = $pagination->getNextPageQuery();
+                }
+                if (!is_null($pagination)) {
+                    if ($pagination->hasPreviousPage()) $hasPrev = $pagination->getPreviousPageQuery();
+                }
                 $response = [
                     'data' => [
                         'collections' => $data,
                         'next' => $hasNext,
-                        'prev' => $hasPrev
+                        'prev' => $hasPrev 
                     ],
                     'error' => []
                 ];
@@ -158,7 +161,7 @@ class ExternalConnection
         } else {
             $url = $values['element'];
         }
-        $result = $this->client->get($url, [], $values['query'], 3);
+        $result = $this->client->get($url, [], $values['query']);
         if ($result->getStatusCode() == 200) {
             $serializedPageInfo = serialize($result->getPageInfo());
             $datos = $result->getDecodedBody();
