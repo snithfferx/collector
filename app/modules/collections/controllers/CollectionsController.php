@@ -122,6 +122,7 @@ class CollectionsController extends ControllerClass
                 $viewtype = "template";
                 $viewName = "collections/detail";
             }
+            $viewOrigin = "detail";
         } else {
             if (is_numeric($value)) {
                 $result = $this->getCommonName($value);
@@ -132,17 +133,19 @@ class CollectionsController extends ControllerClass
                 } else {
                     $viewName = "collections/detail";
                 }
+                $viewOrigin = "detail";
             } else {
                 $result = ($value == "all") ? $this->getCommonNames() : $this->getCommonNames($value);
                 if (!empty($result['error'])) {
                     $viewtype = "error_view";
                     $viewCode = $result['error']['code'];
                 }
-                //return $this->getCommonNames();
+                $viewOrigin = "read";
             }
         }
         $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $value]);
         $datos = (!empty($result['error'])) ? $result['error'] : $result['data'];
+        $datos['view_origin'] = $viewOrigin;
         $response = $this->createViewData($viewName, $datos, $breadcrumbs, $viewtype, $viewCode, $viewData);
         return $response;
     }
@@ -163,28 +166,53 @@ class CollectionsController extends ControllerClass
     }
     protected function getNextPage($values)
     {
+        $page = $values['page'];
+        $viewData = [];
+        $viewtype = "template";
+        $viewCode = null;
+        $viewName = "collections/list";
         if (is_array($values)) {
-            if ($values['view'] == "compare") {
-                $result = $this->getCollectionsPage($values['page']);
+            $result = $this->getCommonNames($values);
+            /* if ($values['view_origin'] == "compare") {
             } else {
                 $result = $this->getCommonNames($values);
-            }
+            } */
+            $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $values]);
+            $datos = (!empty($result['error'])) ? $result['error'] : $result['data'];
+            $datos['current_page'] = ($page < $result['data']['max_page']) ? $page + 1 : $page;
         } else {
-            ## Error ###
+            $datos = ['message' => "Request Type not supported"];
+            $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $values]);
+            $viewtype = "error_view";
+            $viewCode = 400;
         }
+        $datos['view_origin'] = $values['view_origin'];
+        return $this->createViewData($viewName, $datos, $breadcrumbs, $viewtype, $viewCode, $viewData);
     }
     protected function getPreviousPage($values): array
     {
+        $page = $values['page'];
+        $viewData = [];
+        $viewtype = "template";
+        $viewCode = null;
+        $viewName = "collections/list";
         if (is_array($values)) {
-            if ($values['view'] == "compare") {
+            /* if ($values['view_origin'] == "compare") {
                 $result = $this->getCollectionsPage($values['page']);
-            } else {
-                $result = $this->getCommonNames($values['page']);
-            }
+            } else { */
+                $result = $this->getCommonNames($values);
+            //}
+            $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $values]);
+            $datos = (!empty($result['error'])) ? $result['error'] : $result['data'];
+            $datos['current_page'] = ($page > 1) ? $page - 1 : $page;
         } else {
-            ## Error ###
+            $datos = ['message' => "Request Type not supported"];
+            $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $values]);
+            $viewtype = "error_view";
+            $viewCode = 400;
         }
-        return array();
+        $datos['view_origin'] = $values['view_origin'];
+        return $this->createViewData($viewName, $datos, $breadcrumbs, $viewtype, $viewCode, $viewData);
     }
 
 
@@ -235,49 +263,33 @@ class CollectionsController extends ControllerClass
      * @param int $limit
      * @return array
      */
-    private function getCommonNames($value = 50): array
+    private function getCommonNames($value = 100): array
     {
-        if (is_array($value)) {
-            $this->model->page = ($value['page']) ?? '';
-            $this->model->id = ($value['page']) ?? '';
-            $this->model->limit = $value['limit'];
-        }
         $this->model->limit = $value;
-        $collections = $this->model->storeGet();
+        if (is_array($value)) {
+            $this->model->page = ($value['page_info']) ?? '';
+            //$this->model->id = ($value['id']) ?? '';
+            $this->model->limit = $value['limit'];
+            $collections = $this->model->getPage();
+        } else {
+            $collections = $this->model->storeGet();
+        }
         $limit = ($value['limit']) ?? $value;
         $mixedcommonNames = [];
         if (empty($collections['error'])) {
             $count = $this->model->calcular('store');
             $max = ceil($count['data']['collections']['count'] / $limit);
-            $mixedcommonNames['prev_page'] = $this->makeURL($collections['data']['prev']); /* != "N;") ? $collections['prev'] : 0;*/
-            $mixedcommonNames['next_page'] = $this->makeURL($collections['data']['next']); /* != "N;") ? $collections['next'] : 0;*/
-            //echo $mixedcommonNames['next_page'];
-            $mixedcommonNames['max_page'] = $max;
-            foreach ($collections['data']['collections'] as $key => $collection) {
-                $this->model->title = $collection['title'];
-                $result = $this->model->localGet();
-                $mixedcommonNames['data'][$key] = [
-                    'id' => ($result['data'][0]['id']) ?? null,
-                    'name' => ($result['data'][0]['name']) ?? null,
-                    'possition' => ($result['data'][0]['possition']) ?? null,
-                    'date' => ($result['data'][0]['date']) ?? null,
-                    'active' => ($result['data'][0]['active']) ?? null,
-                    'sub_category' => ($result['data'][0]['sub_category']) ?? null,
-                    'category' => ($result['data'][0]['category']) ?? null,
-                    'handle' => ($result['data'][0]['handle']) ?? null,
-                    'keywords' => ($result['data'][0]['keywords']) ?? null,
-                    'store_id' => ($collection['id']) ?? null,
-                    'store_title' => ($collection['title']) ?? null,
-                    'store_handle' => ($collection['handle']) ?? null
-                ];
-            }
+            $next_page = $collections['data']['next'];
+            $prev_page = $collections['data']['prev'];
+            $mixedcommonNames['data']['pagination'] = $this->getPagination($prev_page, $next_page, $max,$limit);
+            $mixedcommonNames['data']['max_page'] = $max;
+            $mixedcommonNames['data']['collections'] = $this->getNombresComunes($collections['data']['collections']);
         }
+        echo "<pre>";
+var_dump($mixedcommonNames);
+        echo "</pre>";
+        exit;
         return $mixedcommonNames;
-    }
-    private function getCollectionsPage($values)
-    {
-        $this->model->page = $values;
-        return $this->model->storeGet();
     }
     private function getCollection(int $id): array
     {
@@ -318,13 +330,56 @@ class CollectionsController extends ControllerClass
         if (is_array($datos)) {
             $x = 0;
             $s = sizeof($datos);
-            foreach ($datos as $k => $v) {
+            $urlString = "?";
+            $urlString .= preg_replace("/%5B[0-9]+%5D/", "%5B%5D", http_build_query($datos));
+            /* foreach ($datos as $k => $v) {
                 if ($x == 0) $urlString .= "?";
                 $urlString .= $k . "=" . $v;
                 if ($x < $s) $urlString .= "&";
                 $x++;
-            }
+            } */
         }
         return $urlString;
+    }
+    private function getNombresComunes ($collections) {
+        $response = array();
+        foreach ($collections as $key => $collection) {
+            $this->model->title = $collection['title'];
+            $result = $this->model->localGet();
+            $response[$key] = [
+                'id' => ($result['data'][0]['id']) ?? null,
+                'name' => ($result['data'][0]['name']) ?? null,
+                'possition' => ($result['data'][0]['possition']) ?? null,
+                'date' => ($result['data'][0]['date']) ?? null,
+                'active' => ($result['data'][0]['active']) ?? null,
+                'sub_category' => ($result['data'][0]['sub_category']) ?? null,
+                'category' => ($result['data'][0]['category']) ?? null,
+                'handle' => ($result['data'][0]['handle']) ?? null,
+                'keywords' => ($result['data'][0]['keywords']) ?? null,
+                'store_id' => ($collection['id']) ?? null,
+                'store_title' => ($collection['title']) ?? null,
+                'store_handle' => ($collection['handle']) ?? null
+            ];
+        }
+        return $response;
+    }
+    private function getPagination ($prev,$next,$max,$limit) {
+        $response = array();
+        $this->model->limit = $limit;
+        for ($j = 0; $j <= $max; $j++) {
+            $response[$j] = [
+                'prev_page' => $this->makeURL($prev),
+                'next_page' => $this->makeURL($next),
+                'active'    => ($j == 0) ? true : false,
+                'page_id'   => $j +1
+            ];
+            if ($next != false) {
+                $this->model->page = $next['page_info'];
+                $prevData = $this->model->getPage();
+                $next = $prevData['data']['next'];
+                $prev = $prevData['data']['prev'];
+            }
+        }
+        return $response;
     }
 }

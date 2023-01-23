@@ -45,6 +45,10 @@ class CollectionModel extends ContextClass
             return $this->getLocalCalc($calculo);
         }
     }
+    public function getPage()
+    {
+        return $this->getCollectionsPage();
+    }
     /* private function getCollections(array $parameters = []) :array {
         if (!empty($parameters['value'])) {
             if (!empty($parameters['fields'])) {
@@ -109,6 +113,12 @@ class CollectionModel extends ContextClass
         if (!empty($this->id)) $request['query']['id'] = $this->id;
         if (!empty($this->page)) $request['query']['page_info'] = $this->page;
         $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id', 'handle', 'title'];
+        $request['query']['limit'] = $this->limit;
+        return $this->external->getShopifyResponse($request);
+    }
+    private function getCollectionsPage () {
+        $request['element'] = $this->element;
+        if (!empty($this->page)) $request['query']['page_info'] = $this->page;
         $request['query']['limit'] = $this->limit;
         return $this->external->getShopifyResponse($request);
     }
