@@ -44,6 +44,10 @@ class ExternalContext extends ExternalConnection
         echo "</pre>";
         exit;
     }
+    public function graphQL($values)
+    {
+        return $this->_graphQLRequest($values);
+    }
 
     private function getHttpResponse(array $values): array
     {
@@ -54,14 +58,32 @@ class ExternalContext extends ExternalConnection
         } elseif ($values['type'] == "put") {
             $response = $this->_get($values);
         } else {
-            $response = ['type' => "error", 'data' => ['message'=>"Method not supported"]];
+            $response = ['type' => "error", 'data' => ['message' => "Method not supported"]];
         }
         return $response;
     }
-    private function getResponse($value) {
+    private function getResponse($value)
+    {
         return $this->getHttp($value);
     }
-    private function getGuzResponse ($values) {
+    private function getGuzResponse($values)
+    {
         return $this->guzzleConnect($values);
+    }
+    private function _graphQLRequest($values)
+    {
+        $limit = $values['query']['limit'];
+        $fields = ($values['query']['fields']) ?? null;
+        $element = $values['element'];
+        $pluralized = $element . 's';
+        $glued = (!is_null($fields)) ? implode("\n", $fields) : '';
+        if (isset($values['query']['id']) && !empty($values['query']['id'])) {
+            $id = $values['query']['id'];
+            $request = 'query {' . $element . '(id:"' . $id . '",first:' . $limit . ') {edges {node {' . $glued . '}}}}';
+        } else {
+            $pages = implode("\n", ['hasPreviousPage', 'hasNextPage', 'startCursor', 'endCursor']);
+            $request = 'query {' . $pluralized . '(first:' . $limit . ') {nodes {' . $glued . '}pageInfo {' . $pages . '}}}';
+        }
+        return $this->graphQLRequest($request);
     }
 }

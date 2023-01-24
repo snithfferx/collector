@@ -5,6 +5,7 @@ namespace app\core\helpers;
 use PHPShopify\Exception\ApiException;
 use Shopify\Auth\FileSessionStorage;
 use Shopify\Clients\Rest;
+use Shopify\Clients\Graphql;
 use Shopify\Context;
 
 class ShopifyHelper
@@ -18,12 +19,12 @@ class ShopifyHelper
     private $confs;
     private $app_cnf;
     public $version;
+    public $grphQlClient;
     function __construct()
     {
         $confController = new ConfigHelper;
         $this->confs = $confController->get("shopify");
         $this->app_cnf = $confController->get("config");
-        //$this->shopRequest = new ShopifySDK();
         $this->version = $this->confs['api_version'];
         $this->shopifyInit();
     }
@@ -31,6 +32,9 @@ class ShopifyHelper
     {
         return $this->accessToStore();
         //return $this->shopifyInit();
+    }
+    function graphAccess () {
+        return $this->graphQLRequest();
     }
     protected function getGuzzleResponse(array $values)
     {
@@ -74,6 +78,14 @@ class ShopifyHelper
         } else {
             return $guz->request($values['method'], $values['element']);
         }
+    }
+    private function graphQLRequest () {
+        try {
+            $this->grphQlClient = new Graphql($this->confs['store_url'] . ".myshopify.com", $this->confs['api_token']);
+        } catch (ApiException $apex) {
+            return $apex->getMessage();
+        }
+        return true;
     }
 }
 class GuzzleHelper
