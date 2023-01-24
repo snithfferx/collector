@@ -113,7 +113,7 @@ class CollectionsController extends ControllerClass
         $viewCode = null;
         $viewName = "collections/list";
         if (is_numeric($value) && strlen($value) > 4) {
-            $result = $this->getCollection($value);
+            $result = $this->collection($value);
             if (!empty($result['error'])) {
                 $viewtype = "error_view";
                 $viewCode = $result['error']['code'];
@@ -125,7 +125,7 @@ class CollectionsController extends ControllerClass
             $viewOrigin = "detail";
         } else {
             if (is_numeric($value)) {
-                $result = $this->getCommonName($value);
+                $result = $this->collection($value);
                 if (!empty($result['error'])) {
                     $viewtype = "error_view";
                     $viewCode = $result['error']['code'];
@@ -135,7 +135,7 @@ class CollectionsController extends ControllerClass
                 }
                 $viewOrigin = "detail";
             } else {
-                $result = ($value == "all") ? $this->getCommonNames() : $this->getCommonNames($value);
+                $result = ($value == "all") ? $this->commonNames() : $this->commonNames($value);
                 if (!empty($result['error'])) {
                     $viewtype = "error_view";
                     $viewCode = $result['error']['code'];
@@ -155,7 +155,7 @@ class CollectionsController extends ControllerClass
         $viewtype = "view";
         $viewCode = null;
         $viewName = "collections/compareList";
-        $collections = $this->getCompareCollections($value);
+        $collections = $this->compareCollections($value);
         if (!empty($collections['error'])) {
             $viewtype = "error_view";
             $viewCode = $collections['error']['code'];
@@ -172,7 +172,7 @@ class CollectionsController extends ControllerClass
         $viewCode = null;
         $viewName = "collections/list";
         if (is_array($values)) {
-            $result = $this->getCommonNames($values);
+            $result = $this->commonNames($values);
             /* if ($values['view_origin'] == "compare") {
             } else {
                 $result = $this->getCommonNames($values);
@@ -200,7 +200,7 @@ class CollectionsController extends ControllerClass
             /* if ($values['view_origin'] == "compare") {
                 $result = $this->getCollectionsPage($values['page']);
             } else { */
-                $result = $this->getCommonNames($values);
+            $result = $this->commonNames($values);
             //}
             $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $values]);
             $datos = (!empty($result['error'])) ? $result['error'] : $result['data'];
@@ -216,7 +216,7 @@ class CollectionsController extends ControllerClass
     }
 
 
-    private function getCompareCollections($value = 5)
+    private function compareCollections($value = 5)
     {
         if (is_numeric($value)) {
             if ($value <= 250) {
@@ -263,7 +263,7 @@ class CollectionsController extends ControllerClass
      * @param int $limit
      * @return array
      */
-    private function getCommonNames($value = 100): array
+    private function commonNames($value = 100): array
     {
         $this->model->limit = $value;
         if (is_array($value)) {
@@ -281,17 +281,17 @@ class CollectionsController extends ControllerClass
             $max = ceil($count['data']['collections']['count'] / $limit);
             $next_page = $collections['data']['next'];
             $prev_page = $collections['data']['prev'];
-            $mixedcommonNames['data']['pagination'] = $this->getPagination($prev_page, $next_page, $max,$limit);
+            $mixedcommonNames['data']['pagination'] = $this->pagination($prev_page, $next_page, $max, $limit);
             $mixedcommonNames['data']['max_page'] = $max;
-            $mixedcommonNames['data']['collections'] = $this->getNombresComunes($collections['data']['collections']);
+            $mixedcommonNames['data']['collections'] = $this->nombresComunes($collections['data']['collections']);
         }
         echo "<pre>";
-var_dump($mixedcommonNames);
+        var_dump($collections);
         echo "</pre>";
         exit;
         return $mixedcommonNames;
     }
-    private function getCollection(int $id): array
+    private function collection(int $id): array
     {
         $response = [];
         $this->model->id = $id;
@@ -308,7 +308,7 @@ var_dump($mixedcommonNames);
         }
         return (!empty($response)) ?? $result;
     }
-    private function getCommonName(int $id): array
+    private function commonName(int $id): array
     {
         $this->model->id = $id;
         $result = $this->model->localGet();
@@ -325,23 +325,19 @@ var_dump($mixedcommonNames);
         }
         return (!empty($response)) ?? $result;
     }
-    private function makeURL ($datos) {
+    private function makeURL($datos)
+    {
         $urlString = "";
         if (is_array($datos)) {
             $x = 0;
             $s = sizeof($datos);
             $urlString = "?";
             $urlString .= preg_replace("/%5B[0-9]+%5D/", "%5B%5D", http_build_query($datos));
-            /* foreach ($datos as $k => $v) {
-                if ($x == 0) $urlString .= "?";
-                $urlString .= $k . "=" . $v;
-                if ($x < $s) $urlString .= "&";
-                $x++;
-            } */
         }
         return $urlString;
     }
-    private function getNombresComunes ($collections) {
+    private function nombresComunes($collections)
+    {
         $response = array();
         foreach ($collections as $key => $collection) {
             $this->model->title = $collection['title'];
@@ -363,15 +359,16 @@ var_dump($mixedcommonNames);
         }
         return $response;
     }
-    private function getPagination ($prev,$next,$max,$limit) {
+    private function pagination($prev, $next, $max, $limit)
+    {
         $response = array();
         $this->model->limit = $limit;
         for ($j = 0; $j <= $max; $j++) {
             $response[$j] = [
                 'prev_page' => $this->makeURL($prev),
-                'next_page' => $this->makeURL($next),
+                'next_page' => (isset($next)) ? $this->makeURL($next) : "",
                 'active'    => ($j == 0) ? true : false,
-                'page_id'   => $j +1
+                'page_id'   => $j + 1
             ];
             if ($next != false) {
                 $this->model->page = $next['page_info'];

@@ -31,6 +31,7 @@ class CollectionModel extends ContextClass
     public function storeGet(): array
     {
         $response = $this->getCollections();
+        //$response = $this->grafkuel();
         return $response;
     }
     public function localGet(): array
@@ -135,7 +136,14 @@ class CollectionModel extends ContextClass
     {
         return $this->calculate("nombre_comun", $calculo, "id_nombre_comun");
     }
-
+    private function grafkuel () {
+        $request['element'] = $this->element;
+        $request['query']['limit'] = $this->limit;
+        if (empty($this->fields)) {
+            $request['query']['fields'] = ['id', 'title', 'handle', 'productsCount', 'collection_type'];
+        }
+        return $this->external->graphQL($request);
+    }
 
     /* private function getGuz()
     {
