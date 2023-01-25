@@ -1,3 +1,73 @@
+
+function botones(requested) {
+    let btns = [];
+    if (typeof requested == "array") {
+        for (let j = 0; j < requested.length; j++) {
+            if (requested[j] == "copiar") {
+                btns.push({extend:'copy',text:'Copiar'});
+            } else {
+                if (requested[j] == "imprimir") {
+                    btns.push({extend:'print',text:'Imprimir'});
+                } else {
+                    if (requested[j] == "columnas") {
+                        btns.push({extend:'colvis',text:'Columnas'});
+                    } else {
+                        if (requested[j] == "cols") {
+                            btns.push({extend:'colvis',text:'Columnas'});
+                        } else {
+                            if (requested[j] == "colvis") {
+                                btns.push({extend:'colvis',text:'Columnas'});
+                            } else {
+                                if (requested[j] == "copy") {
+                                    btns.push({extend:'copy',text:'Copiar'});
+                                } else {
+                                    if (requested[j] == "print") {
+                                        btns.push({extend:'print',text:'Imprimir'});
+                                    } else {
+                                        if (requested[j] == "pdf") {
+                                            btns.push({extend: 'pdf',text: 'PDF',exportOptions: {columns: ':visible'}});
+                                        } else {
+                                            btns.push(requested[j]);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        if (requested === true) {
+            btns = [
+                {extend:'copy',text:'Copiar'},
+                "csv",
+                "excel",
+                {
+                    extend: 'pdf',
+                    text: 'PDF',
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                },
+                {extend:'print',text:'Imprimir'},
+                {extend:'colvis',text:'Columnas'}];
+        }
+    }
+    return btns;
+}
+function lineas(numero) {
+    let lin = [], b = numero;
+    for (let a = 1; a < 6; a++) {
+        if (a == 1) {
+            b = b * a;
+        } else {
+            b = b * 2;
+        }
+        lin.push(b);
+    }
+    return lin;
+}
 /**
  * Funcción que devuelve una tabla usando librería DataTables
  * 
@@ -12,14 +82,14 @@
  */
 function tabler(
     elemento,
-    lineas = 5,
+    lines = 5,
     paginado = true,
     columna=0,
     ordenado = true,
     disposicion = 'asc',
     acciones = true,
     alto = "auto") {
-    var lin = lineas(lineas);
+    var lin = lineas(lines);
     var btns = botones(acciones);
     var sorting = [columna, disposicion];
     var table = $('#'+elemento).DataTable({
@@ -137,73 +207,4 @@ function loadTable(
         "buttons": btns
     }).buttons().container().appendTo('#' + elemento + '_wrapper .col-sm-12:eq(0)');
     return table;
-}
-function botones(requested) {
-    let btns = [];
-    if (typeof requested == "array") {
-        for (let j = 0; j < requested.length; j++) {
-            if (requested[j] == "copiar") {
-                btns.push({extend:'copy',text:'Copiar'});
-            } else {
-                if (requested[j] == "imprimir") {
-                    btns.push({extend:'print',text:'Imprimir'});
-                } else {
-                    if (requested[j] == "columnas") {
-                        btns.push({extend:'colvis',text:'Columnas'});
-                    } else {
-                        if (requested[j] == "cols") {
-                            btns.push({extend:'colvis',text:'Columnas'});
-                        } else {
-                            if (requested[j] == "colvis") {
-                                btns.push({extend:'colvis',text:'Columnas'});
-                            } else {
-                                if (requested[j] == "copy") {
-                                    btns.push({extend:'copy',text:'Copiar'});
-                                } else {
-                                    if (requested[j] == "print") {
-                                        btns.push({extend:'print',text:'Imprimir'});
-                                    } else {
-                                        if (requested[j] == "pdf") {
-                                            btns.push({extend: 'pdf',text: 'PDF',exportOptions: {columns: ':visible'}});
-                                        } else {
-                                            btns.push(requested[j]);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        if (requested === true) {
-            btns = [
-                {extend:'copy',text:'Copiar'},
-                "csv",
-                "excel",
-                {
-                    extend: 'pdf',
-                    text: 'PDF',
-                    exportOptions: {
-                        columns: ':visible'
-                    }
-                },
-                {extend:'print',text:'Imprimir'},
-                {extend:'colvis',text:'Columnas'}];
-        }
-    }
-    return btns;
-}
-function lineas(numero) {
-    let lin = [], b = numero;
-    for (let a = 1; a < 6; a++) {
-        if (a == 1) {
-            b = b * a;
-        } else {
-            b = b * 2;
-        }
-        lin.push(b);
-    }
-    return lin;
 }

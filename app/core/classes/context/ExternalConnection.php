@@ -3,6 +3,7 @@
 namespace app\core\classes\context;
 
 use app\core\helpers\ShopifyHelper;
+use GuzzleHttp\Psr7\Query;
 
 /**
  * Clase para las transacciones entre los modelos y la base de datos.
@@ -157,6 +158,9 @@ class ExternalConnection
         }
         return $response;
     }
+    protected function graphQLRequest ($values) {
+        return $this->getGraphQLResponse($values);
+    }
 
     private function storeGet($values): array
     {
@@ -177,5 +181,25 @@ class ExternalConnection
     private function guzzle($values)
     {
         return $this->shop->getGuzzleResponse($values);
+    }
+    private function getGraphQLResponse ($values) {
+        $shopify = new ShopifyHelper;
+        $access = $shopify->graphAccess();
+        $query = <<<QUERY
+            $values
+        QUERY;
+        if ($access == true) {
+            $result = $shopify->grphQlClient->query(['query' => $query]);
+        }
+        if ($result->getStatusCode() == 200) {
+            //$serializedPageInfo = serialize($result->getPageInfo());
+            $datos = $result->getDecodedBody();
+            /* echo "<pre>";
+            var_dump($datos);
+            echo "</pre>";
+            exit; */
+            return ['data' => $datos['data']['collections']['nodes'], 'pagination' => $datos['data']['collections']['pageInfo'], 'error' => []];
+        }
+        return ['data' => [], 'error' => $result->getStatusCode()];
     }
 }

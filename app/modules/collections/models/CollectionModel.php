@@ -31,6 +31,7 @@ class CollectionModel extends ContextClass
     public function storeGet(): array
     {
         $response = $this->getCollections();
+        //$response = $this->grafkuel();
         return $response;
     }
     public function localGet(): array
@@ -44,6 +45,10 @@ class CollectionModel extends ContextClass
         } else {
             return $this->getLocalCalc($calculo);
         }
+    }
+    public function getPage()
+    {
+        return $this->getCollectionsPage();
     }
     /* private function getCollections(array $parameters = []) :array {
         if (!empty($parameters['value'])) {
@@ -112,6 +117,12 @@ class CollectionModel extends ContextClass
         $request['query']['limit'] = $this->limit;
         return $this->external->getShopifyResponse($request);
     }
+    private function getCollectionsPage () {
+        $request['element'] = $this->element;
+        if (!empty($this->page)) $request['query']['page_info'] = $this->page;
+        $request['query']['limit'] = $this->limit;
+        return $this->external->getShopifyResponse($request);
+    }
     private function getCountCollection()
     {
         $request['element'] = $this->element;
@@ -125,7 +136,14 @@ class CollectionModel extends ContextClass
     {
         return $this->calculate("nombre_comun", $calculo, "id_nombre_comun");
     }
-
+    private function grafkuel () {
+        $request['element'] = $this->element;
+        $request['query']['limit'] = $this->limit;
+        if (empty($this->fields)) {
+            $request['query']['fields'] = ['id', 'title', 'handle', 'productsCount', 'collection_type'];
+        }
+        return $this->external->graphQL($request);
+    }
 
     /* private function getGuz()
     {
