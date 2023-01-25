@@ -52,8 +52,22 @@ class ViewBuilderHelper {
             $datos = $this->createView($viewData);
             if ($this->smarty->templateExists($path)) {
                 $this->smarty->assign('data', $datos);
-                $this->smarty->display($path);
-                $response = true;
+                try {
+                    $this->smarty->display($path);
+                    $response = true;
+                } catch (\Exception $e) {
+                    $response = $this->buildDefault(
+                    [
+                        'error' => [
+                            'message' => $e->getMessage(),
+                            'line' => $e->getLine(),
+                            'code' => $e->getCode(),
+                            'file' => $e->getFile(),
+                            'trace' => $e->getTraceAsString()
+                        ],
+                        'data' => $viewData
+                    ]);
+                }
             }
         } else {
             $response = json_encode($viewData);

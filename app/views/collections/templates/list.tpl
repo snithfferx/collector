@@ -13,38 +13,54 @@
                 <div class="card">
                     <div class="card-header">
                         <h5 class="m-0">Lista de Colecciones</h5>
-                        {{if $content.max_page > 0}}
+                        {{*if $content.max_page > 0*}}
                             <nav aria-label="Page navigation" id="collections_pagination">
                                 <ul class="pagination justify-content-end">
-                                    {{if $content.prev_page > 1}}
+                                    {{* 
                                         <li class="page-item">
-                                            <a class="page-link {{if !empty($content.prev_page)}}disabled{{/if}}" href="/collections/previous{{$content.prev_page}}{{if isset($content.current_page)}}&page={{$content.current_page}}{{else}}&page=1{{/if}}&view_origin={{$content.view_origin}}" id="collections_pagination_prev">
+                                            <b class="text-primary mr-2 ml-3" style="display:block;">
+                                                {{if isset($content.current_page)}}
+                                        {{$content.current_page}} de
+                                    {{else}}
+                                        1 de
+                                    {{/if}}
+                                    {{$content.max_page}}
+                                    </b>
+                                    </li> *}}
+                                    {{* if !empty($content.pagination[0]['prev_page'])}}
+                                        <li class="page-item">
+                                            <a class="page-link" 
+                                                href="/collections/previous{{content.pagination[0]['prev_page']}}
+                                                {{if isset($content.current_page)}}
+                                                    &page={{$content.current_page}}
+                                                {{else}}
+                                                    &page=1
+                                                {{/if}}
+                                                &view_origin={{$content.view_origin}}" 
+                                                id="collections_pagination_prev">
                                                 <span aria-hidden="true">&laquo;</span>
                                             </a>
                                         </li>
-                                    {{/if}}
-                                    <li class="page-item">
-                                        <b class="text-primary mr-2 ml-3" style="display:block;">
-                                            {{if isset($content.current_page)}}
-                                                {{$content.current_page}} de
-                                            {{else}}
-                                                1 de
-                                            {{/if}}
-                                            {{$content.max_page}}
-                                        </b>
-                                    </li>
-                                    {{foreach $content.pagination as $page}}
-                                        <li class="page-item"><a class="page-link" href="/collections/previous{{$page.prev_page}}"></a></li>
-                                    {{if $content.prev_page < $content.max_page}}
+                                    {{/if *}}
+                                    {{* foreach $content.pagination as $in => $page}}
+                                        {{if !empty($content.pagination[($in + 1)]['prev_page'])}}
+                                            <li class="page-item">
+                                                <a class="page-link active" href="/collections/previous{{$content.pagination[($in + 1)]['prev_page']}}">{{page.page_id}}</a>
+                                            </li>
+                                        {{/if}}
+                                    {{/foreach *}}
+                                    {{* if !empty($content.pagination[0]['next_page'])}}
                                         <li class="page-item">
-                                            <a class="page-link {{if !empty($content.next_page)}}disabled{{/if}}" href="/collections/next{{$content.next_page}}{{if isset($content.current_page)}}&page={{$content.current_page}}{{else}}&page=1{{/if}}&view_origin={{$content.view_origin}}" id="collections_pagination_next">
+                                            <a class="page-link" 
+                                                href="/collections/next{{$content.pagination[0]['next_page']}}&page{{$content.pagination[0]['page_id']}}=&view_origin={{$content.view_origin}}" 
+                                                id="collections_pagination_next">
                                                 <span aria-hidden="true">&raquo;</span>
                                             </a>
                                         </li>
-                                    {{/if}}
+                                    {{/if *}}
                                 </ul>
                             </nav>
-                        {{/if}}
+                        {{*/if*}}
                     </div>
                     <div class="card-body">
                         <table class="table table-responsive table-striped" id="collectionsList">
@@ -129,7 +145,7 @@
                         </table>
                     </div>
                     <div class="card-footer">
-                        {{if $content.max_page > 0}}
+                        {{* if $content.max_page > 0}}
                             <nav aria-label="Page navigation" id="collections_pagination">
                                 <ul class="pagination justify-content-center">
                                     {{if $content.prev_page > 1}}
@@ -158,13 +174,13 @@
                                     {{/if}}
                                 </ul>
                             </nav>
-                        {{/if}}
+                        {{/if *}}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    {{* <pre>{{var_dump($data.content)}}</pre> *}}
+    {{ <pre>{{var_dump($data.content)}}</pre> }}
 {{/block}}
 {{block name='css'}}
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
