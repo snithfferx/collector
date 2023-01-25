@@ -76,13 +76,18 @@ class ExternalContext extends ExternalConnection
         $fields = ($values['query']['fields']) ?? null;
         $element = $values['element'];
         $pluralized = $element . 's';
-        $glued = (!is_null($fields)) ? implode("\n", $fields) : '';
+        $glued = (!is_null($fields) && !empty($fields)) ? implode("\n", $fields) : '';
         if (isset($values['query']['id']) && !empty($values['query']['id'])) {
             $id = $values['query']['id'];
             $request = 'query {' . $element . '(id:"' . $id . '",first:' . $limit . ') {edges {node {' . $glued . '}}}}';
         } else {
             $pages = implode("\n", ['hasPreviousPage', 'hasNextPage', 'startCursor', 'endCursor']);
-            $request = 'query {' . $pluralized . '(first:' . $limit . ') {nodes {' . $glued . '}pageInfo {' . $pages . '}}}';
+            $request = 'query {' . $pluralized . '(first:' . $limit . ')';
+            if (!empty($glued)) {
+                $request .= '{nodes{' . $glued . '}pageInfo{' . $pages . '}}}';
+            } else {
+                $request .= '{edges {node} pageInfo {' . $pages . '}}}';
+            }
         }
         return $this->graphQLRequest($request);
     }

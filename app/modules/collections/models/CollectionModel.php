@@ -26,12 +26,12 @@ class CollectionModel extends ContextClass
     public function __construct()
     {
         $this->external = new ExternalContext;
-        $this->element = 'custom_collections';
+        $this->element = 'collection';
     }
     public function storeGet(): array
     {
-        $response = $this->getCollections();
-        //$response = $this->grafkuel();
+        //$response = $this->getCollections();
+        $response = $this->grafkuel();
         return $response;
     }
     public function localGet(): array
@@ -113,11 +113,12 @@ class CollectionModel extends ContextClass
         $request['query'] = array();
         if (!empty($this->id)) $request['query']['id'] = $this->id;
         if (!empty($this->page)) $request['query']['page_info'] = $this->page;
-        $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id', 'handle', 'title'];
+        $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : [];
         $request['query']['limit'] = $this->limit;
         return $this->external->getShopifyResponse($request);
     }
-    private function getCollectionsPage () {
+    private function getCollectionsPage()
+    {
         $request['element'] = $this->element;
         if (!empty($this->page)) $request['query']['page_info'] = $this->page;
         $request['query']['limit'] = $this->limit;
@@ -136,11 +137,13 @@ class CollectionModel extends ContextClass
     {
         return $this->calculate("nombre_comun", $calculo, "id_nombre_comun");
     }
-    private function grafkuel () {
+    private function grafkuel()
+    {
         $request['element'] = $this->element;
         $request['query']['limit'] = $this->limit;
         if (empty($this->fields)) {
-            $request['query']['fields'] = ['id', 'title', 'handle', 'productsCount', 'collection_type'];
+            /* */
+            $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id', 'title', 'handle', 'productsCount', 'sortOrder'];
         }
         return $this->external->graphQL($request);
     }
