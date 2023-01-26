@@ -4,6 +4,7 @@ namespace app\core\classes\context;
 
 use app\core\helpers\ShopifyHelper;
 use GuzzleHttp\Psr7\Query;
+use PHPShopify\Exception\ApiException;
 
 /**
  * Clase para las transacciones entre los modelos y la base de datos.
@@ -184,17 +185,42 @@ class ExternalConnection
             $values
         QUERY;
         if ($access == true) {
-            $result = $shopify->grphQlClient->query(['query' => $query]);
+            try {
+                $result = $shopify->grphQlClient->query(['query' => $query]);
+                if ($result->getStatusCode() == 200) {
+                    $datos = $result->getDecodedBody();
+                    $collections = $datos['data']['collections'];
+                    return [
+                        'data' => ($collections['nodes']) ?? $collections['edges'], 
+                        'pagination' => $datos['data']['collections']['pageInfo'], 
+                        'error' => []];
+                } else {
+                    $c = $result->getStatusCode();
+                    throw new \Exception("Request error.", $c);
+                }
+            } catch (\Exception $e) {
+                $response = [
+                    'error' => [
+                        'message' => $e->getMessage(),
+                        'line' => $e->getLine(),
+                        'code' => $e->getCode(),
+                        'file' => $e->getFile(),
+                        'trace' => $e->getTraceAsString()
+                    ],
+                    'data' => $values
+                ];
+            }
+        } else {
+            $response = [
+                'error' => [
+                    'message' => "Access error.\nVerify access authorization and try again", 
+                    'line' => 187,
+                    'code'=> 401,
+                    'file'=>__DIR__,
+                    'trace'=>[]
+                ],
+                'data' => $values];
         }
-        if ($result->getStatusCode() == 200) {
-            //$serializedPageInfo = serialize($result->getPageInfo());
-            $datos = $result->getDecodedBody();
-            /* echo "<pre>";
-            var_dump($datos);
-            echo "</pre>";
-            exit; */
-            return ['data' => $datos['data']['collections']['nodes'], 'pagination' => $datos['data']['collections']['pageInfo'], 'error' => []];
-        }
-        return ['data' => [], 'error' => $result->getStatusCode()];
+        return $response;
     }
 }

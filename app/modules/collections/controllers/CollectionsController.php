@@ -99,6 +99,9 @@ class CollectionsController extends ControllerClass
     {
         return (!empty($values)) ? $this->getCollections($values) : $this->getCollections();
     }
+    public function sync ($value) {
+
+    }
     /* #################### Protecteds #################### */
     /**
      * Función que devuelve la lista de colecciones o una colección a partir del ID de tienda o local
@@ -112,6 +115,15 @@ class CollectionsController extends ControllerClass
         $viewtype = "template";
         $viewCode = null;
         $viewName = "collections/list";
+        if (!empty($value)) {
+            if (is_numeric($value) && strlen($value) > 6) {
+                $result = $this->collection($value);
+                echo "<pre>";
+                var_dump($value);
+                echo "<pre>";
+                exit;
+            }
+        }
         if (is_numeric($value) && strlen($value) > 4) {
             $result = $this->collection($value);
             if (!empty($result['error'])) {
@@ -288,11 +300,8 @@ class CollectionsController extends ControllerClass
                 $prev_page = ($collections['pagination']['hasPreviousPage']) ? $collections['pagination']['startCursor'] : '';
                 $mixedcommonNames['data']['collections'] = $this->nombresComunes($collections['data']);
             }
-            /* echo "<pre>";
-            var_dump($mixedcommonNames);
-            echo "</pre>";
-            exit; */
             //$mixedcommonNames['data']['pagination'] = $this->pagination($prev_page, $next_page, $max, $limit);
+            $mixedcommonNames['data']['pagination'] = ['prev_page' => $prev_page, 'next_page' => $next_page, 'page_id' => 1];
             //$mixedcommonNames['data']['max_page'] = $max;
         }
         return $mixedcommonNames;
@@ -350,40 +359,55 @@ class CollectionsController extends ControllerClass
             $result = $this->model->localGet();
             $idArray = explode("/", $collection['id']);
             $id_store = $idArray[4];
+            $fecha = "Sin Fecha";
+            $response[$key] = [
+                'id'            => "",
+                'name'          => "No asociado",
+                'date'          => $fecha,
+                'active'        => 0,
+                'handle'        => "No asignado",
+                'category'      => "No asociado",
+                'keywords'      => "",
+                'store_id'      => $id_store,
+                'id_tienda'     => "No asociado",
+                'possition'     => null,
+                'sort_order' => ($collection['sortOrder']) ?? null,
+                'store_title' => ($collection['title']) ?? null,
+                'store_handle' => ($collection['handle']) ?? null,
+                'sub_category' => "No asociado",
+                'product_count' => ($collection['productsCount']) ?? null
+            ];
             if (sizeof($result['data']) > 1) {
-                foreach ($result['data'] as $i => $v) {
+                foreach ($result['data'] as $v) {
                     if ($v['store_id'] == $id_store) {
-                        $response[$key] = [
-                            'id' => ($v['id']) ?? null,
-                            'name' => ($v['name']) ?? null,
-                            'possition' => ($v['possition']) ?? null,
-                            'date' => ($v['date']) ?? null,
-                            'active' => ($v['active']) ?? null,
-                            'sub_category' => ($v['sub_category']) ?? null,
-                            'category' => ($v['category']) ?? null,
-                            'handle' => ($v['handle']) ?? null,
-                            'keywords' => ($v['keywords']) ?? null,
-                            'store_id' => ($id_store) ?? null,
-                            'store_title' => ($collection['title']) ?? null,
-                            'store_handle' => ($collection['handle']) ?? null
-                        ]; 
+                        if (!empty($v['date'])) $fecha = date("d/m/Y", strtotime($v['date']));
+                        if (!empty($v['id'])) $response[$key]['id'] = $v['id'];
+                        if (!empty($v['name'])) $response[$key]['name'] = $v['name'];
+                        if (!empty($v['date'])) $response[$key]['date'] = $fecha;
+                        if (!empty($v['active'])) $response[$key]['active'] = $v['active'];
+                        if (!empty($v['handle'])) $response[$key]['handle'] = $v['handle'];
+                        if (!empty($v['category'])) $response[$key]['category'] = $v['category'];
+                        if (!empty($v['keywords'])) $response[$key]['keywords'] = $v['keywords'];
+                        if (!empty($v['store_id'])) $response[$key]['store_id'] = $id_store;
+                        if (!empty($v['possition'])) $response[$key]['possition'] = $v['possition'];
+                        if (!empty($v['sub_category'])) $response[$key]['sub_category'] = $v['sub_category'];
+                        if (!empty($v['store_id'])) $response[$key][ 'id_tienda'] = $v['store_id'];
+                        break;
                     }
                 }
             } else {
-                $response[$key] = [
-                    'id' => ($result['data'][0]['id']) ?? null,
-                    'name' => ($result['data'][0]['name']) ?? null,
-                    'possition' => ($result['data'][0]['possition']) ?? null,
-                    'date' => ($result['data'][0]['date']) ?? null,
-                    'active' => ($result['data'][0]['active']) ?? null,
-                    'sub_category' => ($result['data'][0]['sub_category']) ?? null,
-                    'category' => ($result['data'][0]['category']) ?? null,
-                    'handle' => ($result['data'][0]['handle']) ?? null,
-                    'keywords' => ($result['data'][0]['keywords']) ?? null,
-                    'store_id' => ($id_store) ?? null,
-                    'store_title' => ($collection['title']) ?? null,
-                    'store_handle' => ($collection['handle']) ?? null
-                ];
+                $commonName = $result['data'];
+                if (!empty($commonName['date'])) $fecha = date("d/m/Y", strtotime($commonName['date']));
+                if (!empty($commonName['id'])) $response[$key]['id'] = $commonName['id'];
+                if (!empty($commonName['name'])) $response[$key]['name'] = $commonName['name'];
+                if (!empty($commonName['date'])) $response[$key]['name'] = $fecha;
+                if (!empty($commonName['active'])) $response[$key]['active'] = $commonName['active'];
+                if (!empty($commonName['handle'])) $response[$key]['handle'] = $commonName['handle'];
+                if (!empty($commonName['category'])) $response[$key]['category'] = $commonName['category'];
+                if (!empty($commonName['keywords'])) $response[$key]['keywords'] = $commonName['keywords'];
+                if (!empty($commonName['store_id'])) $response[$key]['id_tienda'] = $commonName['store_id'];
+                if (!empty($commonName['possition'])) $response[$key]['possition'] = $commonName['possition'];
+                if (!empty($commonName['sub_category'])) $response[$key]['sub_category'] = $commonName['sub_category'];
             }
         }
         return $response;
