@@ -216,7 +216,7 @@ class CollectionsController extends ControllerClass
     }
 
 
-    private function compareCollections($value = 5)
+    private function compareCollections($value = 50)
     {
         if (is_numeric($value)) {
             if ($value <= 250) {
@@ -263,7 +263,7 @@ class CollectionsController extends ControllerClass
      * @param int $limit
      * @return array
      */
-    private function commonNames($value = 100): array
+    private function commonNames($value = 10): array
     {
         $this->model->limit = $value;
         if (is_array($value)) {
@@ -277,18 +277,24 @@ class CollectionsController extends ControllerClass
         $limit = ($value['limit']) ?? $value;
         $mixedcommonNames = [];
         if (empty($collections['error'])) {
-            $count = $this->model->calcular('store');
-            $max = ceil($count['data']['collections']['count'] / $limit);
-            $next_page = $collections['data']['next'];
-            $prev_page = $collections['data']['prev'];
-            $mixedcommonNames['data']['pagination'] = $this->pagination($prev_page, $next_page, $max, $limit);
-            $mixedcommonNames['data']['max_page'] = $max;
-            $mixedcommonNames['data']['collections'] = $this->nombresComunes($collections['data']['collections']);
+            //$count = $this->model->calcular('store');
+            //$max = ceil($count['data']['collections']['count'] / $limit);
+            if (isset($collections['data']['next'])) {
+                $next_page = $collections['data']['next'];
+                $prev_page = $collections['data']['prev'];
+                $mixedcommonNames['data']['collections'] = $this->nombresComunes($collections['data']['collections']);
+            } else {
+                $next_page = ($collections['pagination']['hasNextPage']) ? $collections['pagination']['endCursor'] : '';
+                $prev_page = ($collections['pagination']['hasPreviousPage']) ? $collections['pagination']['startCursor'] : '';
+                $mixedcommonNames['data']['collections'] = $this->nombresComunes($collections['data']);
+            }
+            /* echo "<pre>";
+            var_dump($mixedcommonNames);
+            echo "</pre>";
+            exit; */
+            //$mixedcommonNames['data']['pagination'] = $this->pagination($prev_page, $next_page, $max, $limit);
+            //$mixedcommonNames['data']['max_page'] = $max;
         }
-        echo "<pre>";
-        var_dump($collections);
-        echo "</pre>";
-        exit;
         return $mixedcommonNames;
     }
     private function collection(int $id): array
@@ -342,20 +348,43 @@ class CollectionsController extends ControllerClass
         foreach ($collections as $key => $collection) {
             $this->model->title = $collection['title'];
             $result = $this->model->localGet();
-            $response[$key] = [
-                'id' => ($result['data'][0]['id']) ?? null,
-                'name' => ($result['data'][0]['name']) ?? null,
-                'possition' => ($result['data'][0]['possition']) ?? null,
-                'date' => ($result['data'][0]['date']) ?? null,
-                'active' => ($result['data'][0]['active']) ?? null,
-                'sub_category' => ($result['data'][0]['sub_category']) ?? null,
-                'category' => ($result['data'][0]['category']) ?? null,
-                'handle' => ($result['data'][0]['handle']) ?? null,
-                'keywords' => ($result['data'][0]['keywords']) ?? null,
-                'store_id' => ($collection['id']) ?? null,
-                'store_title' => ($collection['title']) ?? null,
-                'store_handle' => ($collection['handle']) ?? null
-            ];
+            $idArray = explode("/", $collection['id']);
+            $id_store = $idArray[4];
+            if (sizeof($result['data']) > 1) {
+                foreach ($result['data'] as $i => $v) {
+                    if ($v['store_id'] == $id_store) {
+                        $response[$key] = [
+                            'id' => ($v['id']) ?? null,
+                            'name' => ($v['name']) ?? null,
+                            'possition' => ($v['possition']) ?? null,
+                            'date' => ($v['date']) ?? null,
+                            'active' => ($v['active']) ?? null,
+                            'sub_category' => ($v['sub_category']) ?? null,
+                            'category' => ($v['category']) ?? null,
+                            'handle' => ($v['handle']) ?? null,
+                            'keywords' => ($v['keywords']) ?? null,
+                            'store_id' => ($id_store) ?? null,
+                            'store_title' => ($collection['title']) ?? null,
+                            'store_handle' => ($collection['handle']) ?? null
+                        ]; 
+                    }
+                }
+            } else {
+                $response[$key] = [
+                    'id' => ($result['data'][0]['id']) ?? null,
+                    'name' => ($result['data'][0]['name']) ?? null,
+                    'possition' => ($result['data'][0]['possition']) ?? null,
+                    'date' => ($result['data'][0]['date']) ?? null,
+                    'active' => ($result['data'][0]['active']) ?? null,
+                    'sub_category' => ($result['data'][0]['sub_category']) ?? null,
+                    'category' => ($result['data'][0]['category']) ?? null,
+                    'handle' => ($result['data'][0]['handle']) ?? null,
+                    'keywords' => ($result['data'][0]['keywords']) ?? null,
+                    'store_id' => ($id_store) ?? null,
+                    'store_title' => ($collection['title']) ?? null,
+                    'store_handle' => ($collection['handle']) ?? null
+                ];
+            }
         }
         return $response;
     }
