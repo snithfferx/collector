@@ -126,7 +126,7 @@ class CollectionModel extends ContextClass
     }
     private function getCountCollection()
     {
-        $request['element'] = $this->element;
+        $request['element'] = $this->element . "s";
         $request['query'] = [
             'id' => "count",
             'fields' => (!empty($this->fields)) ? $this->fields : []
@@ -142,9 +142,11 @@ class CollectionModel extends ContextClass
         $request['element'] = $this->element;
         $request['query']['limit'] = $this->limit;
         if (empty($this->fields)) {
-            /* */
-            $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id', 'title', 'handle', 'productsCount', 'sortOrder'];
+            $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id','title','handle','productsCount'];
         }
+        if (!empty($this->id)) $request['query']['id'] = $this->id;
+        if (!empty($this->title)) $request['query']['title'] = $this->title;
+        if (!empty($this->page)) $request['query']['page'] = $this->page;
         return $this->external->graphQL($request);
     }
 

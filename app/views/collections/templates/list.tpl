@@ -14,81 +14,87 @@
                     <div class="card-header">
                         <h5 class="m-0">Lista de Colecciones</h5>
                         {{*if $content.max_page > 0*}}
-                            <nav aria-label="Page navigation" id="collections_pagination">
-                                <ul class="pagination justify-content-end">
-                                    {{* 
+                        <nav aria-label="Page navigation" id="collections_pagination">
+                            <ul class="pagination justify-content-end">
+                                {{* 
                                         <li class="page-item">
                                             <b class="text-primary mr-2 ml-3" style="display:block;">
                                                 {{if isset($content.current_page)}}
-                                        {{$content.current_page}} de
-                                    {{else}}
-                                        1 de
-                                    {{/if}}
-                                    {{$content.max_page}}
-                                    </b>
-                                    </li> *}}
-                                    {{* if !empty($content.pagination[0]['prev_page'])}}
-                                        <li class="page-item">
-                                            <a class="page-link" 
-                                                href="/collections/previous{{content.pagination[0]['prev_page']}}
+                            {{$content.current_page}} de
+                            {{else}}
+                            1 de
+                            {{/if}}
+                            {{$content.max_page}}
+                            </b>
+                            </li> *}}
+                                {{if !empty($content.pagination.prev_page)}}
+                                    <li class="page-item">
+                                        <a class="page-link" title="Lleva a la página anterior" type="text" target="_self" href="/collections/previous{{$content.pagination.prev_page}}
                                                 {{if isset($content.current_page)}}
                                                     &page={{$content.current_page}}
                                                 {{else}}
                                                     &page=1
                                                 {{/if}}
-                                                &view_origin={{$content.view_origin}}" 
-                                                id="collections_pagination_prev">
-                                                <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                        </li>
-                                    {{/if *}}
-                                    {{* foreach $content.pagination as $in => $page}}
-                                        {{if !empty($content.pagination[($in + 1)]['prev_page'])}}
-                                            <li class="page-item">
-                                                <a class="page-link active" href="/collections/previous{{$content.pagination[($in + 1)]['prev_page']}}">{{page.page_id}}</a>
-                                            </li>
-                                        {{/if}}
-                                    {{/foreach *}}
-                                    {{* if !empty($content.pagination[0]['next_page'])}}
-                                        <li class="page-item">
-                                            <a class="page-link" 
-                                                href="/collections/next{{$content.pagination[0]['next_page']}}&page{{$content.pagination[0]['page_id']}}=&view_origin={{$content.view_origin}}" 
-                                                id="collections_pagination_next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                        </li>
-                                    {{/if *}}
-                                </ul>
-                            </nav>
+                                                &view_origin={{$content.view_origin}}"
+                                            id="collections_pagination_prev">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {{/if}}
+                                {{* foreach $content.pagination as $in => $page}}
+                            {{if !empty($content.pagination[($in + 1)].prev_page)}}
+                            <li class="page-item">
+                                <a class="page-link active"
+                                    href="/collections/previous{{$content.pagination[($in + 1)].prev_page}}">{{page.page_id}}</a>
+                            </li>
+                            {{/if}}
+                            {{/foreach *}}
+                                {{if !empty($content.pagination.next_page)}}
+                                    <li class="page-item">
+                                        <a class="page-link"
+href="/collections/next?page={{$content.pagination.next_page}}&page_id={{$content.pagination.page_id}}=&view_origin={{$content.view_origin}}"
+                                            id="collections_pagination_next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                {{/if}}
+                            </ul>
+                        </nav>
                         {{*/if*}}
                     </div>
                     <div class="card-body">
                         <table class="table table-responsive table-striped" id="collectionsList">
                             <thead class="thead-dark">
                                 <tr>
-                                    <th class="uppercase text-center">ID Tienda</th>
-                                    <th class="uppercase text-center">Fecha</th>
-                                    <th class="uppercase text-center">Nombre Común</th>
-                                    <th class="uppercase text-center">Titulo</th>
-                                    <th class="uppercase text-center">CEO</th>
-                                    <th class="uppercase text-center">Categoría</th>
-                                    <th class="uppercase text-center">Sub-Categoría</th>
-                                    <th class="uppercase text-center">Activo</th>
-                                    <th class="uppercase text-center">Posición</th>
-                                    <th class="uppercase text-center">Acciones</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">ID Tienda</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Fecha</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Nombre Común</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Titulo</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Handle</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Categoría</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Sub-Categoría</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Handle Local</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">ID Local</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">keywords</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Orden</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Productos</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Activo</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Posición</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{foreach $content.collections as $item}}
+                                {{foreach $content.collections as $key=>$item}}
                                     <tr>
                                         <td class="text-center">
                                             <a href="collections/read/{{$item.store_id}}">
                                                 {{$item.store_id}}
                                             </a>
                                         </td>
-                                        <td class="text-center">{{$item.date|date_format:"%d/%m/%y"}}</td>
+                                        <td class="text-center">{{$item.date}}</td>
                                         <td class="text-center">
-                                            <a href="collections/read/{{$item.id}}">
+                                            <a href="collections/read?id={{$item.id}}" target="_self" title="{{$item.name}}"
+                                                type="text">
                                                 {{$item.name}}
                                             </a>
                                         </td>
@@ -96,6 +102,11 @@
                                         <td class="text-center">{{$item.store_handle}}</td>
                                         <td class="text-center">{{$item.category}}</td>
                                         <td class="text-center">{{$item.sub_category}}</td>
+                                        <td class="text-center">{{$item.handle}}</td>
+                                        <td class="text-center">{{$item.id_tienda}}</td>
+                                        <td class="text-center">{{$item.keywords}}</td>
+                                        <td class="text-center">{{$item.sort_order}}</td>
+                                        <td class="text-center">{{$item.product_count}}</td>
                                         <td class="text-center">
                                             {{if $item.active == 0}}Inactivo{{else}}Activo{{/if}}
                                         </td>
@@ -108,32 +119,43 @@
                                                 </button>
                                                 <span class='sr-only'>Acciones</span>
                                                 <div class='dropdown-menu' role='menu'>
-                                                    {{if $item.id != null}}
-                                                        <a href="collections/read/{{$item.id}}"
-                                                            class="dropdown-item btn btn-primary">
+                                                    {{if !empty($item.id)}}
+                                                        <a href="/collections/read?id={{$item.id}}"
+                                                            title="Ver detalles de colección" tabindex="{{$key + 1}}" target="_self"
+                                                            type="text" class="btn btn-success btn-sm btn-block">
                                                             <i class="fas fa-eye mr-3"></i>Detalles
                                                         </a>
-                                                        <a href="collections/compare/{{$item.store_id}}"
-                                                            class="dropdown-item btn btn-primary">
+                                                        <a href="/collections/compare?id={{$item.store_id}}"
+                                                            title="Compara los datos de una colección" tabindex="{{$key + 2}}"
+                                                            target="_self" type="text" class="btn btn-info btn-sm btn-block">
                                                             <i class="fas fa-copy mr-3"></i>Comparar
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a href="collections/edit/{{$item.id}}"
-                                                            class="dropdown-item btn btn-warning">
+                                                        <a href="/collections/edit?id={{$item.id}}"
+                                                            title="Editar datos de la colección local" tabindex="{{$key + 3}}"
+                                                            target="_self" type="text" class="btn btn-warning btn-sm btn-block">
                                                             <i class="fas fa-edit mr-3"></i>Editar Local
                                                         </a>
-                                                        <a href="collections/delete/{{$item.id}}"
-                                                            class="dropdown-item btn btn-danger">
+                                                        <a href="/collections/sync?id={{$item.id}}"
+                                                            title="Sincroniza datos de tienda a local" tabindex="{{$key + 4}}"
+                                                            target="_self" type="text" class="btn btn-primary btn-sm btn-block">
+                                                            <i class="fas fa-trash mr-3"></i>Borrar Local
+                                                        </a>
+                                                        <a href="collections/delete?id={{$item.id}}"
+                                                            title="Borra una colección localmente" tabindex="{{$key + 5}}"
+                                                            target="_self" type="text" class="btn btn-danger btn-sm btn-block">
                                                             <i class="fas fa-trash mr-3"></i>Borrar Local
                                                         </a>
                                                         <div class="dropdown-divider"></div>
                                                     {{/if}}
-                                                    <a href="collections/edit/{{$item.store_id}}"
-                                                        class="dropdown-item btn btn-warning">
+                                                    <a href="collections/edit?id={{$item.store_id}}"
+                                                        title="Editar datos de la colección tienda" tabindex="{{$key + 6}}"
+                                                        target="_self" type="text" class="btn btn-warning btn-sm btn-block">
                                                         <i class="fas fa-edit mr-3"></i>Editar Local
                                                     </a>
-                                                    <a href="collections/delete/{{$item.store_id}}"
-                                                        class="dropdown-item btn btn-danger">
+                                                    <a href="collections/delete?id={{$item.store_id}}"
+                                                        title="Borra una colección en la nube" tabindex="{{$key + 7}}"
+                                                        target="_self" type="text" class="btn btn-danger btn-sm btn-block">
                                                         <i class="fas fa-trash mr-3"></i>Borrar Local
                                                     </a>
                                                 </div>
@@ -146,41 +168,45 @@
                     </div>
                     <div class="card-footer">
                         {{* if $content.max_page > 0}}
-                            <nav aria-label="Page navigation" id="collections_pagination">
-                                <ul class="pagination justify-content-center">
-                                    {{if $content.prev_page > 1}}
-                                        <li class="page-item">
-                                            <a class="page-link {{if !empty($content.prev_page)}}disabled{{/if}}" href="/collections/previous{{$content.prev_page}}{{if isset($content.current_page)}}&page={{$content.current_page}}{{else}}&page=1{{/if}}&view_origin={{$content.view_origin}}" id="collections_pagination_prev">
-                                                <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                        </li>
+                    <nav aria-label="Page navigation" id="collections_pagination">
+                        <ul class="pagination justify-content-center">
+                            {{if $content.prev_page > 1}}
+                            <li class="page-item">
+                                <a class="page-link {{if !empty($content.prev_page)}}disabled{{/if}}"
+                                    href="/collections/previous{{$content.prev_page}}{{if isset($content.current_page)}}&page={{$content.current_page}}{{else}}&page=1{{/if}}&view_origin={{$content.view_origin}}"
+                                    id="collections_pagination_prev">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {{/if}}
+                            <li class="page-item">
+                                <b class="text-primary mr-2 ml-3" style="display:block;">
+                                    {{if isset($content.current_page)}}
+                                    {{$content.current_page}} de
+                                    {{else}}
+                                    1 de
                                     {{/if}}
-                                    <li class="page-item">
-                                        <b class="text-primary mr-2 ml-3" style="display:block;">
-                                            {{if isset($content.current_page)}}
-                                                {{$content.current_page}} de
-                                            {{else}}
-                                                1 de
-                                            {{/if}}
-                                            {{$content.max_page}}
-                                        </b>
-                                    </li>
-                                    {{if $content.prev_page < $content.max_page}}
-                                        <li class="page-item">
-                                            <a class="page-link {{if !empty($content.next_page)}}disabled{{/if}}" href="/collections/next{{$content.next_page}}{{if isset($content.current_page)}}&page={{$content.current_page}}{{else}}&page=1{{/if}}&view_origin={{$content.view_origin}}" id="collections_pagination_next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                        </li>
-                                    {{/if}}
-                                </ul>
-                            </nav>
-                        {{/if *}}
+                                    {{$content.max_page}}
+                                </b>
+                            </li>
+                            {{if $content.prev_page < $content.max_page}}
+                            <li class="page-item">
+                                <a class="page-link {{if !empty($content.next_page)}}disabled{{/if}}"
+                                    href="/collections/next{{$content.next_page}}{{if isset($content.current_page)}}&page={{$content.current_page}}{{else}}&page=1{{/if}}&view_origin={{$content.view_origin}}"
+                                    id="collections_pagination_next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {{/if}}
+                        </ul>
+                    </nav>
+                    {{/if *}}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    {{ <pre>{{var_dump($data.content)}}</pre> }}
+    {{* <pre>{{var_dump($data.content)}}</pre> *}}
 {{/block}}
 {{block name='css'}}
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
@@ -206,7 +232,11 @@
 {{/block}}
 {{block name="scripts"}}
     {{* {'_':"date.display",'sort':"date.timestamp"} *}}
-    <script>
-        var collectionsTable = tabler('collectionsList', 10);
-    </script>
+    {{literal}}
+        <script>
+            $(document).on("ready", function() {
+                var collectionsTable = tabler('collectionsList', 10);
+            });
+        </script>
+    {{/literal}}
 {{/block}}

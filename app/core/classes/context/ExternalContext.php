@@ -76,19 +76,67 @@ class ExternalContext extends ExternalConnection
         $fields = ($values['query']['fields']) ?? null;
         $element = $values['element'];
         $pluralized = $element . 's';
+        /*   collections(first: 10) {
+                nodes {
+                    handle
+                    id
+                    title
+                    sortOrder
+                    productsCount
+                    ruleSet {
+                        rules {
+                            condition
+                            column
+                            relation
+                        }
+                    }
+                    metafields(first: 10) {
+                        nodes {
+                            id
+                            type
+                            createdAt
+                 {        }
+                    }
+                    seo {
+                        title
+                    }
+                }
+                pageInfo {
+                    startCursor
+                    hasPreviousPage
+                    hasNextPage
+                    endCursor
+                }
+            } */
+        $rules = implode("\n", ['relation', 'column', 'condition']);
+        $meta_nodes = implode("\n", ['id', 'type', 'createdAt']);
         $glued = (!is_null($fields) && !empty($fields)) ? implode("\n", $fields) : '';
+        $request = 'query {' . $element;
+        /* 'metafields'=>['first'=>10,['nodes'=>['id','type']]] */
         if (isset($values['query']['id']) && !empty($values['query']['id'])) {
             $id = $values['query']['id'];
-            $request = 'query {' . $element . '(id:"' . $id . '",first:' . $limit . ') {edges {node {' . $glued . '}}}}';
+            $request .= '(id:"' . $id . '",first:' . $limit . ') { edges { node {' . $glued;
+        } elseif (isset($values['query']['title']) && !empty($values['query']['title'])) {
+            $title = $values['query']['title'];
+            $request .= '(title:"' . $title . '",first:' . $limit . ') { edges { node {' . $glued;
         } else {
-            $pages = implode("\n", ['hasPreviousPage', 'hasNextPage', 'startCursor', 'endCursor']);
-            $request = 'query {' . $pluralized . '(first:' . $limit . ')';
-            if (!empty($glued)) {
-                $request .= '{nodes{' . $glued . '}pageInfo{' . $pages . '}}}';
-            } else {
-                $request .= '{edges {node} pageInfo {' . $pages . '}}}';
-            }
+            //$request .= 'metafields(first: ' . $limit . ') {nodes {type}}';
+            $request = 'query {' . $pluralized;
+            $request .= '(first:' . $limit . ') { nodes {' . $glued;
         }
+        $request .= 'ruleSet { rules { ' . $rules;
+        $request .= ' } } metafields(first: 10) { nodes { ' . $meta_nodes . ' } } seo { title }';
+        if (isset($values['query']['page']) && !empty($values['query']['page'])) {
+            $paginado = [
+                'startCursor' => $values['query']['page']['start_cursor'],
+                'endCursor' => $values['query']['page']['end_cursor']
+            ];
+        } else {
+            $paginado = ['hasPreviousPage', 'hasNextPage', 'startCursor', 'endCursor'];
+        }
+        $pagesinfo = implode("\n", $paginado);
+        $request .= (isset($values['query']['id']) || isset($values['query']['title'])) ? '} cursor } pageInfo {' . $pagesinfo : $request .= '} pageInfo {' . $pagesinfo;
+        $request .= '} } }';
         return $this->graphQLRequest($request);
     }
 }
