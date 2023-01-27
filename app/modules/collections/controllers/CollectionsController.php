@@ -41,6 +41,9 @@ class CollectionsController extends ControllerClass
      */
     public function create($values)
     {
+        if (!empty($values)) {
+            return $this->createCollection($values);
+        }
         return $this->createViewData('collections/create');
     }
     /**
@@ -109,50 +112,40 @@ class CollectionsController extends ControllerClass
      * @param string|int $value Puede contener el nombre de la colección o el ID de la colección
      * @return array
      */
-    protected function getCollections($value = 'all'): array
+    protected function getCollections($value = ''): array
     {
         $viewData = [];
         $viewtype = "template";
         $viewCode = null;
         $viewName = "collections/list";
+        $lista = true;
+        $viewOrigin = "read";
         if (!empty($value)) {
             if (is_numeric($value) && strlen($value) > 6) {
                 $result = $this->collection($value);
-                echo "<pre>";
-                var_dump($value);
-                echo "<pre>";
-                exit;
+            } elseif (is_numeric($value) && strlen($value) <= 6) {
+                $result = $this->commonName($value);
+            } else {
+                $result = $this->commonNames($value);
             }
+        } else {
+            $result = $this->commonNames($value);
         }
-        if (is_numeric($value) && strlen($value) > 4) {
-            $result = $this->collection($value);
+        if (!$lista) {
             if (!empty($result['error'])) {
-                $viewtype = "error_view";
+                $viewtype = "layout";
                 $viewCode = $result['error']['code'];
-                $viewName = "collections/detail";
+                $viewName = "_shared/_error";
             } else {
                 $viewtype = "template";
                 $viewName = "collections/detail";
             }
             $viewOrigin = "detail";
         } else {
-            if (is_numeric($value)) {
-                $result = $this->collection($value);
-                if (!empty($result['error'])) {
-                    $viewtype = "error_view";
-                    $viewCode = $result['error']['code'];
-                    $viewName = "collections/detail";
-                } else {
-                    $viewName = "collections/detail";
-                }
-                $viewOrigin = "detail";
-            } else {
-                $result = ($value == "all") ? $this->commonNames() : $this->commonNames($value);
-                if (!empty($result['error'])) {
-                    $viewtype = "error_view";
-                    $viewCode = $result['error']['code'];
-                }
-                $viewOrigin = "read";
+            if (!empty($result['error'])) {
+                $viewtype = "layout";
+                $viewCode = $result['error']['code'];
+                $viewName = "_shared/_error";
             }
         }
         $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $value]);
@@ -226,6 +219,9 @@ class CollectionsController extends ControllerClass
         $datos['view_origin'] = $values['view_origin'];
         return $this->createViewData($viewName, $datos, $breadcrumbs, $viewtype, $viewCode, $viewData);
     }
+    protected function createCollection () {
+        return array();
+    }
 
 
     private function compareCollections($value = 50)
@@ -277,7 +273,7 @@ class CollectionsController extends ControllerClass
      */
     private function commonNames($value = 10): array
     {
-        $this->model->limit = $value;
+        //$this->model->limit = $value;
         if (is_array($value)) {
             $this->model->page = ($value['page_info']) ?? '';
             //$this->model->id = ($value['id']) ?? '';

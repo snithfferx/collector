@@ -84,7 +84,7 @@ href="/collections/next?page={{$content.pagination.next_page}}&page_id={{$conten
                                 </tr>
                             </thead>
                             <tbody>
-                                {{foreach $content.collections as $key=>$item}}
+                                {{* foreach $content.collections as $key=>$item}}
                                     <tr>
                                         <td class="text-center">
                                             <a href="collections/read/{{$item.store_id}}">
@@ -162,45 +162,48 @@ href="/collections/next?page={{$content.pagination.next_page}}&page_id={{$conten
                                             </div>
                                         </td>
                                     </tr>
-                                {{/foreach}}
+                                {{/foreach *}}
                             </tbody>
                         </table>
                     </div>
                     <div class="card-footer">
-                        {{* if $content.max_page > 0}}
-                    <nav aria-label="Page navigation" id="collections_pagination">
-                        <ul class="pagination justify-content-center">
-                            {{if $content.prev_page > 1}}
-                            <li class="page-item">
-                                <a class="page-link {{if !empty($content.prev_page)}}disabled{{/if}}"
-                                    href="/collections/previous{{$content.prev_page}}{{if isset($content.current_page)}}&page={{$content.current_page}}{{else}}&page=1{{/if}}&view_origin={{$content.view_origin}}"
-                                    id="collections_pagination_prev">
-                                    <span aria-hidden="true">&laquo;</span>
-                                </a>
-                            </li>
-                            {{/if}}
-                            <li class="page-item">
-                                <b class="text-primary mr-2 ml-3" style="display:block;">
-                                    {{if isset($content.current_page)}}
-                                    {{$content.current_page}} de
-                                    {{else}}
-                                    1 de
-                                    {{/if}}
-                                    {{$content.max_page}}
+                        {{*if $content.max_page > 0*}}
+                        <nav aria-label="Page navigation" id="collections_pagination">
+                            <ul class="pagination justify-content-center">
+                                {{* 
+                                        <li class="page-item">
+                                            <b class="text-primary mr-2 ml-3" style="display:block;">
+                                                {{if isset($content.current_page)}}
+                                {{$content.current_page}} de
+                                {{else}}
+                                1 de
+                                {{/if}}
+                                {{$content.max_page}}
                                 </b>
-                            </li>
-                            {{if $content.prev_page < $content.max_page}}
-                            <li class="page-item">
-                                <a class="page-link {{if !empty($content.next_page)}}disabled{{/if}}"
-                                    href="/collections/next{{$content.next_page}}{{if isset($content.current_page)}}&page={{$content.current_page}}{{else}}&page=1{{/if}}&view_origin={{$content.view_origin}}"
-                                    id="collections_pagination_next">
-                                    <span aria-hidden="true">&raquo;</span>
-                                </a>
-                            </li>
-                            {{/if}}
-                        </ul>
-                    </nav>
-                    {{/if *}}
+                                </li> *}}
+                                {{if !empty($content.pagination.prev_page)}}
+                                    <li class="page-item">
+                                        <a class="page-link" title="Lleva a la página anterior" type="text" target="_self"
+                                            href="/collections/previous{{$content.pagination.prev_page}}
+                                                {{if isset($content.current_page)}}
+                                                    &page={{$content.current_page}}
+                                                {{else}}
+                                                    &page=1
+                                                {{/if}}
+                                                &view_origin={{$content.view_origin}}"
+                                            id="collections_pagination_prev">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {{/if}}
+{{* foreach $content.pagination as $in => $page}}
+                                {{if !empty($content.pagination[($in + 1)].prev_page)}}
+                                <li class="page-item">
+                                    <a class="page-link active"
+                                        href="/collections/previous{{$content.pagination[($in + 1)].prev_page}}">{{page.page_id}}</a>
+                                </li>
+                                {{/if}}
+                                {{/foreach *}}
                     </div>
                 </div>
             </div>
