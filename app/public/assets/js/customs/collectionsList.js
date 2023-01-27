@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    var url_base = "/collections/read/";
+    var url_base = "/collections/";
     $("#collections_pagination").hide();
     /* $.ajax({
         url: url_base + 'lista',

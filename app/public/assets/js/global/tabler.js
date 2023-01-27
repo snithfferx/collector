@@ -129,12 +129,59 @@ function tabler(
     }).buttons().container().appendTo('#' + elemento + '_wrapper .col-sm-12:eq(0)');
     return table;
 }
-function tableRefill (elemento,datos,columnas) {
-    $('#'+elemento).DataTable({
-        retrieve : true,
-        data     : datos,
-        columns  : columnas
-    });
+function tableRefill(
+    elemento,
+    datos,
+    columnas,
+    lines = 5,
+    paginado = true,
+    columna=0,
+    ordenado = true,
+    disposicion = 'asc',
+    acciones = true,
+    alto = "auto") {
+    var lin = lineas(lines);
+    var btns = botones(acciones);
+    var sorting = [columna, disposicion];
+    var table = $('#' + elemento).DataTable({
+        "retrieve"   : true,
+        "data"       : datos,
+        "columns"    : columnas,
+        "paging"     : paginado,
+        "scrollY"    : alto,
+        "lengthMenu" : lin,
+        "searching"  : true,
+        "ordering"   : ordenado,
+        "order"      : [sorting],
+        "info"       : true,
+        "autoWidth"  : true,
+        "responsive" : true,
+        "language"   : {
+            "emptyTable"   : "No hay registros en la tabla",
+            "info"         : "Mostrando _START_ a _END_ de _TOTAL_ líneas",
+            "infoEmpty"    : "No hay registros",
+            "infoFiltered" : "(_MAX_ líneas en total)",
+            "infoPostFix"  : "",
+            "thousands"    : ",",
+            "lengthMenu"   : "Mostrar: _MENU_ líneas",
+            "loadingRecords" : "Cargando...",
+            "processing"   : "Procesando...",
+            "search"       : "Buscar:",
+            "zeroRecords"  : "No se encontraron coincidencias.",
+            "paginate"     : {
+                "first"    : "Primero",
+                "last"     : "Ultimo",
+                "next"     : "Siguiente",
+                "previous" : "Previo"
+            },
+            "aria"         : {
+                "sortAscending"  :  ": activar para ordenar columna ascendentemente",
+                "sortDescending" : ": activar para ordenar columna descendentemente"
+            }
+        },
+        "buttons": btns
+    }).buttons().container().appendTo('#' + elemento + '_wrapper .col-sm-12:eq(0)');
+    return table;
 }
 /**
  * 

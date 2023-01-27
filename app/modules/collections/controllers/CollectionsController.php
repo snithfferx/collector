@@ -52,11 +52,11 @@ class CollectionsController extends ControllerClass
      * @param mixed $values
      * @return array
      * @version 1.0.0
-     * 18/01/23
+     * 27/01/23
      */
     public function read($values)
     {
-        $response = (!empty($values)) ? $this->getCollections($values) : $this->getCollections();
+        $response = (!empty($values)) ? $this->getCollections($values) : $this->createViewData('collections/list');
         return $response;
     }
     /**
@@ -98,9 +98,9 @@ class CollectionsController extends ControllerClass
     {
         return $this->getPreviousPage($value);
     }
-    public function lista()
+    public function lista($value = [])
     {
-        return (!empty($values)) ? $this->getCollections($values) : $this->getCollections();
+        return (!empty($value)) ? $this->getCollectionList($value) : $this->getCollectionList();
     }
     public function sync ($value) {
 
@@ -112,7 +112,7 @@ class CollectionsController extends ControllerClass
      * @param string|int $value Puede contener el nombre de la colección o el ID de la colección
      * @return array
      */
-    protected function getCollections($value = ''): array
+    protected function getCollections($value = []): array
     {
         $viewData = [];
         $viewtype = "template";
@@ -121,10 +121,9 @@ class CollectionsController extends ControllerClass
         $lista = true;
         $viewOrigin = "read";
         if (!empty($value)) {
-            if (is_numeric($value) && strlen($value) > 6) {
-                $result = $this->collection($value);
-            } elseif (is_numeric($value) && strlen($value) <= 6) {
-                $result = $this->commonName($value);
+            if (isset($value['id'])) {
+                $result = (strlen($value['id']) > 6) ? $this->collection($value) : $this->commonName($value);
+                $lista = false;
             } else {
                 $result = $this->commonNames($value);
             }
@@ -222,6 +221,11 @@ class CollectionsController extends ControllerClass
     protected function createCollection () {
         return array();
     }
+    protected function getCollectionList($values = []) :array
+    {
+        $result = $this->commonNames();
+        return $result['data'];
+    }
 
 
     private function compareCollections($value = 50)
@@ -275,14 +279,14 @@ class CollectionsController extends ControllerClass
     {
         //$this->model->limit = $value;
         if (is_array($value)) {
-            $this->model->page = ($value['page_info']) ?? '';
-            //$this->model->id = ($value['id']) ?? '';
+            $this->model->page = ($value['page']) ?? '';
+            $this->model->id = ($value['id']) ?? '';
             $this->model->limit = $value['limit'];
             $collections = $this->model->getPage();
         } else {
             $collections = $this->model->storeGet();
         }
-        $limit = ($value['limit']) ?? $value;
+        //$limit = ($value['limit']) ?? $value;
         $mixedcommonNames = [];
         if (empty($collections['error'])) {
             //$count = $this->model->calcular('store');
@@ -356,7 +360,7 @@ class CollectionsController extends ControllerClass
             $idArray = explode("/", $collection['id']);
             $id_store = $idArray[4];
             $fecha = "Sin Fecha";
-            $response[$key] = [
+            $data = [
                 'id'            => "",
                 'name'          => "No asociado",
                 'date'          => $fecha,
@@ -377,34 +381,34 @@ class CollectionsController extends ControllerClass
                 foreach ($result['data'] as $v) {
                     if ($v['store_id'] == $id_store) {
                         if (!empty($v['date'])) $fecha = date("d/m/Y", strtotime($v['date']));
-                        if (!empty($v['id'])) $response[$key]['id'] = $v['id'];
-                        if (!empty($v['name'])) $response[$key]['name'] = $v['name'];
-                        if (!empty($v['date'])) $response[$key]['date'] = $fecha;
-                        if (!empty($v['active'])) $response[$key]['active'] = $v['active'];
-                        if (!empty($v['handle'])) $response[$key]['handle'] = $v['handle'];
-                        if (!empty($v['category'])) $response[$key]['category'] = $v['category'];
-                        if (!empty($v['keywords'])) $response[$key]['keywords'] = $v['keywords'];
-                        if (!empty($v['store_id'])) $response[$key]['store_id'] = $id_store;
-                        if (!empty($v['possition'])) $response[$key]['possition'] = $v['possition'];
-                        if (!empty($v['sub_category'])) $response[$key]['sub_category'] = $v['sub_category'];
-                        if (!empty($v['store_id'])) $response[$key][ 'id_tienda'] = $v['store_id'];
+                        if (!empty($v['id'])) $$data['id'] = $v['id'];
+                        if (!empty($v['name'])) $$data['name'] = $v['name'];
+                        if (!empty($v['date'])) $$data['date'] = $fecha;
+                        if (!empty($v['active'])) $$data['active'] = $v['active'];
+                        if (!empty($v['handle'])) $$data['handle'] = $v['handle'];
+                        if (!empty($v['category'])) $$data['category'] = $v['category'];
+                        if (!empty($v['keywords'])) $$data['keywords'] = $v['keywords'];
+                        if (!empty($v['store_id'])) $$data['store_id'] = $id_store;
+                        if (!empty($v['possition'])) $$data['possition'] = $v['possition'];
+                        if (!empty($v['sub_category'])) $$data['sub_category'] = $v['sub_category'];
+                        if (!empty($v['store_id'])) $$data[ 'id_tienda'] = $v['store_id'];
                         break;
                     }
                 }
             } else {
                 $commonName = $result['data'];
-                if (!empty($commonName['date'])) $fecha = date("d/m/Y", strtotime($commonName['date']));
-                if (!empty($commonName['id'])) $response[$key]['id'] = $commonName['id'];
-                if (!empty($commonName['name'])) $response[$key]['name'] = $commonName['name'];
-                if (!empty($commonName['date'])) $response[$key]['name'] = $fecha;
-                if (!empty($commonName['active'])) $response[$key]['active'] = $commonName['active'];
-                if (!empty($commonName['handle'])) $response[$key]['handle'] = $commonName['handle'];
-                if (!empty($commonName['category'])) $response[$key]['category'] = $commonName['category'];
-                if (!empty($commonName['keywords'])) $response[$key]['keywords'] = $commonName['keywords'];
-                if (!empty($commonName['store_id'])) $response[$key]['id_tienda'] = $commonName['store_id'];
-                if (!empty($commonName['possition'])) $response[$key]['possition'] = $commonName['possition'];
-                if (!empty($commonName['sub_category'])) $response[$key]['sub_category'] = $commonName['sub_category'];
+                if (!empty($commonName['id'])) $$data['id'] = $commonName['id'];
+                if (!empty($commonName['name'])) $$data['name'] = $commonName['name'];
+                if (!empty($commonName['date'])) $$data['name'] = $commonName['date'];
+                if (!empty($commonName['active'])) $$data['active'] = $commonName['active'];
+                if (!empty($commonName['handle'])) $$data['handle'] = $commonName['handle'];
+                if (!empty($commonName['category'])) $$data['category'] = $commonName['category'];
+                if (!empty($commonName['keywords'])) $$data['keywords'] = $commonName['keywords'];
+                if (!empty($commonName['store_id'])) $$data['id_tienda'] = $commonName['store_id'];
+                if (!empty($commonName['possition'])) $$data['possition'] = $commonName['possition'];
+                if (!empty($commonName['sub_category'])) $$data['sub_category'] = $commonName['sub_category'];
             }
+            $response[$key] = $this->rowTableData($data);
         }
         return $response;
     }
@@ -426,6 +430,79 @@ class CollectionsController extends ControllerClass
                 $prev = $prevData['data']['prev'];
             }
         }
+        return $response;
+    }
+    private function rowTableData($arreglo) :array
+    {   
+        if ($arreglo['date'] != "Sin Fecha") {
+            $displayDate = date("d/m/Y", strtotime($arreglo['date']));
+            $timestampDate = strtotime($arreglo['date']);
+        } else {
+            $displayDate = $arreglo['date'];
+            $timestampDate = null;
+        }
+        $response['id'] = '<a href="collections/read/' . $arreglo['store_id'] . '">' . $arreglo['store_id'] . '</a>';
+        $response['date'] = ['display'=>$displayDate,'timestamp'=>$timestampDate];
+        $response['id'] = '<a href="collections/read?id=' . $arreglo['id'] . '" target="_self" title="' . $arreglo['name'] . '" type="text">' . $arreglo['name'] . '</a>';
+        $response['store_title'] = $arreglo['store_title'];
+        $response['store_handle'] = $arreglo['store_handle'];
+        $response['category'] = $arreglo['category'];
+        $response['sub_category'] = $arreglo['sub_category'];
+        $response['handle'] = $arreglo['handle'];
+        $response['id_tienda'] = $arreglo['id_tienda'];
+        $response['keywords'] = $arreglo['keywords'];
+        $response['sort_order'] = $arreglo['sort_order'];
+        $response['product_count'] = $arreglo['product_count'];
+        $response['active'] = ($arreglo['active'] > 0) ? 'Activo' : 'Inactivo';
+        $response['possition'] = $arreglo['possition'];
+        $response['actions'] = "
+            <div class='btn-group'>
+                <button type='button' class='btn btn-outline-info dropdown-toggle dropdown-icon' data-toggle='dropdown'>
+                    Eleija...
+                </button>
+                <span class='sr-only'>Acciones</span>
+                <div class='dropdown-menu' role='menu'>";
+                    if (!empty($arreglo['id'])) {
+                        $response['actions'] .= '<a href="/collections/read?id=' . $arreglo['id'] . '"
+                            title="Ver detalles de colección" target="_self"
+                            type="text" class="btn btn-success btn-sm btn-block">
+                            <i class="fas fa-eye mr-3"></i>Detalles
+                        </a>
+                        <a href="/collections/compare?id=' . $arreglo['store_id'] . '"
+                            title="Compara los datos de una colección" 
+                            target="_self" type="text" class="btn btn-info btn-sm btn-block">
+                            <i class="fas fa-copy mr-3"></i>Comparar
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="/collections/edit?id=' . $arreglo['id'] . '"
+                            title="Editar datos de la colección local"
+                            target="_self" type="text" class="btn btn-warning btn-sm btn-block">
+                            <i class="fas fa-edit mr-3"></i>Editar Local
+                        </a>
+                        <a href="/collections/sync?id=' . $arreglo['id'] . '"
+                            title="Sincroniza datos de tienda a local" 
+                            target="_self" type="text" class="btn btn-primary btn-sm btn-block">
+                            <i class="fas fa-trash mr-3"></i>Borrar Local
+                        </a>
+                        <a href="collections/delete?id=' . $arreglo['id'] . '"
+                            title="Borra una colección localmente" 
+                            target="_self" type="text" class="btn btn-danger btn-sm btn-block">
+                            <i class="fas fa-trash mr-3"></i>Borrar Local
+                        </a>
+                        <div class="dropdown-divider"></div>"';
+                    }
+                    $response['actions'] .= '<a href="collections/edit?id=' . $arreglo['store_id'] . '"
+                        title="Editar datos de la colección tienda"
+                        target="_self" type="text" class="btn btn-warning btn-sm btn-block">
+                        <i class="fas fa-edit mr-3"></i>Editar Local
+                    </a>
+                    <a href="collections/delete?id=' . $arreglo['store_id'] . '"
+                        title="Borra una colección en la nube"
+                        target="_self" type="text" class="btn btn-danger btn-sm btn-block">
+                        <i class="fas fa-trash mr-3"></i>Borrar Local
+                    </a>
+                </div>
+            </div>';
         return $response;
     }
 }
