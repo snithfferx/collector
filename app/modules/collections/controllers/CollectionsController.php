@@ -284,6 +284,7 @@ class CollectionsController extends ControllerClass
             $this->model->limit = $value['limit'];
             $collections = $this->model->getPage();
         } else {
+            $this->model->limit = $value;
             $collections = $this->model->storeGet();
         }
         //$limit = ($value['limit']) ?? $value;
