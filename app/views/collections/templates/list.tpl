@@ -28,9 +28,9 @@
                             </b>
                             </li> *}}
                                 {{*if !empty($content.pagination.prev_page)*}}
-                                <li class="page-item">
+                                <li class="page-item collections_pagination_prev">
                                     <a class="page-link" title="Lleva a la página anterior" type="text" target="_self"
-                                        href="#" id="collections_pagination_prev">
+                                        href="#">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
                                 </li>
@@ -44,9 +44,9 @@
                             {{/if}}
                             {{/foreach *}}
                                 {{*if !empty($content.pagination.next_page)*}}
-                                <li class="page-item">
+                                <li class="page-item collections_pagination_next">
                                     <a class="page-link" title="Lleva a la página siguiente" type="text" target="_self"
-                                        href="#" id="collections_pagination_next">
+                                        href="#">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>
                                 </li>
@@ -61,11 +61,11 @@
                                 <tr>
                                     <th class="text-uppercase font-weight-bolder text-center">ID Tienda</th>
                                     <th class="text-uppercase font-weight-bolder text-center">Fecha</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Nombre Común</th>
                                     <th class="text-uppercase font-weight-bolder text-center">Titulo</th>
                                     <th class="text-uppercase font-weight-bolder text-center">Handle</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Tipo</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">Nombre Común</th>
                                     <th class="text-uppercase font-weight-bolder text-center">Categoría</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Sub-Categoría</th>
                                     <th class="text-uppercase font-weight-bolder text-center">Handle Local</th>
                                     <th class="text-uppercase font-weight-bolder text-center">ID Local</th>
                                     <th class="text-uppercase font-weight-bolder text-center">keywords</th>
@@ -175,12 +175,11 @@
                             </b>
                             </li> *}}
                                 {{*if !empty($content.pagination.prev_page)*}}
-                                <li class="page-item">
+                                <li class="page-item collections_pagination_prev">
                                     <a class="page-link" title="Lleva a la página anterior" type="text" target="_self"
-                                        href="#" id="collections_pagination_prev">
+                                        href="#">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
-                                    <input type="hidden" value="" id="previousPage">
                                 </li>
                                 {{*/if*}}
                                 {{* foreach $content.pagination as $in => $page}}
@@ -192,15 +191,16 @@
                             {{/if}}
                             {{/foreach *}}
                                 {{*if !empty($content.pagination.next_page)*}}
-                                <li class="page-item">
+<li class="page-item collections_pagination_next">
                                     <a class="page-link" title="Lleva a la página siguiente" type="text" target="_self"
-                                        href="#" id="collections_pagination_next">
+                                        href="#">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>
-                                    <input type="hidden" value="" id="nextPage">
                                 </li>
                                 {{*/if*}}
                             </ul>
+                            <input type="hidden" value="" id="previousPage">
+                            <input type="hidden" value="" id="nextPage">
                         </nav>
                     </div>
                 </div>
@@ -210,39 +210,50 @@
     {{* <pre>{{var_dump($data.content)}}</pre> *}}
 {{/block}}
 {{block name='css'}}
-    <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
-    {{* <link rel="stylesheet" type="text/css" href="/assets/css/datatables-responsive/responsive.bootstrap4.min.css"> *}}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-buttons/buttons.bootstrap4.min.css">
+    {{* <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="/assets/css/datatables-responsive/responsive.bootstrap4.min.css">
+     *}}
 {{/block}}
 {{block name="jslibs"}}
-    <script type="text/javascript" src="/assets/js/datatables/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="/assets/js/datatables-bs4/dataTables.bootstrap4.min.js"></script>
-    <script type="text/javascript" src="/assets/js/datatables-responsive/dataTables.responsive.min.js"></script>
-    <script type="text/javascript" src="/assets/js/datatables-responsive/responsive.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/responsive.bootstrap4.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/dataTables.buttons.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.bootstrap4.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.flash.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.html5.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.print.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.colVis.min.js"></script>
-    <script type="text/javascript" src="/assets/js/jszip/jszip.min.js"></script>
-    <script type="text/javascript" src="/assets/js/pdfmake/pdfmake.min.js"></script>
-    <script type="text/javascript" src="/assets/js/pdfmake/vfs_fonts.js"></script>
-    <script type="text/javascript" src="/assets/js/moment/moment-with-locales.min.js"></script>
+    {{* 
+        <script type="text/javascript" src="/assets/js/datatables/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" src="/assets/js/datatables-bs4/dataTables.bootstrap4.min.js"></script>
+        <script type="text/javascript" src="/assets/js/datatables-responsive/dataTables.responsive.min.js"></script>
+        <script type="text/javascript" src="/assets/js/datatables-responsive/responsive.bootstrap4.min.js"></script>
+        <script type="text/javascript" src="/assets/js/jszip/jszip.min.js"></script>
+        <script type="text/javascript" src="/assets/js/pdfmake/pdfmake.min.js"></script>
+        <script type="text/javascript" src="/assets/js/pdfmake/vfs_fonts.js"></script>
+        <script type="text/javascript" src="/assets/js/moment/moment-with-locales.min.js"></script>
+    *}}
     <script type="text/javascript" src="/assets/js/global/tabler.js"></script>
 {{/block}}
 {{block name="scripts"}}
     {{literal}}
         <script>
             $("#collections_pagination").hide();
+            $(".collections_pagination_prev").hide();
+            $(".collections_pagination_next").hide();
             const columnas = [
                 { data: 'store_id' },
-                { '_': "date.display", 'sort': "date.timestamp" },
-                { data: 'name' },
+                { data: 'date' },
                 { data: 'store_title' },
                 { data: 'store_handle' },
+                { data: 'store_type' },
+                { data: 'name' },
                 { data: 'category' },
-                { data: 'sub_category' },
                 { data: 'handle' },
                 { data: 'id_tienda' },
                 { data: 'keywords' },
@@ -250,95 +261,75 @@
                 { data: 'product_count' },
                 { data: 'active' },
                 { data: 'possition' },
+                { data: 'actions' }
             ];
-            let collections, result;
+            let collections, result,urlNext,urlPrev;
             $(document).ready(function() {
                 var collectionsTable;
                 $.ajax({
-url: '/collections/lista',
+                    url: '/collections/lista',
                     type: 'GET',
                     success: function(r) {
-                        console.log(r);
+                        //console.log(r);
                         result = JSON.parse(r);
                         collections = result.collections;
-                        if (result.pagination.next_page) {
-                            $("#collections_pagination").show();
-                            var urlNext = '/collections/next?page=' +
-                                result.pagination.next_page +
-                                '&page_id=' +
-                                result.pagination.page_id +
-                                '&view_origin=' +
-                                result.view_origin;
-                            var urlPrev = '/collections/previous?page=' +
-                                result.pagination.prev_page +
-                                '&page_id=' +
-                                result.pagination.page_id +
-                                '&view_origin=' +
-                                result.view_origin;
-                            $("#nextPage").val(urlNext);
-                            $("#previousPage").val(urlPrev);
-                        }
-                        collectionsTable = tableRefill('collectionsList', collections, columnas, 10, true, 2);
+                        hasPages(result.pagination);
+                        collectionsTable = tableRefill('collectionsList', collections, columnas, 10, true,2);
                     }
                 });
-                console.log(collections);
-                $("#collections_pagination_next").click(function(e) {
-                    preventDefault(e);
+                $(".collections_pagination_next").click(function(e) {
+                    e.preventDefault();
                     var url = $("#nextPage").val();
                     $.post(url, {}, function(r) {
                         console.log(r);
                         result = JSON.parse(r);
                         collections = result.collections;
-                        if (result.pagination.next_page) {
-                            var urlNext = '/collections/next?page=' +
-                                result.pagination.next_page +
-                                '&page_id=' +
-                                result.pagination.page_id +
-                                '&view_origin=' +
-                                result.view_origin;
-                                $("#nextPage").val(urlNext);
-                        }
-                        if (result.pagination.prev_page) {
-                            var urlPrev = '/collections/previous?page=' +
-                                result.pagination.prev_page +
-                                '&page_id=' +
-                                result.pagination.page_id +
-                                '&view_origin=' +
-                                result.view_origin;
-                                $("#previousPage").val(urlPrev);
-                        }
+                        hasPages(result.pagination);
                         collectionsTable.ajax.reload();
                     });
                 });
-                $("#collections_pagination_next").click(function(e) {
-                    preventDefault(e);
+                $(".collections_pagination_prev").click(function(e) {
+                    e.preventDefault();
                     var url = $("#nextPage").val();
                     $.post(url, {}, function(r) {
                         console.log(r);
                         result = JSON.parse(r);
                         collections = result.collections;
-                        if (result.pagination.next_page) {
-                            var urlNext = '/collections/next?page=' +
-                                result.pagination.next_page +
-                                '&page_id=' +
-                                result.pagination.page_id +
-                                '&view_origin=' +
-                                result.view_origin;
-                                $("#nextPage").val(urlNext);
-                            }
-                            if (result.pagination.prev_page) {
-                                var urlPrev = '/collections/previous?page=' +
-                                    result.pagination.prev_page +
-                                    '&page_id=' +
-                                    result.pagination.page_id +
-                                    '&view_origin=' +
-                                    result.view_origin;
-                                    $("#previousPage").val(urlPrev);
-                                }
+                        hasPages(result.pagination);
                         collectionsTable.ajax.reload();
                     });
                 });
             });
+            function hasPages(paginacion) {
+                if (paginacion.hasNextPage == true) {
+                    urlNext = '/collections/next?page=' + paginacion.endCursor;
+                    $("#nextPage").val(urlNext);
+                    if (paginacion.hasPreviousPage == true) {
+                        urlPrev = '/collections/previous?page=' + paginacion.startCursor;
+                        $("#previousPage").val(urlPrev);
+                        $(".collections_pagination_prev").show();
+                    }
+                    $(".collections_pagination_next").show();
+                } else {
+                    $(".collections_pagination_next").hide();
+                    if (paginacion.hasPreviousPage == true) {
+                        urlPrev = '/collections/previous?page=' + paginacion.startCursor;
+                        $("#previousPage").val(urlPrev);
+                        $(".collections_pagination_prev").show();
+                    }
+                }
+                $("#collections_pagination").show();
+                /* +
+                '&page_id=' +
+                paginacion.page_id +
+                '&view_origin=' +
+                result.view_origin;
+                +
+                '&page_id=' +
+                paginacion.page_id +
+                '&view_origin=' +
+                result.view_origin*/
+            }
         </script>
     {{/literal}}
 {{/block}}
