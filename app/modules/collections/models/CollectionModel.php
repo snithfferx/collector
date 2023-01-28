@@ -94,6 +94,7 @@ class CollectionModel extends ContextClass
         $query['params'] = "";
         /* Pedir nombre común por ID */
         if (!empty($this->id)) $query['params'] = "nombre_comun.id_nombre_comun=:$this->id";
+        if (!empty($this->id) && (!empty($this->title) || !empty($this->categoria) || !empty($this->tipo))) $query['params'] .= ",";
         /* Pedir Nombre común por Nombre */
         if (!empty($this->title)) $query['params'] = "nombre_comun.nombre_comun~:$this->title";
         /* Pedir Nombre común por Categoría */
