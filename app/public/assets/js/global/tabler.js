@@ -181,6 +181,7 @@ function tableRefill(
         },
         "buttons": btns
     }).buttons().container().appendTo('#' + elemento + '_wrapper .col-sm-12:eq(0)');
+    console.log(table);
     return table;
 }
 /**
@@ -255,3 +256,10 @@ function loadTable(
     }).buttons().container().appendTo('#' + elemento + '_wrapper .col-sm-12:eq(0)');
     return table;
 }
+/* function tableRefiller(elemento,rows) {
+    var tabla = $("#" + elemento).Datatable();
+    return tabla    
+        .clear()
+        .rows.add(rows)
+        .draw();
+} */

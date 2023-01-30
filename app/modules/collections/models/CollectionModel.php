@@ -16,12 +16,13 @@ class CollectionModel extends ContextClass
     private $external;
     public $fields;
     public $limit;
-    public $id;
-    public $title;
-    public $categoria;
-    public $tipo;
+    public $id = null;
+    public $title = null;
+    public $categoria = null;
+    public $tipo = null;
     public $activo;
-    public $page;
+    public $page = null;
+    public $cursor = null;
     private $element;
     public function __construct()
     {
@@ -49,6 +50,13 @@ class CollectionModel extends ContextClass
     public function getPage()
     {
         return $this->getCollectionsPage();
+    }
+    public function hasMetafields() {
+        return $this->getMetafields();
+    }
+
+    protected function getMetafields () {
+        return $this->getMetadata();
     }
     /* private function getCollections(array $parameters = []) :array {
         if (!empty($parameters['value'])) {
@@ -93,18 +101,18 @@ class CollectionModel extends ContextClass
         ];
         $query['params'] = "";
         /* Pedir nombre común por ID */
-        if (!empty($this->id)) $query['params'] = "nombre_comun.id_nombre_comun=:$this->id";
-        if (!empty($this->id) && (!empty($this->title) || !empty($this->categoria) || !empty($this->tipo))) $query['params'] .= ",";
+        if (!is_null($this->id)) $query['params'] = "nombre_comun.id_nombre_comun=:$this->id";
+        if (!is_null($this->id) && (!is_null($this->title) || !is_null($this->categoria) || !is_null($this->tipo))) $query['params'] .= ",";
         /* Pedir Nombre común por Nombre */
-        if (!empty($this->title)) $query['params'] = "nombre_comun.nombre_comun~:$this->title";
+        if (!is_null($this->title)) $query['params'] = "nombre_comun.nombre_comun~:$this->title";
         /* Pedir Nombre común por Categoría */
-        if (!empty($this->categoria)) $query['params'] = "tipo_categoria.id_tipo_categoria=:$this->categoria";
+        if (!is_null($this->categoria)) $query['params'] = "tipo_categoria.id_tipo_categoria=:$this->categoria";
         /* Pedir Nombre común por Tipo */
-        if (!empty($this->tipo)) $query['params'] = "nombre_comun.id_tipo_producto=:$this->tipo";
-        if (!empty($this->page)) {
+        if (!is_null($this->tipo)) $query['params'] = "nombre_comun.id_tipo_producto=:$this->tipo";
+        /* if (!is_null($this->page)) {
             $top = $this->id + $this->limit;
             $query['params'] = "nombre_comun.id_nombre_comun>:$this->page,nombre_comun.id_nombre_comun<=:$top";
-        }
+        } */
         if (!isset($response)) $response = $this->select("nombre_comun", $query, $this->limit);
         return $response;
     }
@@ -121,9 +129,12 @@ class CollectionModel extends ContextClass
     private function getCollectionsPage()
     {
         $request['element'] = $this->element;
-        if (!empty($this->page)) $request['query']['page_info'] = $this->page;
+        if (!empty($this->page)) $request['query']['page']['info'] = $this->page;
+        if (!empty($this->cursor)) $request['query'][ 'page']['cursor'] = $this->cursor;
+        $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id', 'title', 'handle', 'productsCount'];
         $request['query']['limit'] = $this->limit;
-        return $this->external->getShopifyResponse($request);
+        //return $this->external->getShopifyResponse($request);
+        return $this->external->graphQL($request);
     }
     private function getCountCollection()
     {
@@ -149,6 +160,23 @@ class CollectionModel extends ContextClass
         if (!empty($this->title)) $request['query']['title'] = $this->title;
         if (!empty($this->page)) $request['query']['page'] = $this->page;
         return $this->external->graphQL($request);
+    }
+    private function getMetadata () {
+        return $this->select("metadatos", [
+            'fields' => [
+                'metadatos' => ['id_metadato=id', 'activo']
+            ],
+            'joins' => [
+                [
+                    'type' => "INNER",
+                    'table' => "tipo_producto",
+                    'filter' => "id_tipo_producto",
+                    'compare_table' => "metadatos",
+                    'compare_filter' => "id_tipo_producto"
+                ]
+            ],
+            'params' => "tipo_producto.tipo_producto=:$this->tipo,metadatos.id_nombre_comun=:$this->id,metadatos.activo=:1;metadatos.id_metadato=:1220;metadatos.id_metadato=:1221"
+        ]);
     }
 
     /* private function getGuz()

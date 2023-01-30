@@ -191,7 +191,7 @@
                             {{/if}}
                             {{/foreach *}}
                                 {{*if !empty($content.pagination.next_page)*}}
-<li class="page-item collections_pagination_next">
+                                <li class="page-item collections_pagination_next">
                                     <a class="page-link" title="Lleva a la página siguiente" type="text" target="_self"
                                         href="#">
                                         <span aria-hidden="true">&raquo;</span>
@@ -211,7 +211,8 @@
 {{/block}}
 {{block name='css'}}
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-buttons/buttons.bootstrap4.min.css">
     {{* <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-responsive/responsive.bootstrap4.min.css">
@@ -220,8 +221,10 @@
 {{block name="jslibs"}}
     <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap4.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/responsive.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js">
+    </script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/responsive.bootstrap4.min.js">
+    </script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/dataTables.buttons.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.bootstrap4.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.flash.min.js"></script>
@@ -263,49 +266,68 @@
                 { data: 'possition' },
                 { data: 'actions' }
             ];
-            let collections, result,urlNext,urlPrev;
+            let collections, result, urlNext, urlPrev, collectionsTable;
             $(document).ready(function() {
-                var collectionsTable;
                 $.ajax({
                     url: '/collections/lista',
                     type: 'GET',
                     success: function(r) {
-                        //console.log(r);
                         result = JSON.parse(r);
                         collections = result.collections;
+                        console.log(collections);
                         hasPages(result.pagination);
-                        collectionsTable = tableRefill('collectionsList', collections, columnas, 10, true,2);
+                        collectionsTable = $("#collectionsList").DataTable({
+                            "data": collections,
+                            "columns": columnas,
+                            "paging": true,
+                            "scrollY": 'auto',
+                            "lengthMenu": lineas(10),
+                            "searching": true,
+                            "ordering": true,
+                            "order": [
+                                [2, 'asc']
+                            ],
+                            "autoWidth": true,
+                            "responsive": true,
+                            "buttons": botones()
+                        }).buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
                     }
                 });
+                //collectionsTable = tableRefill('collectionsList', collections, columnas, 10, true,2);
                 $(".collections_pagination_next").click(function(e) {
                     e.preventDefault();
                     var url = $("#nextPage").val();
                     $.post(url, {}, function(r) {
-                        console.log(r);
+                        //console.log(collectionsTable);
                         result = JSON.parse(r);
                         collections = result.collections;
-                        hasPages(result.pagination);
-                        collectionsTable.ajax.reload();
+                        collectionsTable = $("#collectionsList").DataTable().clear().draw();
+                        collectionsTable.rows.add(collections).draw();
+                        //collectionsTable.ajax.reload();
+                        tableRefiller('collectionsList', collections);
                     });
                 });
                 $(".collections_pagination_prev").click(function(e) {
                     e.preventDefault();
                     var url = $("#nextPage").val();
                     $.post(url, {}, function(r) {
-                        console.log(r);
+                        console.log(collectionsTable);
                         result = JSON.parse(r);
                         collections = result.collections;
                         hasPages(result.pagination);
-                        collectionsTable.ajax.reload();
+                        //collectionsTable.draw();
+                        //collectionsTable.ajax.reload();
                     });
                 });
             });
+
             function hasPages(paginacion) {
                 if (paginacion.hasNextPage == true) {
-                    urlNext = '/collections/next?page=' + paginacion.endCursor;
+                    urlNext = '/collections/next?page=' + paginacion.endCursor + "&cursor=next&limit=" + paginacion.limit;
                     $("#nextPage").val(urlNext);
                     if (paginacion.hasPreviousPage == true) {
-                        urlPrev = '/collections/previous?page=' + paginacion.startCursor;
+                        urlPrev = '/collections/previous?page=' + paginacion.startCursor + "&cursor=prev&limit=" + paginacion
+                            .limit;
                         $("#previousPage").val(urlPrev);
                         $(".collections_pagination_prev").show();
                     }
@@ -313,22 +335,23 @@
                 } else {
                     $(".collections_pagination_next").hide();
                     if (paginacion.hasPreviousPage == true) {
-                        urlPrev = '/collections/previous?page=' + paginacion.startCursor;
+                        urlPrev = '/collections/previous?page=' + paginacion.startCursor + "&cursor=prev&limit=" + paginacion
+                            .limit;
                         $("#previousPage").val(urlPrev);
                         $(".collections_pagination_prev").show();
                     }
                 }
                 $("#collections_pagination").show();
                 /* +
-                '&page_id=' +
-                paginacion.page_id +
-                '&view_origin=' +
-                result.view_origin;
-                +
-                '&page_id=' +
-                paginacion.page_id +
-                '&view_origin=' +
-                result.view_origin*/
+        '&page_id=' +
+        paginacion.page_id +
+        '&view_origin=' +
+        result.view_origin;
+        +
+        '&page_id=' +
+        paginacion.page_id +
+        '&view_origin=' +
+        result.view_origin*/
             }
         </script>
     {{/literal}}

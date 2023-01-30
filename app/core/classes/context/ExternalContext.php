@@ -119,18 +119,26 @@ class ExternalContext extends ExternalConnection
             $title = $values['query']['title'];
             $request .= '(title:"' . $title . '",first:' . $limit . ') { edges { node {' . $glued;
         } else {
-            $request = 'query {' . $pluralized .'(first:' . $limit . ') { nodes {' . $glued;
+            if (isset($values['query']['page']) && !empty($values['query']['page'])) {
+                $cursor = $values['query']['page']['cursor'];
+                $page = $values['query']['page']['info'];
+                $request = 'query {' . $pluralized . '(';
+                switch ($cursor) {
+                    case "next" :
+                        $request .= 'first:' . $limit . ', after:"' . $page;
+                        break;
+                    case "prev" :
+                        $request .= 'last:' . $limit . ', before:"' . $page;
+                        break;
+                }
+                $request .= '") { nodes {' . $glued;
+            } else {
+                $request = 'query {' . $pluralized . '(first:' . $limit . ') { nodes {' . $glued;
+            }
         }
         $request .= ' ruleSet { rules { ' . $rules . ' } }';
         $request .= ' metafields(first: 10) { nodes { ' . $meta_nodes . ' } } seo { title }';
-        if (isset($values['query']['page']) && !empty($values['query']['page'])) {
-            $paginado = [
-                'startCursor' => $values['query']['page']['start_cursor'],
-                'endCursor' => $values['query']['page']['end_cursor']
-            ];
-        } else {
-            $paginado = ['hasPreviousPage', 'hasNextPage', 'startCursor', 'endCursor'];
-        }
+        $paginado = ['hasPreviousPage', 'hasNextPage', 'startCursor', 'endCursor'];
         $pagesinfo = implode("\n", $paginado);
         $request .= (isset($values['query']['id']) || isset($values['query']['title'])) ? '} cursor } pageInfo { ' . $pagesinfo : ' } pageInfo { ' . $pagesinfo;
         $request .= '} } }';
