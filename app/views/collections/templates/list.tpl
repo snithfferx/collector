@@ -274,7 +274,7 @@
                     success: function(r) {
                         result = JSON.parse(r);
                         collections = result.collections;
-                        console.log(collections);
+                        //console.log(collections);
                         hasPages(result.pagination);
                         collectionsTable = $("#collectionsList").DataTable({
                             "data": collections,

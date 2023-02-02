@@ -120,16 +120,19 @@ class ExternalContext extends ExternalConnection
             $request .= '(title:"' . $title . '",first:' . $limit . ') { edges { node {' . $glued;
         } else {
             if (isset($values['query']['page']) && !empty($values['query']['page'])) {
-                $cursor = $values['query']['page']['cursor'];
-                $page = $values['query']['page']['info'];
+                //$cursor = $values['query']['page']['cursor'];
+                //$page = $values['query']['page']['info'];
                 $request = 'query {' . $pluralized . '(';
-                switch ($cursor) {
+                /* switch ($cursor) {
                     case "next" :
                         $request .= 'first:' . $limit . ', after:"' . $page;
                         break;
                     case "prev" :
                         $request .= 'last:' . $limit . ', before:"' . $page;
                         break;
+                } */
+                if ($values['query']['page']['hasNextPage'] == true) {
+                    $request .= 'first:' . $limit . ', after:"' . $values['query']['page']['endCursor'];
                 }
                 $request .= '") { nodes {' . $glued;
             } else {
