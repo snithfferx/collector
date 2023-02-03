@@ -28,6 +28,7 @@ class CollectionModel extends ContextClass
     public $order = null;
     public $seo = null;
     public $rules = [];
+    public $graphQL_id;
     private $element;
     public function __construct()
     {
@@ -66,15 +67,22 @@ class CollectionModel extends ContextClass
     {
         return $this->getCollectionsPage();
     }
-    public function hasMetafields() {
+    public function hasMetafields()
+    {
         return $this->getMetafields();
     }
     public function createCollection()
     {
         return $this->create('collection');
     }
+    public function find()
+    {
+        return $this->getLocalCollections();
+    }
 
-    protected function getMetafields () {
+
+    protected function getMetafields()
+    {
         return $this->getMetadata();
     }
     /* private function getCollections(array $parameters = []) :array {
@@ -98,8 +106,8 @@ class CollectionModel extends ContextClass
                     'id_nombre_comun=id', 'nombre_comun=name', 'posicion=possition', 'fecha_creacion=date',
                     'activo=active', 'id_tienda=store_id', 'handle', 'terminos_de_busqueda=keywords'
                 ],
-                'tipo_producto' => ['id_tipo_producto=tp_id','tipo_producto=sub_category'],
-                'tipo_categoria' => ['id_tipo_categoria=tc_id','tipo_categoria=category']
+                'tipo_producto' => ['id_tipo_producto=tp_id', 'tipo_producto=sub_category'],
+                'tipo_categoria' => ['id_tipo_categoria=tc_id', 'tipo_categoria=category']
             ],
             'joins' => [
                 [
@@ -175,53 +183,91 @@ class CollectionModel extends ContextClass
         $request['element'] = $this->element;
         $request['query']['limit'] = $this->limit;
         if (empty($this->fields)) {
-            $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id','title','handle','productsCount'];
+            $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id', 'title', 'handle', 'productsCount', 'sortOrder'];
         }
         if (!empty($this->id)) $request['query']['id'] = $this->id;
         if (!empty($this->title)) $request['query']['title'] = $this->title;
         if (!empty($this->page)) $request['query']['page'] = $this->page;
         return $this->external->graphQL($request);
     }
-    private function getMetadata () {
-        return $this->select("metadatos", [
+    private function getMetadata()
+    {
+        $query = [
             'fields' => [
-                'metadatos' => ['id_metadato=id', 'activo']
+                'metadatos' => ['id_metadato=id', 'activo=active', 'feature'],
+                'nombre_comun' => [
+                    'id_nombre_comun=nc_id', 'nombre_comun=name', 'posicion=possition', 'fecha_creacion=date',
+                    'id_tienda=store_id', 'handle', 'terminos_de_busqueda=keywords'
+                ],
+                'tipo_producto' => ['id_tipo_producto=tp_id', 'tipo_producto=sub_category'],
+                'tipo_categoria' => ['id_tipo_categoria=tc_id', 'tipo_categoria=category']
             ],
             'joins' => [
+                [
+                    'type' => "INNER",
+                    'table' => "nombre_comun",
+                    'filter' => "id_nombre_comun",
+                    'compare_table' => "metadatos",
+                    'compare_filter' => "id_nombre_comun"
+                ],
                 [
                     'type' => "INNER",
                     'table' => "tipo_producto",
                     'filter' => "id_tipo_producto",
                     'compare_table' => "metadatos",
                     'compare_filter' => "id_tipo_producto"
+                ],
+                [
+                    'type' => "INNER",
+                    'table' => "tipo_categoria",
+                    'filter' => "id_tipo_categoria",
+                    'compare_table' => "tipo_producto",
+                    'compare_filter' => "id_tipo_categoria"
                 ]
             ],
-            'params' => "tipo_producto.tipo_producto=:$this->tipo,metadatos.id_nombre_comun=:$this->id,metadatos.activo=:1;metadatos.id_metadato=:1220;metadatos.id_metadato=:1221"
-        ]);
+        ];
+        if (!empty($this->tipo) && !empty($this->id)) {
+            $query['params'] = "tipo_producto.tipo_producto=:$this->tipo,metadatos.id_nombre_comun=:$this->id,metadatos.activo=:1;metadatos.id_metadato=:1220;metadatos.id_metadato=:1221";
+        } else {
+            if (!empty($this->title)) $query['params'] = "metadato=:$this->title";
+        }
+        return $this->select("metadatos", $query);
     }
-    private function create($element) {
+    private function create($element)
+    {
         if ($element == "collection") {
             $response = $this->insert('temp_shopify_collector', [
-                'fields' => ['id','title','handle','productsCount','sortOrder',
-                    'ruleSet','metafields','seo'
+                'fields' => [
+                    'id', 'title', 'handle', 'productsCount', 'sortOrder',
+                    'ruleSet', 'metafields', 'seo', 'gqid'
                 ],
                 'values' => [
-                    $this->id,$this->title,$this->handle,$this->products,$this->order,
-                    $this->rules,$this->fields,$this->seo
+                    $this->id, $this->title, $this->handle, $this->products, $this->order,
+                    $this->rules, $this->fields, $this->seo
                 ]
             ]);
         } else {
-
+            $response = $this->insert('nombre_comun', [
+                'fields' => [
+                    'id_nombre_comun', 'nombre_comun', 'handle', 'posicion', 'fecha_creacion',
+                    'terminos_de_busqueda', 'metafields', 'seo'
+                ],
+                'values' => [
+                    $this->id, $this->title, $this->handle, $this->products, $this->order,
+                    $this->rules, $this->fields, $this->seo
+                ]
+            ]);
         }
         return $response;
     }
 
-    private function getLocalCollections () {
+    private function getLocalCollections()
+    {
         $query = [
             'fields' => [
                 'temp_shopify_collector' => [
                     'id', 'title', 'handle', 'productsCount=products',
-                    'sortOrder=sort', 'ruleSet=rules', 'metafields=meta', 'seo'
+                    'sortOrder=sort', 'ruleSet=rules', 'metafields=meta', 'seo','gqid'
                 ]
             ],
             'joins' => []
@@ -234,7 +280,7 @@ class CollectionModel extends ContextClass
         if (!is_null($this->title)) $query['params'] = "temp_shopify_collector.title~:$this->title";
         /* Pedir Nombre común por tipo */
         if (!is_null($this->tipo)) $query['params'] = "temp_shopify_collector.ruleSet!=:''";
-        return $this->select("temp_shopify_collector", $query,0);
+        return $this->select("temp_shopify_collector", $query, 0);
     }
 
     /* private function getGuz()
