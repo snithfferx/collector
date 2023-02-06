@@ -10,6 +10,7 @@ namespace app\core\classes\context;
  */
 class ContextClass extends ConnectionClass
 {
+    protected $base;
     /**
      * Esta función se encarga de traer todos los registros solicitados a una tabla
      *
@@ -205,7 +206,7 @@ class ContextClass extends ConnectionClass
         } else {
             return ['data'  => array(), 'error' => ['code' => 400, 'message' => "The statement is not admited"]];
         }
-        $result = $this->getResponse($type, ['prepare_string' => $query_request, 'params' => $query_Values]);
+        $result = $this->getResponse($type, ['prepare_string' => $query_request, 'params' => $query_Values],$this->base);
         return $this->interpreter($type, $result);
     }
     /**
@@ -328,7 +329,7 @@ class ContextClass extends ConnectionClass
         } else {
             $string .= ";";
         }
-        return $this->interpreter('select', $this->getResponse('select', ['prepare_string' => $string, 'params' => $values]));
+        return $this->interpreter('select', $this->getResponse('select', ['prepare_string' => $string, 'params' => $values], $this->base));
     }
     /**
      * Get a count of rows in a table from database.
@@ -413,7 +414,7 @@ class ContextClass extends ConnectionClass
             }
         }
         $string .= ";";
-        return $this->interpreter('select', $this->getResponse('select', ['prepare_string' => $string, 'params' => $values]));
+        return $this->interpreter('select', $this->getResponse('select', ['prepare_string' => $string, 'params' => $values],$this->base));
     }
     /**
      * Agrouping and sorting for data to return

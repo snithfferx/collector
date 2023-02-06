@@ -275,7 +275,7 @@
                         result = JSON.parse(r);
                         collections = result.collections;
                         //console.log(collections);
-                        hasPages(result.pagination);
+                        //hasPages(result.pagination);
                         collectionsTable = $("#collectionsList").DataTable({
                             "data": collections,
                             "columns": columnas,
@@ -291,6 +291,9 @@
                             "responsive": true,
                             "buttons": botones()
                         }).buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
+                        if (result.error != undefined) {
+                            alertaPopUp(result.error);
+                        }
                     }
                 });
                 //collectionsTable = tableRefill('collectionsList', collections, columnas, 10, true,2);
@@ -322,7 +325,7 @@
             });
 
             function hasPages(paginacion) {
-                if (paginacion.hasNextPage == true) {
+                if (paginacion.next == true) {
                     urlNext = '/collections/next?page=' + paginacion.endCursor + "&cursor=next&limit=" + paginacion.limit;
                     $("#nextPage").val(urlNext);
                     if (paginacion.hasPreviousPage == true) {

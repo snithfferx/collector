@@ -12,6 +12,7 @@
 namespace app\modules\collections\controllers;
 
 use app\core\classes\ControllerClass;
+use app\core\helpers\MessengerHelper;
 use app\modules\collections\models\CollectionModel;
 
 /**
@@ -27,9 +28,11 @@ class CollectionsController extends ControllerClass
      * @var object $model Contiene el modelo de las colecciones
      */
     private $model;
+    private $messenger;
     public function __construct()
     {
         $this->model = new CollectionModel;
+        $this->messenger = new MessengerHelper;
     }
     /**
      * Función que crea una colección en la base de datos y en la tienda
@@ -92,7 +95,15 @@ class CollectionsController extends ControllerClass
     }
     public function lista($value = [])
     {
-        return (!empty($value)) ? $this->getCollections($value) : $this->getCollections();
+        if (!empty($value)) {
+            $result = $this->commonNames($value);
+        } else {
+            $result = $this->commonNames();
+        }
+        if (!empty($result['error'])) {
+            $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error', $result['error']));
+        }
+        return $result;
     }
     public function sync($value)
     {
@@ -228,15 +239,15 @@ class CollectionsController extends ControllerClass
         $page = [];
         $result = [];
         //do {
-            $collections = $this->downloadCollections($page);
-            $page = $collections['data']['pagination'];
-            foreach ($collections['data']['collections'] as $collection) {
-                $result[] = [
-                    'values' => $collection,
-                    'result' => $this->crearColeccion($collection)
-                ];
-            }
-            sleep(30);
+        $collections = $this->downloadCollections($page);
+        $page = $collections['data']['pagination'];
+        foreach ($collections['data']['collections'] as $collection) {
+            $result[] = [
+                'values' => $collection,
+                'result' => $this->crearColeccion($collection)
+            ];
+        }
+        sleep(30);
         //} while ($page['hasNextPage'] == true);
         if (empty($result)) {
             $response = $this->createViewData('_shared/_error', ['error' => ['message' => "Something when worng!!"]], [], 'template', 500);
@@ -337,20 +348,27 @@ class CollectionsController extends ControllerClass
         $limit = $value;
         $this->model->limit = $limit;
         $collections = $this->model->localGet();
-        /*}
-        $mixedcommonNames = ['data' => [], 'pagination' => []];
+        $mixedcommonNames = ['collections' => [], 'pagination' => []];
         if (empty($collections['error'])) {
-            $mixedcommonNames['data']['collections'] = $collections['data'];
-            $mixedcommonNames['data']['pagination'] = $collections['pagination'];
-            $mixedcommonNames['data']['pagination']['limit'] = $limit;
+            if (!empty($collections['data'])) {
+                $mixedcommonNames = [
+                    'collections' => $this->nombresComunes($collections['data']),
+                    'pagination' => [
+                        'next' => null,
+                        'prev' => null,
+                        'max' => null,
+                        'limit' => $limit
+                    ]
+                ];
+            }
         } else {
             $mixedcommonNames = [
-                'data' => [],
+                'collections' => [],
                 'pagination' => [],
                 'error' => $collections['error']
             ];
-        }*/
-        return $this->nombresComunes($collections);
+        }
+        return $mixedcommonNames;
     }
     private function collection(int $id): array
     {
@@ -401,8 +419,9 @@ class CollectionsController extends ControllerClass
     {
         $response = array();
         foreach ($collections as $key => $collection) {
-            $idArray = explode("/", $collection['id']);
-            $id_store = $idArray[4];
+            /* $idArray = explode("/", $collection['id']);
+            $id_store = $idArray[4]; */
+            $id_store = $collection['id'];
             $this->model->id = $id_store;
             $this->model->title = $collection['title'];
             $this->model->handle = $collection['handle'];
@@ -426,6 +445,7 @@ class CollectionsController extends ControllerClass
                 'sub_category'  => "No asociado",
                 'product_count' => ($collection['products']) ?? null,
                 'collection_type' => (!empty($collection['rules'])) ? 'Custom' : 'Smart',
+                'actions' => ['delete']
             ];
             if (sizeof($result['data']) == 1) {
                 $data['actions'] = ['details'];
@@ -442,40 +462,11 @@ class CollectionsController extends ControllerClass
             } else {
                 $this->model->id = null;
                 $this->model->handle = null;
+                $sonIguales = false;
                 $result = $this->model->localGet('commonNames');
                 if (sizeof($result['data']) > 0) {
-                    if (sizeof($result['data']) > 1) {
-                        foreach ($result['data'] as $commonName) {
-                            $sonIguales = false;
-                            if ($commonName['name'] === $collection['title']) {
-                                if ($commonName['handle'] === $collection['handle']) {
-                                    $sonIguales = true;
-                                } else {
-                                    if ($this->verifyCommonName($commonName['id'], $commonName['sub_category'])) {
-                                        $sonIguales = true;
-                                    }
-                                }
-                            } else {
-                                if ($this->verifyCommonName($commonName['id'], $commonName['sub_category'])) {
-                                    $sonIguales = true;
-                                }
-                            }
-                            if ($sonIguales == true) {
-                                $data['actions'] = ['details', 'sync' => ['id']];
-                                $data['id'] = $commonName['id'];
-                                $data['name'] = $commonName['name'];
-                                $data['active'] = $commonName['active'];
-                                $data['handle'] = $commonName['handle'];
-                                $data['category'] = ['id' => $commonName['tc_id'], 'name' => $commonName['category']];
-                                $data['keywords'] = $commonName['keywords'];
-                                $data['id_tienda'] = $commonName['store_id'];
-                                $data['possition'] = $commonName['possition'];
-                                $data['sub_category'] = ['id' => $commonName['tp_id'], 'name' => $commonName['sub_category']];
-                            }
-                        }
-                    } else {
-                        $sonIguales = false;
-                        $commonName = $result['data'];
+                    $i = 0;
+                    foreach ($result['data'] as $commonName) {
                         if ($commonName['name'] === $collection['title']) {
                             if ($commonName['handle'] === $collection['handle']) {
                                 $sonIguales = true;
@@ -489,40 +480,48 @@ class CollectionsController extends ControllerClass
                                 $sonIguales = true;
                             }
                         }
-                        if ($sonIguales == true) {
-                            $data['actions'] = ['details', 'sync' => ['id']];
-                            if (!empty($commonName['id'])) $data['id'] = $commonName['id'];
-                            if (!empty($commonName['name'])) $data['name'] = $commonName['name'];
-                            if (!empty($commonName['date'])) $data['name'] = date("d/m/Y", strtotime($commonName['date']));
-                            if (!empty($commonName['active'])) $data['active'] = $commonName['active'];
-                            if (!empty($commonName['handle'])) $data['handle'] = $commonName['handle'];
-                            if (!empty($commonName['category'])) $data['category'] = ['id' => $commonName['tc_id'], 'name' => $commonName['category']];
-                            if (!empty($commonName['keywords'])) $data['keywords'] = $commonName['keywords'];
-                            if (!empty($commonName['store_id'])) $data['id_tienda'] = $commonName['store_id'];
-                            if (!empty($commonName['possition'])) $data['possition'] = $commonName['possition'];
-                            if (!empty($commonName['sub_category'])) $data['sub_category'] = ['id' => $commonName['tp_id'], 'name' => $commonName['sub_category']];
+                        if ($sonIguales === true) {
+                            $data[$i]['actions'] = ['details', 'sync' => ['id']];
+                            $data[$i]['id'] = $commonName['id'];
+                            $data[$i]['name'] = $commonName['name'];
+                            $data[$i]['active'] = $commonName['active'];
+                            $data[$i]['handle'] = $commonName['handle'];
+                            $data[$i]['category'] = ['id' => $commonName['tc_id'], 'name' => $commonName['category']];
+                            $data[$i]['keywords'] = $commonName['keywords'];
+                            $data[$i]['id_tienda'] = $commonName['store_id'];
+                            $data[$i]['possition'] = $commonName['possition'];
+                            $data[$i]['sub_category'] = ['id' => $commonName['tp_id'], 'name' => $commonName['sub_category']];
+                            $i++;
                         }
                     }
                 } else {
                     $result = $this->model->hasMetafields();
                     if (empty($result['error'])) {
-                        $data['actions'] = ['details', 'sync' => ['id']];
-                        $data['type'] = ($result['feature'] == 0) ? "Metadato" : "Feature";
-                        $data['id_meta'] = $result['id'];
-                        if (!empty($result['nc_id'])) $data['id'] = $result['nc_id'];
-                        if (!empty($result['name'])) $data['name'] = $result['name'];
-                        if (!empty($result['date'])) $data['date'] = date("d/m/Y", strtotime($result['date']));
-                        if (!empty($result['active'])) $data['active'] = $result['active'];
-                        if (!empty($result['handle'])) $data['handle'] = $result['handle'];
-                        if (!empty($result['category'])) $data['category'] = ['id' => $result['tc_id'], 'name' => $result['category']];
-                        if (!empty($result['keywords'])) $data['keywords'] = $result['keywords'];
-                        if (!empty($result['store_id'])) $data['id_tienda'] = $result['store_id'];
-                        if (!empty($result['possition'])) $data['possition'] = $result['possition'];
-                        if (!empty($result['sub_category'])) $data['sub_category'] = ['id' => $result['tp_id'], 'name' => $result['sub_category']];
+                        if (!empty($result['data'])) {
+                            $data['actions'] = ['details', 'sync' => ['id']];
+                            $data['type'] = (isset($result['feature']) && $result['feature'] == 0) ? "Metadato" : "Feature";
+                            if (!empty($result['id'])) $data['id_meta'] = $result['id'];
+                            if (!empty($result['nc_id'])) $data['id'] = $result['nc_id'];
+                            if (!empty($result['name'])) $data['name'] = $result['name'];
+                            if (!empty($result['date'])) $data['date'] = date("d/m/Y", strtotime($result['date']));
+                            if (!empty($result['active'])) $data['active'] = $result['active'];
+                            if (!empty($result['handle'])) $data['handle'] = $result['handle'];
+                            if (!empty($result['category'])) $data['category'] = ['id' => $result['tc_id'], 'name' => $result['category']];
+                            if (!empty($result['keywords'])) $data['keywords'] = $result['keywords'];
+                            if (!empty($result['store_id'])) $data['id_tienda'] = $result['store_id'];
+                            if (!empty($result['possition'])) $data['possition'] = $result['possition'];
+                            if (!empty($result['sub_category'])) $data['sub_category'] = ['id' => $result['tp_id'], 'name' => $result['sub_category']];
+                        }
                     }
                 }
             }
-            $response[$key] = $this->rowTableData($data);
+            if (sizeof($data) > 1) {
+                foreach ($data as $item) {
+                    $response[$key] = $this->rowTableData($item);
+                }
+            } else {
+                $response[$key] = $this->rowTableData($data);
+            }
         }
         return $response;
     }
@@ -548,15 +547,20 @@ class CollectionsController extends ControllerClass
     }
     private function rowTableData($arreglo): array
     {
-        /* 
-                'actions'] = ['details', 'sync' => ['id']];*/
-        $displayDate = ($arreglo['date'] != "Sin Fecha") ? date("d/m/Y", strtotime($arreglo['date'])) : $arreglo['date'];
-        $category = "No asociado";
-        if ($arreglo['category'] != "No asociado") {
-            $category = $arreglo['category'] . " > ";
-        }
-        if ($arreglo['sub_category'] != "No asociado") {
-            $category .= $arreglo['sub_category'];
+        /* [
+            'id'            => "",
+            'name'          => "No asociado",
+            'date'          => "Sin Fecha",
+            'active'        => 0,
+            'handle'        => "No asignado",
+            'category'      => "No asociado",
+            'keywords'      => "",
+            'id_tienda'     => "No asociado",
+            'possition'     => null,
+            'sub_category'  => "No asociado",
+        ] */
+        if (isset($arreglo['date'])) {
+            $displayDate = ($arreglo['date'] != "Sin Fecha") ? date("d/m/Y", strtotime($arreglo['date'])) : $arreglo['date'];
         }
         $state = 'active';
         $color = "secondary";
@@ -566,8 +570,16 @@ class CollectionsController extends ControllerClass
             $color = "success";
             $text = 'Activo';
         }
-        $handleEnds = explode('-',$arreglo['store_handle']);
-        $handleTrait = (is_numeric($handleEnds[-1])) ? '<a href="#" onclick="deleteCollection(\'' . $arreglo['store_id'] . '\')" target="_self" title="' . $arreglo['store_handle'] . '" type="text">' . $arreglo['store_handle'] . '</a>' : $arreglo['store_handle'];
+        if (!is_null($arreglo['store_handle'])) {
+            $handleEnds = explode('-', $arreglo['store_handle']);
+            $handleSize = count($handleEnds);
+            $handleTrait = '<a href="#" onclick="deleteCollection(\'' . $arreglo['store_id'] . '\')" target="_self" title="';
+            if (is_numeric($handleEnds[($handleSize - 1)])) {
+                $handleTrait .= $arreglo['store_handle'] . '" type="text">' . $arreglo['store_handle'] . '</a>';
+            }
+        } else {
+            $handleTrait = $arreglo['store_handle'];
+        }
         $response = [
             'store_id' => '<a href="/collections/read?id=' . $arreglo['store_id'] . '" target="_self" title="' . $arreglo['name'] . '" type="text">' . $arreglo['store_id'] . '</a>',
             'store_title' => $arreglo['store_title'],
@@ -586,9 +598,10 @@ class CollectionsController extends ControllerClass
             'active' => '<a href="/collections/state/' . $state . '" class="badge badge-' . $color . '">' . $text . '</a>',
             'possition' => $arreglo['possition'],
             'meta' => [
-                'is_'=>$arreglo['store_meta'],
-                'id'=> $arreglo['id_meta'],
-                'type' => $arreglo['type']]
+                'is_' => ($arreglo['store_meta']) ?? null,
+                'id' => ($arreglo['id_meta']) ?? 0,
+                'type' => ($arreglo['type']) ?? null
+            ]
         ];
         $response['actions'] = "
             <div class='btn-group'>
@@ -603,19 +616,19 @@ class CollectionsController extends ControllerClass
                     switch ($action) {
                         case "details":
                             $response['actions'] .= '
-                                <a href="/collections/read?id=' . $arreglo['id'] . '"
-                                    title="Ver detalles de colección" target="_self"
-                                    type="text" class="btn btn-success btn-sm btn-block">
-                                    <i class="fas fa-eye mr-3"></i>Detalles
-                                </a>';
+                                            <a href="/collections/read?id=' . $arreglo['id'] . '"
+                                                title="Ver detalles de colección" target="_self"
+                                                type="text" class="btn btn-success btn-sm btn-block">
+                                                <i class="fas fa-eye mr-3"></i>Detalles
+                                            </a>';
                             break;
                         case "delete":
                             $response['actions'] .=
                                 '<a href="collections/delete?id=' . $arreglo['id'] . '"
-                                    title="Borra una colección localmente" 
-                                    target="_self" type="text" class="btn btn-danger btn-sm btn-block">
-                                    <i class="fas fa-trash mr-3"></i>Borrar Nombre Común
-                                </a>';
+                                                title="Borra una colección localmente" 
+                                                target="_self" type="text" class="btn btn-danger btn-sm btn-block">
+                                                <i class="fas fa-trash mr-3"></i>Borrar Nombre Común
+                                            </a>';
                             break;
                     }
                 } else {
@@ -631,27 +644,27 @@ class CollectionsController extends ControllerClass
                                     break;
                             }
                             $response['actions'] .= '\'")
-                                    title="Sincroniza datos de tienda a local" 
-                                    target="_self" type="text" class="btn btn-primary btn-sm btn-block">
-                                    <i class="fas fa-trash mr-3"></i>Sincronizar
-                                </a>';
+                                                title="Sincroniza datos de tienda a local" 
+                                                target="_self" type="text" class="btn btn-primary btn-sm btn-block">
+                                                <i class="fas fa-trash mr-3"></i>Sincronizar
+                                            </a>';
                         }
                     }
                 }
             }
             $response['actions'] .= '
-                <div class="dropdown-divider"></div>
-                <a href="/collections/compare?id=' . $arreglo['store_id'] . '"
-                    title="Compara los datos de una colección" 
-                    target="_self" type="text" class="btn btn-info btn-sm btn-block">
-                    <i class="fas fa-copy mr-3"></i>Comparar
-                </a>
-                <a href="/collections/edit?id=' . $arreglo['id'] . '"
-                    title="Editar datos de la colección local"
-                    target="_self" type="text" class="btn btn-warning btn-sm btn-block">
-                    <i class="fas fa-edit mr-3"></i>Editar Nombre Común
-                </a>
-                <div class="dropdown-divider"></div>';
+                            <div class="dropdown-divider"></div>
+                            <a href="/collections/compare?id=' . $arreglo['store_id'] . '"
+                                title="Compara los datos de una colección" 
+                                target="_self" type="text" class="btn btn-info btn-sm btn-block">
+                                <i class="fas fa-copy mr-3"></i>Comparar
+                            </a>
+                            <a href="/collections/edit?id=' . $arreglo['id'] . '"
+                                title="Editar datos de la colección local"
+                                target="_self" type="text" class="btn btn-warning btn-sm btn-block">
+                                <i class="fas fa-edit mr-3"></i>Editar Nombre Común
+                            </a>
+                            <div class="dropdown-divider"></div>';
         }
         $response['actions'] .= '<a href="collections/edit?id=' . $arreglo['store_id'] . '"
                         title="Editar datos de la colección tienda"
@@ -672,7 +685,14 @@ class CollectionsController extends ControllerClass
         $this->model->id = $id;
         $this->model->tipo = $tipo;
         $result = $this->model->hasMetafields();
-        return (!empty($result['error'])) ? false : true;
+        if (!empty($result['error'])) {
+            return $result;
+        } else {
+            if (sizeof($result) > 0) {
+                return true;
+            }
+        }
+        return false;
     }
     private function crearColeccion($values)
     {
@@ -687,7 +707,7 @@ class CollectionsController extends ControllerClass
         $this->model->fields = json_encode($values['metafields']);
         $this->model->seo = $values['seo']['title'];
         $existe = $this->model->find();
-        if (!empty($existe['data'])) {
+        if (empty($existe['data'])) {
             return $this->model->createCollection();
         }
         return false;

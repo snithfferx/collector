@@ -111,9 +111,9 @@
                 return false;
             }
         }
-        public function getResponse(string $type, array $request) :array
+        public function getResponse(string $type, array $request,string $base) :array
         {
-            return $this->getDBResponse($request, $type);
+            return $this->getDBResponse($request, $type, $base);
         }
     }
 ?>
