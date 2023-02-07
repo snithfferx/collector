@@ -110,7 +110,9 @@ class ExternalContext extends ExternalConnection
         } */
         $rules = implode("\n", ['relation', 'column', 'condition']);
         $meta_nodes = implode("\n", ['id', 'type', 'createdAt']);
-        $glued = (!is_null($fields) && !empty($fields)) ? implode("\n", $fields) : '';
+        if (!is_null($fields) && !empty($fields)) {
+            $glued = (!is_string($fields)) ? implode("\n", $fields) : $fields;
+        }
         $request = 'query {' . $element;
         if (isset($values['query']['id']) && !empty($values['query']['id'])) {
             $id = $values['query']['id'];
