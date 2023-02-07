@@ -70,7 +70,7 @@ class CollectionModel extends ContextClass
     }
     public function hasMetafields()
     {
-        return $this->getMetafields();
+        return $this->countMetadata();
     }
     public function createCollection()
     {
@@ -129,20 +129,34 @@ class CollectionModel extends ContextClass
             ]
         ];
         $query['params'] = "";
-        /* Pedir nombre común por ID */
-        if (!is_null($this->id)) $query['params'] = "nombre_comun.id_nombre_comun=:$this->id";
-        /* Pedir Nombre común por Nombre */
-        if (!is_null($this->id) && !is_null($this->title)) $query['params'] .= ",";
-        if (!is_null($this->title)) $query['params'] .= "nombre_comun.nombre_comun~:$this->title";
-        /* Pedir Nombre común por Categoría */
-        if (!is_null($this->id) && (!is_null($this->title) || !is_null($this->categoria))) $query['params'] .= ",";
-        if (!is_null($this->categoria)) $query['params'] .= "tipo_categoria.id_tipo_categoria=:$this->categoria";
-        /* Pedir Nombre común por Tipo */
-        if (!is_null($this->id) && (!is_null($this->title) || !is_null($this->categoria) || !is_null($this->tipo))) $query['params'] .= ",";
-        if (!is_null($this->tipo)) $query['params'] .= "nombre_comun.id_tipo_producto=:$this->tipo";
-        /* Pedir Nombre común por handler */
-        if (!is_null($this->id) && (!is_null($this->title) || !is_null($this->categoria) || !is_null($this->tipo) || !is_null($this->handle))) $query['params'] .= ",";
-        if (!is_null($this->tipo)) $query['params'] .= "nombre_comun.handle=:$this->handle";
+        $args = ['id', 'title', 'categoria', 'tipo'];
+        foreach ($args as $k => $arg) {
+            if ($k != 0 && !is_null($this->$arg)) {
+                if (!empty($query['params'])) $query['params'] .= ",";
+            }
+            switch ($arg) {
+                case 'title':
+                    /* Pedir Nombre común por Nombre */
+                    if (!is_null($this->title)) $query['params'] .= "nombre_comun.nombre_comun~:$this->title";
+                    break;
+                case 'categoria':
+                    /* Pedir Nombre común por Categoría */
+                    if (!is_null($this->categoria)) $query['params'] .= "tipo_categoria.id_tipo_categoria=:$this->categoria";
+                    break;
+                case 'tipo':
+                    /* Pedir Nombre común por Tipo */
+                    if (!is_null($this->tipo)) $query['params'] .= "nombre_comun.id_tipo_producto=:$this->tipo";
+                    break;
+                case 'handle':
+                    /* Pedir Nombre común por handler */
+                    if (!is_null($this->tipo)) $query['params'] .= "nombre_comun.handle=:$this->handle";
+                    break;
+                default:
+                    /* Pedir nombre común por ID */
+                    if (!is_null($this->id)) $query['params'] .= "nombre_comun.id_nombre_comun=:$this->id";
+                    break;
+            }
+        }
         /* Limite */
         if (!isset($response)) $response = $this->select("nombre_comun", $query, $this->limit);
         return $response;
@@ -162,7 +176,7 @@ class CollectionModel extends ContextClass
         $request['element'] = $this->element;
         if (!empty($this->page)) $request['query']['page'] = $this->page;
         //if (!empty($this->cursor)) $request['query'][ 'page']['cursor'] = $this->cursor;
-        $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id', 'title', 'handle', 'productsCount'];
+        $request['query']['fields'] = (!empty($this->fields)) ? $this->fields : ['id', 'title', 'handle', 'productsCount', 'sortOrder'];
         $request['query']['limit'] = $this->limit;
         //return $this->external->getShopifyResponse($request);
         return $this->external->graphQL($request);
@@ -236,6 +250,10 @@ class CollectionModel extends ContextClass
         }
         return $this->select("metadatos", $query);
     }
+    private function countMetadata() {
+        $this->base = "inventario";
+        return $this->calculate("metadatos", 'count', 'id_metadato', "tipo_producto.tipo_producto=:$this->tipo");
+    }
     private function create($element)
     {
         if ($element == "collection") {
@@ -246,7 +264,7 @@ class CollectionModel extends ContextClass
                 ],
                 'values' => [
                     $this->id, $this->title, $this->handle, $this->products, $this->order,
-                    $this->rules, $this->fields, $this->seo,$this->graphQL_id
+                    $this->rules, $this->fields, $this->seo, $this->graphQL_id
                 ]
             ]);
         } else {
@@ -271,7 +289,7 @@ class CollectionModel extends ContextClass
             'fields' => [
                 'temp_shopify_collector' => [
                     'id', 'title', 'handle', 'productsCount=products',
-                    'sortOrder=sort', 'ruleSet=rules', 'metafields=meta', 'seo','gqid'
+                    'sortOrder=sort', 'ruleSet=rules', 'metafields=meta', 'seo', 'gqid'
                 ]
             ],
             'joins' => []

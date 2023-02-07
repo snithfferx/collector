@@ -68,11 +68,9 @@
                                     <th class="text-uppercase font-weight-bolder text-center">Categoría</th>
                                     <th class="text-uppercase font-weight-bolder text-center">Handle Local</th>
                                     <th class="text-uppercase font-weight-bolder text-center">ID Local</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">keywords</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Orden</th>
                                     <th class="text-uppercase font-weight-bolder text-center">Productos</th>
                                     <th class="text-uppercase font-weight-bolder text-center">Activo</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Posición</th>
+                                    <th class="text-uppercase font-weight-bolder text-center">metadatos</th>
                                     <th class="text-uppercase font-weight-bolder text-center">Acciones</th>
                                 </tr>
                             </thead>
@@ -208,6 +206,27 @@
         </div>
     </div>
     {{* <pre>{{var_dump($data.content)}}</pre> *}}
+    <!-- Modal -->
+    <div class="modal fade" id="type-Changer" tabindex="-1" role="dialog" aria-labelledby="type-Changer-Label"
+        aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="type-Changer-Label">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {{/block}}
 {{block name='css'}}
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap4.min.css">
@@ -246,6 +265,7 @@
 {{block name="scripts"}}
     {{literal}}
         <script>
+            $('[data-toggle="tooltip"]').tooltip()
             $("#collections_pagination").hide();
             $(".collections_pagination_prev").hide();
             $(".collections_pagination_next").hide();
@@ -259,11 +279,9 @@
                 { data: 'category' },
                 { data: 'handle' },
                 { data: 'id_tienda' },
-                { data: 'keywords' },
-                { data: 'sort_order' },
                 { data: 'product_count' },
                 { data: 'active' },
-                { data: 'possition' },
+                { data: 'metadatos' },
                 { data: 'actions' }
             ];
             let collections, result, urlNext, urlPrev, collectionsTable;
@@ -322,6 +340,9 @@
                         //collectionsTable.ajax.reload();
                     });
                 });
+                $.ajax({
+
+                });
             });
 
             function hasPages(paginacion) {
@@ -345,17 +366,39 @@
                     }
                 }
                 $("#collections_pagination").show();
-                /* +
-        '&page_id=' +
-        paginacion.page_id +
-        '&view_origin=' +
-        result.view_origin;
-        +
-        '&page_id=' +
-        paginacion.page_id +
-        '&view_origin=' +
-        result.view_origin*/
             }
+
+            function syncCollection(id) {
+                $.post('collections/sync',{"id":id},function (r) {
+                result = JSON.parse(r);
+                alertaPopUp(result);
+            });
+            }
+
+            function deleteCollection(id) {
+                $.post('collections/delete',{"id":id},function (r) {
+                result = JSON.parse(r);
+                alertaPopUp(result);
+            });
+            }
+
+            function changeState(id, currentState) {
+                $.post('collections/state',{"id":id,"current":currentState},function (r) {
+                result = JSON.parse(r);
+                alertaPopUp(result);
+            });
+            }
+$('#type-Changer').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget) // Button that triggered the modal
+var recipient = button.data('collectid') // Extract info from data-* attributes
+var recipient = button.data('prodcat') // Extract info from data-* attributes
+                // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+                // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other
+                methods instead.
+                var modal = $(this)
+                modal.find('.modal-title').text('New message to ' + recipient)
+                modal.find('.modal-body input').val(recipient)
+    })
         </script>
     {{/literal}}
 {{/block}}
