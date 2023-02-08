@@ -52,6 +52,8 @@ class CollectionModel extends ContextClass
             return $this->getCommonNames();
         } elseif ($list == "collection") {
             return $this->getCollections();
+        } elseif ($list == "isCategory") {
+            return $this->isCategory();
         } else {
             return ['error' => ['code' => 404, 'message' => "Element Not Found"], 'data' => []];
         }
@@ -250,7 +252,8 @@ class CollectionModel extends ContextClass
         }
         return $this->select("metadatos", $query);
     }
-    private function countMetadata() {
+    private function countMetadata()
+    {
         $this->base = "inventario";
         return $this->calculate("metadatos", 'count', 'id_metadato', "tipo_producto.tipo_producto=:$this->tipo");
     }
@@ -288,7 +291,7 @@ class CollectionModel extends ContextClass
         $query = [
             'fields' => [
                 'temp_shopify_collector' => [
-                    'id', 'title', 'handle', 'productsCount=products',
+                    'collection_id', 'id', 'title', 'handle', 'productsCount=products',
                     'sortOrder=sort', 'ruleSet=rules', 'metafields=meta', 'seo', 'gqid'
                 ]
             ],
@@ -302,9 +305,77 @@ class CollectionModel extends ContextClass
         if (!is_null($this->title)) $query['params'] = "temp_shopify_collector.title~:$this->title";
         /* Pedir Nombre común por tipo */
         if (!is_null($this->tipo)) $query['params'] = "temp_shopify_collector.ruleSet!=:''";
-        return $this->select("temp_shopify_collector", $query, 0);
+        $response = $this->select("temp_shopify_collector", $query, 0);
+        if (!empty($response['data'])) {
+            $last = $response['data'][99]['collection_id'];
+            $next = $last + 1;
+            $prev = $last - ($this->limit - 1);
+            $response['pagination'] = [
+                'next_page' => $next,
+                'prev_page' => $prev,
+                'limit' => $this->limit,
+                'max' => $this->calculate("temp_shopify_collector", 'MAX', "collection_id")
+            ];
+        }
+        return $response;
     }
-
+    private function isCategory()
+    {
+        $this->base = "inventario";
+        $isCategory = false;
+        $isCommon = false;
+        $collections = [];
+        $isCat = $this->select('tipo_categoria', [
+            'fields' => 'all',
+            'params' => "tipo_categoria.tipo_categoria=:" . $this->categoria
+        ]);
+        if (!empty($isCat['data'])) $isCategory = true;
+        $query = [
+            'fields' => [
+                'nombre_comun' => [
+                    'id_nombre_comun=id',
+                    'nombre_comun=name',
+                    'posicion=possition',
+                    'fecha_creacion=date',
+                    'activo=active',
+                    'id_tienda=store_id',
+                    'handle',
+                    'terminos_de_busqueda=keywords'
+                ],
+                'tipo_producto' => ['id_tipo_producto=tp_id', 'tipo_producto=sub_category'],
+                'tipo_categoria' => ['id_tipo_categoria=tc_id', 'tipo_categoria=category']
+            ],
+            'joins' => [
+                [
+                    'type' => "INNER",
+                    'table' => "tipo_producto",
+                    'filter' => "id_tipo_producto",
+                    'compare_table' => "nombre_comun",
+                    'compare_filter' => "id_tipo_producto"
+                ],
+                [
+                    'type' => "INNER",
+                    'table' => "tipo_categoria",
+                    'filter' => "id_tipo_categoria",
+                    'compare_table' => "tipo_producto",
+                    'compare_filter' => "id_tipo_categoria"
+                ]
+            ],
+            'params' => "nombre_comun.nombre_comun=:" . $this->categoria
+        ];
+        $result = $this->select("nombre_comun", $query, $this->limit);
+        if (!empty($result['data'])) {
+            $isCommon = true;
+            $collections = $result['data'];
+        }
+        return [
+            'data' => [
+                'isCategory' => $isCategory,
+                'isCommon' => $isCommon,
+                'list' => $collections
+            ]
+        ];
+    }
     /* private function getGuz()
     {
         $product_ids = [];

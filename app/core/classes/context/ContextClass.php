@@ -206,7 +206,7 @@ class ContextClass extends ConnectionClass
         } else {
             return ['data'  => array(), 'error' => ['code' => 400, 'message' => "The statement is not admited"]];
         }
-        $result = $this->getResponse($type, ['prepare_string' => $query_request, 'params' => $query_Values],$this->base);
+        $result = $this->getResponse($type, ['prepare_string' => $query_request, 'params' => $query_Values], $this->base);
         return $this->interpreter($type, $result);
     }
     /**
@@ -226,24 +226,30 @@ class ContextClass extends ConnectionClass
         $values = [];
         $string = "SELECT ";
         if (is_array($query) && !empty($query)) {
-            $t = count($query['fields']) - 1;
-            $y = 0;
-            foreach ($query['fields'] as $tabla => $fields) {
-                $fc = count($fields);
-                for ($x = 0; $x < $fc; $x++) {
-                    $asignado = explode("=", $fields[$x]);
-                    if (count($asignado) > 1) {
-                        $string .= "`$tabla`.`$asignado[0]` AS '$asignado[1]'";
-                    } else {
-                        $string .= "`$tabla`.`$fields[$x]`";
+            if (is_string($query['fields'])) {
+                $string .= ($query['fields'] == "all") ? " * " : $query;
+            } else {
+                $t = count($query['fields']) - 1;
+                $y = 0;
+                foreach ($query['fields'] as $tabla => $fields) {
+                    $fc = count($fields);
+                    for ($x = 0; $x < $fc; $x++) {
+                        $asignado = explode("=", $fields[$x]);
+                        if (count($asignado) > 1) {
+                            $string .= "`$tabla`.`$asignado[0]` AS '$asignado[1]'";
+                        } else {
+                            $string .= "`$tabla`.`$fields[$x]`";
+                        }
+                        if ($x < ($fc - 1))
+                            $string .= ", ";
                     }
-                    if ($x < ($fc - 1)) $string .= ", ";
+                    if ($y < $t)
+                        $string .= ", ";
+                    $y++;
                 }
-                if ($y < $t) $string .= ", ";
-                $y++;
             }
         } else {
-            $string .= ($query == "all") ? "* " : $query;
+            $string .= ($query == "all") ? " * " : $query;
         }
         $string .= " FROM `$table`";
         if (!empty($query['joins'])) {
@@ -283,7 +289,7 @@ class ContextClass extends ConnectionClass
                         } else {
                             $pairCond = explode(".", $cond);
                             $string .= "`$pairCond[0]`.";
-                            $oprtCond = preg_split("/([\=<>])|(\'<=\')|(\'>=\')|(\'!=\')/", $pairCond[1], -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+                            $oprtCond = preg_split('/([\=<>])|(\'<=\')|(\'>=\')|(\'!=\')/', $pairCond[1], -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
                             if (count($oprtCond) > 1) {
                                 foreach ($oprtCond as $value) {
                                     if ($value == "=" || $value == "<" || $value == ">" || $value == "<=" || $value == ">=" || $value == "!=") {
@@ -414,7 +420,7 @@ class ContextClass extends ConnectionClass
             }
         }
         $string .= ";";
-        return $this->interpreter('select', $this->getResponse('select', ['prepare_string' => $string, 'params' => $values],$this->base));
+        return $this->interpreter('select', $this->getResponse('select', ['prepare_string' => $string, 'params' => $values], $this->base));
     }
     /**
      * Agrouping and sorting for data to return
