@@ -442,7 +442,8 @@ class CollectionsController extends ControllerClass
                 'product_count' => ($collection['products']) ?? null,
                 'collection_type' => (!empty($collection['rules'])) ? 'Custom' : 'Smart',
             ];
-            $this->model->categoria = $collection['title'];
+            $titleNormalized = $this->normalizate($collection['title']);
+            $this->model->categoria = $titleNormalized;
             $result = $this->model->localGet('isCategory');
             if ($result['data']['isCategory'] === true) {
                 if ($result['data']['isCommon'] === true) {
@@ -485,7 +486,7 @@ class CollectionsController extends ControllerClass
             } else {
                 $this->cleanVars();
                 $this->model->id = $id_store;
-                $this->model->title = $collection['title'];
+                $this->model->title = $titleNormalized;
                 $this->model->handle = $collection['handle'];
                 $result = $this->model->localGet('commonNames');
                 if (sizeof($result['data']) == 1) {
@@ -829,5 +830,16 @@ class CollectionsController extends ControllerClass
         $this->model->rules = null;
         $this->model->fields = null;
         $this->model->seo = null;
+    }
+    private function normalizate (string $value) :string {
+        $arreglo = preg_split('/([,|;|~|#])/', $value, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+        if (sizeof($arreglo) > 1) {
+            $value = str_replace(chr(152), ' ', $value);
+            $value = str_replace( '#', ' ', $value);
+            $value = str_replace( ';', '/', $value);
+            $value = str_replace(',', '/', $value);
+            //str_replace(array(',',';','~','#'),array('/','/',' ',' '),$value);
+        }
+        return $value;
     }
 }

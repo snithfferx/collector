@@ -112,7 +112,7 @@ class ContextClass extends ConnectionClass
      * @link /docs/develop/queryStringCondition
      * @return array
      */
-    protected function calculate(string $table, string $function = 'count', string $field = 'id', string $cond = null): array
+    protected function calculate(string $table, string $function = 'count', string $field = 'id', array $cond = null): array
     {
         if (empty($table)) {
             return ['error' => ['code' => 400, 'message' => "A table name is need it."], 'data' => array()];
@@ -259,28 +259,34 @@ class ContextClass extends ConnectionClass
         }
         if (!is_null($query['params']) && !empty($query['params'])) {
             $string .= " WHERE ";
-            $params = $query['params'];
-            $condiciones = preg_split('/([,|;|~|#])/', $params, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+            $condiciones = $query['params'];
+            //$condiciones = preg_split('/([,|;|~|#])/', $params, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
             $isLike = false;
-            foreach ($condiciones as $cond) {
-                switch ($cond) {
-                    case ",":
-                        $string .= " AND ";
-                        break;
-                    case ";":
-                        $string .= " OR ";
-                        break;
-                    case "~":
-                        $string .= " LIKE ";
-                        $isLike = true;
-                        break;
-                    case "#":
-                        $string .= " BETWEEN ";
-                        break;
-                    default:
+            foreach ($query['params']['condition'] as $indice => $condicion) {
+                $separador = ($query['params']['separator'][$indice]) ?? null;
+                if (isset($separador) && !is_null($separador)) {
+                    switch ($separador) {
+                        case "Y":
+                            $string .= " AND ";
+                            break;
+                        case "O":
+                            $string .= " OR ";
+                            break;
+                    }
+                }
+                $string .= $condicion['table'] . '.' . $condicion['field'];
+                if ($condicion['type'] == 'COMPARE') {
+                    $string .= ' = ? ';
+                } elseif ($condicion['type'] == 'SIMILAR') {
+                    $string .= " LIKE CONCAT('%', ?, '%') ";
+                } elseif ($condicion['type'] == 'RANGO') {
+                    $string .= ' BETWEEN ? AND ? ';
+                }
+                array_push($values, $condicion['value']);
+                /* default:
                         if ($isLike === true) {
-                            $pair = explode(":", $cond);
-                            if (count($pair) > 1) {
+                            //$pair = explode(":", $cond);
+                            //if (count($pair) > 1) {
                                 $string .= "CONCAT('%', ?, '%')";
                                 array_push($values, $pair[1]);
                             } else {
@@ -308,7 +314,7 @@ class ContextClass extends ConnectionClass
                                 $string .= "`$pairCond[1]`";
                             }
                         }
-                }
+                    } */
             }
         }
         if ($order != '' and $orderby != '') {
@@ -370,7 +376,7 @@ class ContextClass extends ConnectionClass
         $values[] = "`$table`.`$campo`";
         if (!is_null($condicion)) {
             $string .= " WHERE ";
-            $pspt = preg_split('/([,|;|~|#])/', $condicion, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+            /* $pspt = preg_split('/([,|;|~|#])/', $condicion, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
             $isLike = false;
             foreach ($pspt as $ps) {
                 switch ($ps) {
@@ -417,6 +423,28 @@ class ContextClass extends ConnectionClass
                             }
                         }
                 }
+            } */
+            foreach ($condicion['condition'] as $indice => $condicion) {
+                $separador = ($condicion['separator'][$indice]) ?? null;
+                if (isset($separador) && !is_null($separador)) {
+                    switch ($separador) {
+                        case "Y":
+                            $string .= " AND ";
+                            break;
+                        case "O":
+                            $string .= " OR ";
+                            break;
+                    }
+                }
+                $string .= $condicion['table'] . '.' . $condicion['field'];
+                if ($condicion['type'] == 'COMPARE') {
+                    $string .= ' = ? ';
+                } elseif ($condicion['type'] == 'SIMILAR') {
+                    $string .= " LIKE CONCAT('%', ?, '%') ";
+                } elseif ($condicion['type'] == 'RANGO') {
+                    $string .= ' BETWEEN ? AND ? ';
+                }
+                array_push($values, $condicion['value']);
             }
         }
         $string .= ";";
