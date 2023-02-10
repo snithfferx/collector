@@ -235,7 +235,6 @@ class CollectionsController extends ControllerClass
                 $collection = $this->commonName($values['id']);
                 $this->crearColeccion($collection);
             } else {
-
             }
             return $this->getCollections();
         }
@@ -340,13 +339,14 @@ class CollectionsController extends ControllerClass
      * @param int $limit
      * @return array
      */
-    private function commonNames($value = 10): array
+    private function commonNames($value = 100): array
     {
         $this->cleanVars();
         $limit = $value;
         $this->model->limit = $limit;
         $collections = $this->model->localGet();
         $mixedcommonNames = ['collections' => [], 'pagination' => []];
+        $max = $this->model->calcular('collections');
         if (empty($collections['error'])) {
             if (!empty($collections['data'])) {
                 $mixedcommonNames = [
@@ -354,7 +354,7 @@ class CollectionsController extends ControllerClass
                     'pagination' => [
                         'next' => $collections['pagination']['next_page'],
                         'prev' => $collections['pagination']['prev_page'],
-                        'max' => $collections['pagination']['max'],
+                        'max' => $max['data'][0]['res'],
                         'limit' => $limit
                     ]
                 ];
@@ -442,8 +442,8 @@ class CollectionsController extends ControllerClass
                 'product_count' => ($collection['products']) ?? null,
                 'collection_type' => (!empty($collection['rules'])) ? 'Custom' : 'Smart',
             ];
-            $titleNormalized = $this->normalizate($collection['title']);
-            $this->model->categoria = $titleNormalized;
+            //$titleNormalized = $this->normalizate($collection['title']);
+            $this->model->categoria = $collection['title'];
             $result = $this->model->localGet('isCategory');
             if ($result['data']['isCategory'] === true) {
                 if ($result['data']['isCommon'] === true) {
@@ -474,11 +474,12 @@ class CollectionsController extends ControllerClass
                                 $datas[$g]['sub_category'] = ['id' => $common['tp_id'], 'name' => $common['sub_category']];
                                 $this->model->tipo = $common['tp_id'];
                                 $result = $this->model->hasMetafields();
-                                $datas[$g]['metadatos'] = $common['res'];
+                                $datas[$g]['metadatos'] = $result['data']['res'];
                             }
                             array_push($datas[$g]['actions']['common'], 'editar');
                             $g++;
                         }
+                        if (isset($common)) unset($common);
                     }
                 } else {
                     array_push($data['actions']['collection'], 'crear');
@@ -486,30 +487,33 @@ class CollectionsController extends ControllerClass
             } else {
                 $this->cleanVars();
                 $this->model->id = $id_store;
-                $this->model->title = $titleNormalized;
+                $this->model->title = $collection['title'];
                 $this->model->handle = $collection['handle'];
                 $result = $this->model->localGet('commonNames');
-                if (sizeof($result['data']) == 1) {
-                    array_push($data['actions']['collection'], 'eliminar');
-                    if (!empty($result['data']['id'])) {
-                        $data['id'] = $result['data']['id'];
-                        array_push($data['actions']['common'], 'detalles');
+                if (sizeof($result['data']) > 0) {
+                    foreach ($result['data'] as $k => $v) {
+                        array_push($datas[$k]['actions']['collection'], 'eliminar');
+                        if (!empty($v['id'])) {
+                            $datas[$k]['id'] = $v['id'];
+                            array_push($datas[$k]['actions']['common'], 'detalles');
+                        }
+                        if (!empty($v['name'])) $datas[$k]['name'] = $v['name'];
+                        if (!empty($v['date'])) $datas[$k]['date'] = date("d/m/Y", strtotime($v['date']));
+                        if (!empty($v['active'])) $datas[$k]['active'] = $v['active'];
+                        if (!empty($v['handle'])) $datas[$k]['handle'] = $v['handle'];
+                        if (!empty($v['category'])) $datas[$k]['category'] = ['id' => $v['tc_id'], 'name' => $v['category']];
+                        if (!empty($v['keywords'])) $datas[$k]['keywords'] = $v['keywords'];
+                        if (!empty($v['store_id'])) $datas[$k]['id_tienda'] = $v['store_id'];
+                        if (!empty($v['possition'])) $datas[$k]['possition'] = $v['possition'];
+                        if (!empty($v['sub_category'])) {
+                            $datas[$k]['sub_category'] = ['id' => $v['tp_id'], 'name' => $v['sub_category']];
+                            $this->model->id = $v['id'];
+                            $result = $this->model->hasMetafields();
+                            $datas[$k]['metadatos'] = $result['data']['res'];
+                        }
+                        array_push($datas[$k]['actions']['common'], 'editar');
                     }
-                    if (!empty($result['data']['name'])) $data['name'] = $result['data']['name'];
-                    if (!empty($result['data']['date'])) $data['date'] = date("d/m/Y", strtotime($result['data']['date']));
-                    if (!empty($result['data']['active'])) $data['active'] = $result['data']['active'];
-                    if (!empty($result['data']['handle'])) $data['handle'] = $result['data']['handle'];
-                    if (!empty($result['data']['category'])) $data['category'] = ['id' => $result['data']['tc_id'], 'name' => $result['data']['category']];
-                    if (!empty($result['data']['keywords'])) $data['keywords'] = $result['data']['keywords'];
-                    if (!empty($result['data']['store_id'])) $data['id_tienda'] = $result['data']['store_id'];
-                    if (!empty($result['data']['possition'])) $data['possition'] = $result['data']['possition'];
-                    if (!empty($result['data']['sub_category'])) {
-                        $data['sub_category'] = ['id' => $result['data']['tp_id'], 'name' => $result['data']['sub_category']];
-                        $this->model->tipo = $result['data']['tp_id'];
-                        $result = $this->model->hasMetafields();
-                        $data['metadatos'] = $result['data']['res'];
-                    }
-                    array_push($data['actions']['common'], 'editar');
+                    if (isset($v)) unset($v);
                 } else {
                     $this->model->id = null;
                     $this->model->handle = null;
@@ -530,7 +534,7 @@ class CollectionsController extends ControllerClass
                             }
                             if ($sonIguales === false) {
                                 array_push($datas[$i]['actions']['common'], 'editar');
-                                $this->model->tipo = $commonName['tp_id'];
+                                $this->model->id = $commonName['id'];
                                 $result = $this->model->hasMetafields();
                                 $cant = $result['data']['res'];
                                 if ($cant > 0) {
@@ -554,6 +558,7 @@ class CollectionsController extends ControllerClass
                                 $i++;
                             }
                         }
+                        if (isset($commonName)) unset($commonName);
                     }
                 }
             }
@@ -595,7 +600,7 @@ class CollectionsController extends ControllerClass
         if ($arreglo['active'] > 0) {
             $state = 'diactive';
             $text = 'Activo';
-            $check = 'checked';
+            $check = 'checked="checked"';
         }
         if (!is_null($arreglo['store_handle'])) {
             $eliminable = false;
@@ -616,6 +621,17 @@ class CollectionsController extends ControllerClass
             }
             if ($eliminable === false) $handleHandler = $arreglo['store_handle'];
         }
+        $activador = '<div class="switch">
+                    <label>                          
+                        <input type="checkbox" id="' . $arreglo['store_id'] . '-Switch"';
+        if ($arreglo['id']) {
+            $activador .=' onclick="changeState(' . $arreglo['id'] . ',\'' . $state . '\')"';
+        }
+        $activador .= ' value="1" 
+                        data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '>
+                        <span class="lever"></span> 
+                    </label>
+                </div>';
         $response = [
             'store_id' => '<a href="/collections/read?id=' . $arreglo['store_id'] . '" target="_self" title="' . $arreglo['name'] . '" type="text">' . $arreglo['store_id'] . '</a>',
             'store_title' => $arreglo['store_title'],
@@ -625,18 +641,11 @@ class CollectionsController extends ControllerClass
             'sort_order' => $arreglo['sort_order'],
             'product_count' => $arreglo['product_count'],
             'date' => $arreglo['date'],
-            'name' => ($arreglo['name'] == "No asociado") ? '<a href="/collections/create?id=' . $arreglo['store_id'] . '" target="_self" title="crear colección" type="text"> Crear|Sincronizar</a>' : '<a href="collections/read?id=' . $arreglo['id'] . '" target="_self" title="' . $arreglo['name'] . '" type="text">' . $arreglo['name'] . '</a>',
-            'handle' => ($arreglo['handle'] == "No asociado") ? '<a href="/collections/create?id=' . $arreglo['store_id'] . '" target="_self" title="crear colección" type="text"> Crear|Sincronizar</a>' : '<a href="collections/read?id=' . $arreglo['id'] . '" target="_self" title="' . $arreglo['handle'] . '" type="text">' . $arreglo['handle'] . '</a>',
+            'name' => ($arreglo['name'] == "No asociado") ? '<a href="/collections/create?id=' . $arreglo['store_id'] . '" class="btn btn-info btn-sm" target="_self" title="crear colección" type="text"> Crear|Sincronizar</a>' : '<a href="collections/read?id=' . $arreglo['id'] . '" class="btn btn-block btn-outline-info" target="_self" title="' . $arreglo['name'] . '" type="text">' . $arreglo['name'] . '</a>',
+            'handle' => ($arreglo['handle'] == "No asociado") ? '<a href="/collections/create?id=' . $arreglo['store_id'] . '" class="btn btn-info btn-sm" target="_self" title="crear colección" type="text"> Crear|Sincronizar</a>' : '<a href="collections/read?id=' . $arreglo['id'] . '" class="btn btn-block btn-outline-info" target="_self" title="' . $arreglo['handle'] . '" type="text">' . $arreglo['handle'] . '</a>',
             'id_tienda' => $arreglo['id_tienda'],
             'keywords' => $arreglo['keywords'],
-            'active' => '
-                <div class="form-group">
-                    <div class="custom-control custom-switch custom-switch-off-danger custom-switch-on-success">
-                        <input type="checkbox" class="custom-control-input" id="' . $arreglo['store_id'] . '-Switch" onclick="changeState(' . $arreglo['id'] . ',\'' . $state . '\')"
-                            data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '>
-                        <label class="custom-control-label" for="' . $arreglo['id'] . '-Switch"> </label>
-                    </div>
-                </div>',
+            'active' => $activador,
             'possition' => $arreglo['possition'],
             'meta' => [
                 'is_' => ($arreglo['store_meta']) ?? null,
@@ -646,7 +655,13 @@ class CollectionsController extends ControllerClass
         ];
         if (is_array($arreglo['category'])) {
             $response['category'] = '
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#type-Changer" data-collectid="' . $arreglo['store_id'] . '" data-prodcat="' . $arreglo['category']['id'] . '">' . $arreglo['category']['name'] . '</button>';
+                <button type="button" class="btn btn-primary" 
+                    data-toggle="modal" 
+                    data-target="#type-Changer" 
+                    data-collectid="' . $arreglo['store_id'] . '" 
+                    data-prodcat="' . $arreglo['category']['id'] . '">' . 
+                    $arreglo['category']['name'] . 
+                '</button>';
         } else {
             $response['category'] = '
                 <button type="button" class="btn btn-primary" 
@@ -744,34 +759,34 @@ class CollectionsController extends ControllerClass
                     break;
             }
         }
-        $response['actions'] .= '<div class="dropdown-divider"></div>';
+        if (!empty($arreglo['actions']['common'])) $response['actions'] .= '<div class="dropdown-divider"></div>';
         foreach ($arreglo['actions']['collection'] as $action) {
             switch ($action) {
                 case 'eliminar':
                     $response['actions'] .=
                         '<button type="button" class="btn btn-default" data-toggle="modal" data-target="#deleteCollection_modal"
-                                data-CollectionID="' . $arreglo['store_id'] . '"
-                                title="Borra una colección en nube" 
-                                class="btn btn-danger btn-sm btn-block">
-                                <i class="fas fa-trash mr-3"></i>Borrar Colección
-                            </button>';
+                            data-CollectionID="' . $arreglo['store_id'] . '"
+                            title="Borra una colección en nube" 
+                            class="btn btn-danger btn-sm btn-block">
+                            <i class="fas fa-trash mr-3"></i>Borrar Colección
+                        </button>';
                     break;
                 case 'crear':
                     $response['actions'] .=
                         '<a href="/collections/crear/' . $arreglo['store_id'] . '"
-                                title="Crear colección" 
-                                target="_self" type="text" 
-                                class="btn btn-secondary btn-sm btn-block">
-                                <i class="fas fa-list mr-3"></i>Crear Colección
-                            </a>';
+                            title="Crear colección" 
+                            target="_self" type="text" 
+                            class="btn btn-secondary btn-sm btn-block">
+                            <i class="fas fa-list mr-3"></i>Crear Colección
+                        </a>';
                     break;
                 default:
                     $response['actions'] .= '
-                            <a href="/collections/compare?id=' . $arreglo['store_id'] . '"
-                                title="Compara los datos de una colección" 
-                                target="_self" type="text" class="btn btn-info btn-sm btn-block">
-                                <i class="fas fa-copy mr-3"></i>Comparar
-                            </a>';
+                        <a href="/collections/compare?id=' . $arreglo['store_id'] . '"
+                            title="Compara los datos de una colección" 
+                            target="_self" type="text" class="btn btn-info btn-sm btn-block">
+                            <i class="fas fa-copy mr-3"></i>Comparar
+                        </a>';
                     break;
             }
         }
@@ -831,12 +846,13 @@ class CollectionsController extends ControllerClass
         $this->model->fields = null;
         $this->model->seo = null;
     }
-    private function normalizate (string $value) :string {
+    private function normalizate(string $value): string
+    {
         $arreglo = preg_split('/([,|;|~|#])/', $value, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
         if (sizeof($arreglo) > 1) {
             $value = str_replace(chr(152), ' ', $value);
-            $value = str_replace( '#', ' ', $value);
-            $value = str_replace( ';', '/', $value);
+            $value = str_replace('#', ' ', $value);
+            $value = str_replace(';', '/', $value);
             $value = str_replace(',', '/', $value);
             //str_replace(array(',',';','~','#'),array('/','/',' ',' '),$value);
         }

@@ -264,7 +264,7 @@
             </div>
         </div>
     </div>
-<div class="modal fade" id="deleteCommon_modal">
+    <div class="modal fade" id="deleteCommon_modal">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -283,26 +283,25 @@
                 </div>
             </div>
         </div>
-</div>
-<div class="modal fade" id="editCommon_modal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Edición de nombre común</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form>
+    </div>
+    <div class="modal fade" id="editCommon_modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Edición de nombre común</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
                         <div class="form-group">
                             <label for="exampleInputEmail1">Email address</label>
                             <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
                         </div>
                         <div class="form-group">
                             <label for="exampleInputPassword1">Password</label>
-                            <input type="password" class="form-control" id="exampleInputPassword1"
-                                placeholder="Password">
+                            <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
                         </div>
                         <div class="form-group">
                             <label for="exampleInputFile">File input</label>
@@ -320,15 +319,15 @@
                             <input type="checkbox" class="form-check-input" id="exampleCheck1">
                             <label class="form-check-label" for="exampleCheck1">Check me out</label>
                         </div>
-</form>
-            </div>
-            <div class="modal-footer justify-content-between">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary">Guardar</button>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary">Guardar</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 {{/block}}
 {{block name='css'}}
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap4.min.css">
@@ -394,8 +393,7 @@
                     success: function(r) {
                         result = JSON.parse(r);
                         collections = result.collections;
-                        //console.log(collections);
-                        //hasPages(result.pagination);
+                        hasPages(result.pagination);
                         collectionsTable = $("#collectionsList").DataTable({
                             "data": collections,
                             "columns": columnas,
@@ -444,8 +442,8 @@
                 });
                 //$.ajax({
 
-               // });
-                $('#type-Changer').on('show.bs.modal', function (event) {
+                // });
+                $('#type-Changer').on('show.bs.modal', function(event) {
                     var button = $(event.relatedTarget) // Button that triggered the modal
                     var recipient = button.data('collectid') // Extract info from data-* attributes
                     var recipient = button.data('prodcat') // Extract info from data-* attributes
@@ -458,23 +456,30 @@
             });
 
             function hasPages(paginacion) {
-                if (paginacion.next == true) {
-                    urlNext = '/collections/next?page=' + paginacion.endCursor + "&cursor=next&limit=" + paginacion.limit;
+                let maxPages = paginacion.max;
+                if (paginacion.next != paginacion.max) {
+                    urlNext = '/collections/next?page=' + paginacion.next + "&cursor=next&limit=" + paginacion.limit;
                     $("#nextPage").val(urlNext);
-                    if (paginacion.hasPreviousPage == true) {
-                        urlPrev = '/collections/previous?page=' + paginacion.startCursor + "&cursor=prev&limit=" + paginacion
-                            .limit;
-                        $("#previousPage").val(urlPrev);
-                        $(".collections_pagination_prev").show();
-                    }
                     $(".collections_pagination_next").show();
                 } else {
                     $(".collections_pagination_next").hide();
-                    if (paginacion.hasPreviousPage == true) {
-                        urlPrev = '/collections/previous?page=' + paginacion.startCursor + "&cursor=prev&limit=" + paginacion
-                            .limit;
-                        $("#previousPage").val(urlPrev);
-                        $(".collections_pagination_prev").show();
+                }
+                if (paginacion.prev > 1) {
+                    urlPrev = '/collections/previous?page=' + paginacion.prev + "&cursor=prev&limit=" + paginacion.limit;
+                    $("#previousPage").val(urlPrev);
+                    $(".collections_pagination_prev").show();
+                }
+                var max = Numeric(paginacion.max);
+                var lim = Numeric(paginacion.limit);
+                var maxStepPages = Math.ceil(max / lim);
+                var pageStep = 0;
+                for (var i = 0; i < maxStepPages; i++) {
+                    if (max > lim) {
+                        max = max - lim;
+                        pageStep += lim;
+                        console.log('/collections/next?page=' + pageStep + "&cursor=page&limit=" + paginacion.limit);
+                    } else {
+                        console.log('/collections/next?page=' + max + "&cursor=page&limit=" + paginacion.limit);
                     }
                 }
                 $("#collections_pagination").show();

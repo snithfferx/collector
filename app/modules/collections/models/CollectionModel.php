@@ -58,12 +58,14 @@ class CollectionModel extends ContextClass
             return ['error' => ['code' => 404, 'message' => "Element Not Found"], 'data' => []];
         }
     }
-    public function calcular($ubicacion, $calculo = "count")
+    public function calcular($elemento, $calculo = "count")
     {
-        if ($ubicacion == "store") {
-            return $this->getCountCollection();
+        if ($elemento == "collections") {
+            return $this->calcCollections($calculo);
+        } elseif ($elemento == "common") {
+            return $this->calcCommonNames($calculo);
         } else {
-            return $this->getLocalCalc($calculo);
+            return $this->countMetadata();
         }
     }
     public function getPage()
@@ -130,18 +132,19 @@ class CollectionModel extends ContextClass
                 ]
             ]
         ];
-        $query['params'] = ['condition' => [], 'separator' => []];
-        $args = ['id', 'title', 'categoria', 'tipo'];
+        $args = ['id', 'tipo', 'handle', 'categoria', 'title'];
+        $conditions = [];
+        $separators = [];
         foreach ($args as $k => $arg) {
             if ($k != 0 && !is_null($this->$arg)) {
-                if (!empty($query['params']['condition'])) array_push($query['params']['separator'], 'Y');
+                if (!empty($conditions)) array_push($separators, 'Y');
             }
             switch ($arg) {
                 case 'title':
                     /* Pedir Nombre común por Nombre */
                     if (!is_null($this->title)) {
-                       // if ($k != 0) array_push($query['params']['separator'], 'Y');
-                        array_push($query['params']['condition'], [
+                        // if ($k != 0) array_push($query['params']['separator'], 'Y');
+                        array_push($conditions, [
                             'type' => "SIMILAR",
                             'table' => "nombre_comun",
                             'field' => "nombre_comun",
@@ -152,7 +155,7 @@ class CollectionModel extends ContextClass
                 case 'categoria':
                     /* Pedir Nombre común por Categoría */
                     if (!is_null($this->categoria)) {
-                        array_push($query['params']['condition'], [
+                        array_push($conditions, [
                             'type' => "COMPARE",
                             'table' => "tipo_categoria",
                             'field' => "id_tipo_categoria",
@@ -164,7 +167,7 @@ class CollectionModel extends ContextClass
                 case 'tipo':
                     /* Pedir Nombre común por Tipo */
                     if (!is_null($this->tipo)) {
-                        array_push($query['params']['condition'], [
+                        array_push($conditions, [
                             'type' => "COMPARE",
                             'table' => "nombre_comun",
                             'field' => "id_tipo_producto",
@@ -175,8 +178,8 @@ class CollectionModel extends ContextClass
                     break;
                 case 'handle':
                     /* Pedir Nombre común por handler */
-                    if (!is_null($this->tipo)) {
-                        array_push($query['params']['condition'], [
+                    if (!is_null($this->handle)) {
+                        array_push($conditions, [
                             'type' => "COMPARE",
                             'table' => "nombre_comun",
                             'field' => "handle",
@@ -188,7 +191,7 @@ class CollectionModel extends ContextClass
                 default:
                     /* Pedir nombre común por ID */
                     if (!is_null($this->id)) {
-                        array_push($query['params']['condition'], [
+                        array_push($conditions, [
                             'type' => "COMPARE",
                             'table' => "nombre_comun",
                             'field' => "id_nombre_comun",
@@ -199,6 +202,7 @@ class CollectionModel extends ContextClass
                     break;
             }
         }
+        $query['params'] = ['condition' => $conditions, 'separator' => $separators];
         /* Limite */
         if (!isset($response)) $response = $this->select("nombre_comun", $query, $this->limit);
         return $response;
@@ -225,16 +229,21 @@ class CollectionModel extends ContextClass
     }
     private function getCountCollection()
     {
-        $request['element'] = $this->element . "s";
+        /* $request['element'] = $this->element . "s";
         $request['query'] = [
             'id' => "count",
             'fields' => (!empty($this->fields)) ? $this->fields : []
         ];
-        return $this->external->getShopifyResponse($request);
+        return $this->external->getShopifyResponse($request); */
+
     }
-    private function getLocalCalc($calculo)
+    private function calcCommonNames($calculo)
     {
+        $this->base = "inventario";
         return $this->calculate("nombre_comun", $calculo, "id_nombre_comun");
+    }
+    private function calcCollections ($calculo) {
+        return $this->calculate("temp_shopify_collector", $calculo, "collection_id");
     }
     private function grafkuel()
     {
@@ -319,15 +328,18 @@ class CollectionModel extends ContextClass
                         'value' => 1221
                     ]
                 ],
-                'separator' => ['Y', 'Y', 'Y', 'O', 'O']
+                'separator' => ['Y', 'Y', 'O', 'O']
             ];
         } else {
-            if (!empty($this->title)) $query['params'] = ['condition' => [
-                'type' => "COMPARE",
-                'table' => "metadatos",
-                'field' => "metadato",
-                'value' => $this->title],
-                'separator' => null];
+            if (!empty($this->title)) $query['params'] = [
+                'condition' => [
+                    'type' => "COMPARE",
+                    'table' => "metadatos",
+                    'field' => "metadato",
+                    'value' => $this->title
+                ],
+                'separator' => null
+            ];
         }
         return $this->select("metadatos", $query);
     }
@@ -335,13 +347,13 @@ class CollectionModel extends ContextClass
     {
         $this->base = "inventario";
         return $this->calculate("metadatos", 'count', 'id_metadato', [
-            'condition'=>[
+            'condition' => [
                 'type' => "COMPARE",
-                'table' => "tipo_producto",
-                'field' => "tipo_producto",
-                'value' => $this->tipo
+                'table' => "metadatos",
+                'field' => "id_nombre_comun",
+                'value' => $this->id
             ],
-            'separator'=>null
+            'separator' => null
         ]);
     }
     private function create($element)
@@ -450,16 +462,16 @@ class CollectionModel extends ContextClass
             }
         }
         $query['params'] = (!empty($conditions)) ? ['condition' => $conditions, 'separator' => $separators] : null;
-        $response = $this->select("temp_shopify_collector", $query, 0);
+        $response = $this->select("temp_shopify_collector", $query, $this->limit);
         if (!empty($response['data'])) {
-            $last = $response['data'][99]['collection_id'];
-            $next = $last + 1;
+            $number = $this->limit - 1;
+            $last = $response['data'][$number]['collection_id'];
+            $next = $this->limit;
             $prev = $last - ($this->limit - 1);
             $response['pagination'] = [
                 'next_page' => $next,
                 'prev_page' => $prev,
-                'limit' => $this->limit,
-                'max' => $this->calculate("temp_shopify_collector", 'MAX', "collection_id")
+                'limit' => $this->limit
             ];
         }
         return $response;
@@ -474,10 +486,12 @@ class CollectionModel extends ContextClass
             'fields' => 'all',
             'params' => [
                 'condition' => [
-                    ['type' => "COMPARE",
-                    'table' => "tipo_categoria",
-                    'field' => "tipo_categoria",
-                    'value' => $this->categoria]
+                    [
+                        'type' => "COMPARE",
+                        'table' => "tipo_categoria",
+                        'field' => "tipo_categoria",
+                        'value' => $this->categoria
+                    ]
                 ],
                 'separator' => null
             ]
@@ -516,15 +530,17 @@ class CollectionModel extends ContextClass
             ],
             'params' => [
                 'condition' => [
-                        ['type' => "COMPARE",
+                    [
+                        'type' => "COMPARE",
                         'table' => "nombre_comun",
                         'field' => "nombre_comun",
-                        'value' => $this->categoria]
-                    ],
+                        'value' => $this->categoria
+                    ]
+                ],
                 'separator' => null
             ]
         ];
-        $result = $this->select("nombre_comun", $query, $this->limit);
+        $result = $this->select("nombre_comun", $query);
         if (!empty($result['data'])) {
             $isCommon = true;
             $collections = $result['data'];
@@ -534,6 +550,8 @@ class CollectionModel extends ContextClass
                 'isCategory' => $isCategory,
                 'isCommon' => $isCommon,
                 'list' => $collections
+            ], 'error' => [
+                $isCat['error'], $result['error']
             ]
         ];
     }
