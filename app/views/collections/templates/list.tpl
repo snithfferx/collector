@@ -13,47 +13,11 @@
                 <div class="card">
                     <div class="card-header">
                         <h5 class="m-0">Lista de Colecciones</h5>
-                        {{*if $content.max_page > 0*}}
-                        <nav aria-label="Page navigation" id="collections_pagination">
-                            <ul class="pagination justify-content-end">
-                                {{* 
-                                <li class="page-item">
-                                    <b class="text-primary mr-2 ml-3" style="display:block;">
-                                        {{if isset($content.current_page)}}
-                            {{$content.current_page}} de
-                            {{else}}
-                            1 de
-                            {{/if}}
-                            {{$content.max_page}}
-                            </b>
-                            </li> *}}
-                                {{*if !empty($content.pagination.prev_page)*}}
-                                <li class="page-item collections_pagination_prev">
-                                    <a class="page-link" title="Lleva a la página anterior" type="text" target="_self"
-                                        href="#">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                                {{*/if*}}
-                                {{* foreach $content.pagination as $in => $page}}
-                            {{if !empty($content.pagination[($in + 1)].prev_page)}}
-                            <li class="page-item">
-                                <a class="page-link active"
-                                    href="/collections/previous{{$content.pagination[($in + 1)].prev_page}}">{{page.page_id}}</a>
-                            </li>
-                            {{/if}}
-                            {{/foreach *}}
-                                {{*if !empty($content.pagination.next_page)*}}
-                                <li class="page-item collections_pagination_next">
-                                    <a class="page-link" title="Lleva a la página siguiente" type="text" target="_self"
-                                        href="#">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                                {{*/if*}}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-end"
+                                id="collections_pagination_top">
                             </ul>
                         </nav>
-                        {{*/if*}}
                     </div>
                     <div class="card-body">
                         <table class="table table-responsive table-striped" id="collectionsList">
@@ -158,48 +122,13 @@
                         </table>
                     </div>
                     <div class="card-footer">
-                        {{*if $content.max_page > 0*}}
-                        <nav aria-label="Page navigation" id="collections_pagination">
-                            <ul class="pagination justify-content-center">
-                                {{* 
-                                <li class="page-item">
-                                    <b class="text-primary mr-2 ml-3" style="display:block;">
-                                        {{if isset($content.current_page)}}
-                            {{$content.current_page}} de
-                            {{else}}
-                            1 de
-                            {{/if}}
-                            {{$content.max_page}}
-                            </b>
-                            </li> *}}
-                                {{*if !empty($content.pagination.prev_page)*}}
-                                <li class="page-item collections_pagination_prev">
-                                    <a class="page-link" title="Lleva a la página anterior" type="text" target="_self"
-                                        href="#">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                                {{*/if*}}
-                                {{* foreach $content.pagination as $in => $page}}
-                            {{if !empty($content.pagination[($in + 1)].prev_page)}}
-                            <li class="page-item">
-                                <a class="page-link active"
-                                    href="/collections/previous{{$content.pagination[($in + 1)].prev_page}}">{{page.page_id}}</a>
-                            </li>
-                            {{/if}}
-                            {{/foreach *}}
-                                {{*if !empty($content.pagination.next_page)*}}
-                                <li class="page-item collections_pagination_next">
-                                    <a class="page-link" title="Lleva a la página siguiente" type="text" target="_self"
-                                        href="#">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                                {{*/if*}}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center" 
+                                id="collections_pagination_bottom">
                             </ul>
-                            <input type="hidden" value="" id="previousPage">
-                            <input type="hidden" value="" id="nextPage">
                         </nav>
+                        <input type="hidden" value="" id="previousPage">
+                        <input type="hidden" value="" id="nextPage">
                     </div>
                 </div>
             </div>
@@ -456,32 +385,63 @@
             });
 
             function hasPages(paginacion) {
-                let maxPages = paginacion.max;
+                var pages = '';
+                urlNext = '/collections/next?page=' + paginacion.next + "&cursor=next&limit=" + paginacion.limit;
+                urlPrev = '/collections/previous?page=' + paginacion.prev + "&cursor=prev&limit=" + paginacion.limit;
+                var max = Number(paginacion.max);
+                var lim = Number(paginacion.limit);
+                var maxStepPages = Math.ceil(max / lim);
+                var pageStep = 0;
+                var stepo;
+                if (paginacion.prev != undefined && paginacion.prev > 1) {
+                    pages += `
+                    <li class="page-item collections_pagination_prev">
+                        <a class="page-link" title="Lleva a la página anterior" type="text" target="_self" 
+                            href="/collections/read?page=${paginacion.prev}&cursor=prev">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>`;
+                }
+                for (var i = 0; i < maxStepPages; i++) {
+                    if (max > lim) {
+                        max = max - lim;
+                        pageStep += lim;
+                        stepo = (i + 1);
+                        pages += `<li class="page-item">
+                            <a class="page-link active"
+                                href="/collections/next?page=${pageStep}&cursor=page&limit=${paginacion.limit}">${stepo}</a>
+                        </li>`;
+                    } else {
+                        pages += `<li class="page-item">
+                            <a class="page-link"
+                                href="/collections/next?page=${max}&cursor=page&limit=${paginacion.limit}">${stepo}</a>
+                        </li>`;
+                    }
+                }
+                if (paginacion.nest != undefined && paginacion.nest > 1) {
+                    pages += `
+                        <li class="page-item collections_pagination_next">
+                            <a class="page-link" title="Lleva a la página siguiente" type="text" target="_self"
+                                href="/collections/read?page=${paginacion.prev}&cursor=next">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>`;
+                }
+                //console.log(pages);
+                document.getElementById("collections_pagination_top").innerHTML = pages;
+                document.getElementById("collections_pagination_bottom").innerHTML = pages;
                 if (paginacion.next != paginacion.max) {
-                    urlNext = '/collections/next?page=' + paginacion.next + "&cursor=next&limit=" + paginacion.limit;
                     $("#nextPage").val(urlNext);
                     $(".collections_pagination_next").show();
                 } else {
                     $(".collections_pagination_next").hide();
                 }
                 if (paginacion.prev > 1) {
-                    urlPrev = '/collections/previous?page=' + paginacion.prev + "&cursor=prev&limit=" + paginacion.limit;
+
                     $("#previousPage").val(urlPrev);
                     $(".collections_pagination_prev").show();
                 }
-                var max = Numeric(paginacion.max);
-                var lim = Numeric(paginacion.limit);
-                var maxStepPages = Math.ceil(max / lim);
-                var pageStep = 0;
-                for (var i = 0; i < maxStepPages; i++) {
-                    if (max > lim) {
-                        max = max - lim;
-                        pageStep += lim;
-                        console.log('/collections/next?page=' + pageStep + "&cursor=page&limit=" + paginacion.limit);
-                    } else {
-                        console.log('/collections/next?page=' + max + "&cursor=page&limit=" + paginacion.limit);
-                    }
-                }
+
                 $("#collections_pagination").show();
             }
 

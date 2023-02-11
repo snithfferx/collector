@@ -339,13 +339,19 @@ class CollectionsController extends ControllerClass
      * @param int $limit
      * @return array
      */
-    private function commonNames($value = 100): array
+    private function commonNames($value = 1000): array
     {
         $this->cleanVars();
-        $limit = $value;
-        $this->model->limit = $limit;
-        $collections = $this->model->localGet();
         $mixedcommonNames = ['collections' => [], 'pagination' => []];
+        if (isset($value['page'])) {
+            $this->model->page = $value['page'];
+            $limit = $value['limit'];
+            $this->model->cursor = ($value['cursor']) ?? null;
+        } else {
+            $limit = $value;
+        }
+        $this->model->limit = $limit;
+        $collections = (isset($value['page'])) ? $this->model->getPage('local') : $this->model->localGet();
         $max = $this->model->calcular('collections');
         if (empty($collections['error'])) {
             if (!empty($collections['data'])) {
@@ -517,26 +523,36 @@ class CollectionsController extends ControllerClass
                 } else {
                     $this->model->id = null;
                     $this->model->handle = null;
+                    $this->model->categoria = null;
                     $sonIguales = false;
                     $result = $this->model->localGet('commonNames');
                     if (sizeof($result['data']) > 0) {
                         $i = 0;
                         foreach ($result['data'] as $commonName) {
+                            $datas[$i] = $data;
                             if ($commonName['name'] === $collection['title']) {
                                 $sonIguales = true;
                             } else {
-                                array_push($datas[$i]['actions']['common'], 'name');
+                                if (isset($datas[$i]['actions']['common'])) {
+                                    array_push($datas[$i]['actions']['common'], 'name');
+                                } else {
+                                    $datas[$i]['actions']['common'][] = 'name';
+                                }
                             }
                             if ($commonName['handle'] === $collection['handle']) {
                                 $sonIguales = true;
                             } else {
-                                array_push($datas[$i]['actions']['common'], 'handle');
+                                if (isset($datas[$i]['actions']['common'])) {
+                                    array_push($datas[$i]['actions']['common'], 'handle');
+                                } else {
+                                    $datas[$i]['actions']['common'][] = 'handle';
+                                }
                             }
                             if ($sonIguales === false) {
                                 array_push($datas[$i]['actions']['common'], 'editar');
                                 $this->model->id = $commonName['id'];
                                 $result = $this->model->hasMetafields();
-                                $cant = $result['data']['res'];
+                                $cant = $result['data'][0]['res'];
                                 if ($cant > 0) {
                                     $data[$i]['metadatos'] = $cant;
                                     $sonIguales = true;
@@ -625,7 +641,7 @@ class CollectionsController extends ControllerClass
                     <label>                          
                         <input type="checkbox" id="' . $arreglo['store_id'] . '-Switch"';
         if ($arreglo['id']) {
-            $activador .=' onclick="changeState(' . $arreglo['id'] . ',\'' . $state . '\')"';
+            $activador .= ' onclick="changeState(' . $arreglo['id'] . ',\'' . $state . '\')"';
         }
         $activador .= ' value="1" 
                         data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '>
@@ -642,7 +658,7 @@ class CollectionsController extends ControllerClass
             'product_count' => $arreglo['product_count'],
             'date' => $arreglo['date'],
             'name' => ($arreglo['name'] == "No asociado") ? '<a href="/collections/create?id=' . $arreglo['store_id'] . '" class="btn btn-info btn-sm" target="_self" title="crear colección" type="text"> Crear|Sincronizar</a>' : '<a href="collections/read?id=' . $arreglo['id'] . '" class="btn btn-block btn-outline-info" target="_self" title="' . $arreglo['name'] . '" type="text">' . $arreglo['name'] . '</a>',
-            'handle' => ($arreglo['handle'] == "No asociado") ? '<a href="/collections/create?id=' . $arreglo['store_id'] . '" class="btn btn-info btn-sm" target="_self" title="crear colección" type="text"> Crear|Sincronizar</a>' : '<a href="collections/read?id=' . $arreglo['id'] . '" class="btn btn-block btn-outline-info" target="_self" title="' . $arreglo['handle'] . '" type="text">' . $arreglo['handle'] . '</a>',
+            'handle' => ($arreglo['handle'] == "No asociado" || empty($arreglo['handle'])) ? '<a href="/collections/create?id=' . $arreglo['store_id'] . '" class="btn btn-info btn-sm" target="_self" title="crear colección" type="text"> Crear|Sincronizar</a>' : '<a href="collections/read?id=' . $arreglo['id'] . '" class="btn btn-block btn-outline-info" target="_self" title="' . $arreglo['handle'] . '" type="text">' . $arreglo['handle'] . '</a>',
             'id_tienda' => $arreglo['id_tienda'],
             'keywords' => $arreglo['keywords'],
             'active' => $activador,
@@ -659,8 +675,8 @@ class CollectionsController extends ControllerClass
                     data-toggle="modal" 
                     data-target="#type-Changer" 
                     data-collectid="' . $arreglo['store_id'] . '" 
-                    data-prodcat="' . $arreglo['category']['id'] . '">' . 
-                    $arreglo['category']['name'] . 
+                    data-prodcat="' . $arreglo['category']['id'] . '">' .
+                $arreglo['category']['name'] .
                 '</button>';
         } else {
             $response['category'] = '

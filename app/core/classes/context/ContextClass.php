@@ -516,13 +516,32 @@ class ContextClass extends ConnectionClass
                     }
                 }
             }
-            $string .= $cond['table'] . '.' . $cond['field'];
-            if ($cond['type'] == 'COMPARE') {
-                $string .= ' = ? ';
-            } elseif ($cond['type'] == 'SIMILAR') {
-                $string .= " LIKE CONCAT('%', ?, '%') ";
-            } elseif ($cond['type'] == 'RANGO') {
-                $string .= ' BETWEEN ? AND ? ';
+            $string .= '`' . $cond['table'] . '`.`' . $cond['field'] . '`';
+            switch ($cond['type']) {
+                case 'COMPARE':
+                    $string .= ' = ? ';
+                    break;
+                case 'SIMILAR':
+                    $string .= " LIKE CONCAT('%', ?, '%') ";
+                    break;
+                case 'RANGO':
+                    $string .= ' BETWEEN ? AND ? ';
+                    break;
+                case 'NEGATIVA':
+                    $string .= ' != ? ';
+                    break;
+                case 'COMPARE_ME':
+                    $string .= ' < ? ';
+                    break;
+                case 'COMPARE_MA':
+                    $string .= ' > ? ';
+                    break;
+                case 'COMPARE_ME_I':
+                    $string .= ' <= ? ';
+                    break;
+                case 'COMPARE_MA_I':
+                    $string .= ' >= ? ';
+                    break;
             }
             if ($cond['type'] != 'RANGO') {
                 array_push($values, $cond['value']);

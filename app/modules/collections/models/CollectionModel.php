@@ -68,9 +68,9 @@ class CollectionModel extends ContextClass
             return $this->countMetadata();
         }
     }
-    public function getPage()
+    public function getPage($value)
     {
-        return $this->getCollectionsPage();
+        return $this->getCollectionsPage($value);
     }
     public function hasMetafields()
     {
@@ -194,7 +194,7 @@ class CollectionModel extends ContextClass
                         array_push($conditions, [
                             'type' => "COMPARE",
                             'table' => "nombre_comun",
-                            'field' => "id_nombre_comun",
+                            'field' => "id_tienda",
                             'value' => $this->id
                         ]);
                         //if ($k != 0) array_push($query['params']['separator'], 'Y');
@@ -217,8 +217,9 @@ class CollectionModel extends ContextClass
         $request['query']['limit'] = $this->limit;
         return $this->external->getShopifyResponse($request);
     }
-    private function getCollectionsPage()
+    private function getCollectionsPage($value)
     {
+        if ($value == "store") {
         $request['element'] = $this->element;
         if (!empty($this->page)) $request['query']['page'] = $this->page;
         //if (!empty($this->cursor)) $request['query'][ 'page']['cursor'] = $this->cursor;
@@ -226,6 +227,9 @@ class CollectionModel extends ContextClass
         $request['query']['limit'] = $this->limit;
         //return $this->external->getShopifyResponse($request);
         return $this->external->graphQL($request);
+        } else {
+            return $this->getLocalCollectionsPage();
+        }
     }
     private function getCountCollection()
     {
@@ -348,10 +352,10 @@ class CollectionModel extends ContextClass
         $this->base = "inventario";
         return $this->calculate("metadatos", 'count', 'id_metadato', [
             'condition' => [
-                'type' => "COMPARE",
+                ['type' => "COMPARE",
                 'table' => "metadatos",
                 'field' => "id_nombre_comun",
-                'value' => $this->id
+                'value' => $this->id]
             ],
             'separator' => null
         ]);
@@ -396,7 +400,7 @@ class CollectionModel extends ContextClass
             ],
             'joins' => []
         ];
-        $args = ['id', 'title', 'categoria', 'tipo'];
+        $args = ['id', 'handle', 'categoria', 'tipo', 'title'];
         $conditions = array();
         $separators = array();
         foreach ($args as $k => $arg) {
@@ -554,6 +558,96 @@ class CollectionModel extends ContextClass
                 $isCat['error'], $result['error']
             ]
         ];
+    }
+    private function getLocalCollectionsPage () {
+        $query = [
+            'fields' => [
+                'temp_shopify_collector' => [
+                    'collection_id', 'id', 'title', 'handle', 'productsCount=products',
+                    'sortOrder=sort', 'ruleSet=rules', 'metafields=meta', 'seo', 'gqid'
+                ]
+            ],
+            'joins' => []
+        ];
+        $args = ['id', 'handle', 'categoria', 'tipo', 'title'];
+        $conditions = array();
+        $separators = array();
+        foreach ($args as $k => $arg) {
+            if ($k != 0 && !is_null($this->$arg)) {
+                if (!empty($conditions)) array_push($separators, 'Y');
+            }
+            switch ($arg) {
+                case 'title':
+                    /* Pedir Nombre común por Nombre */
+                    if (!is_null($this->title)) {
+                        array_push($conditions, [
+                            'type' => "SIMILAR",
+                            'table' => "temp_shopify_collector",
+                            'field' => "title",
+                            'value' => $this->title
+                        ]);
+                    }
+                    break;
+                case 'categoria':
+                    /* Pedir Nombre común por Categoría */
+                    if (!is_null($this->categoria)) {
+                        array_push($conditions, [
+                            'type' => "COMPARE",
+                            'table' => "tipo_categoria",
+                            'field' => "id_tipo_categoria",
+                            'value' => $this->categoria
+                        ]);
+                    }
+                    break;
+                case 'tipo':
+                    /* Pedir Nombre común por Tipo */
+                    if (!is_null($this->tipo)) {
+                        array_push($conditions, [
+                            'type' => "NEGATIVA",
+                            'table' => "temp_shopify_collector",
+                            'field' => "ruleSet",
+                            'value' => ''
+                        ]);
+                    }
+                    break;
+                case 'handle':
+                    /* Pedir Nombre común por handler */
+                    if (!is_null($this->handle)) {
+                        array_push($conditions, [
+                            'type' => "COMPARE",
+                            'table' => "nombre_comun",
+                            'field' => "handle",
+                            'value' => $this->handle
+                        ]);
+                    }
+                    break;
+                default:
+                    /* Pedir nombre común por ID */
+                    if (!is_null($this->id)) {
+                        array_push($conditions, [
+                            'type' => "COMPARE",
+                            'table' => "temp_shopify_collector",
+                            'field' => "id",
+                            'value' => $this->id
+                        ]);
+                    }
+                    break;
+            }
+        }
+        $query['params'] = (!empty($conditions)) ? ['condition' => $conditions, 'separator' => $separators] : null;
+        $response = $this->select("temp_shopify_collector", $query, $this->limit);
+        if (!empty($response['data'])) {
+            $number = $this->limit - 1;
+            $last = $response['data'][$number]['collection_id'];
+            $next = $this->limit;
+            $prev = $last - ($this->limit - 1);
+            $response['pagination'] = [
+                'next_page' => $next,
+                'prev_page' => $prev,
+                'limit' => $this->limit
+            ];
+        }
+        return $response;
     }
     /* private function getGuz()
     {
