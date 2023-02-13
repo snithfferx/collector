@@ -63,7 +63,7 @@ class LoaderClass
             if ($request['app_module'] == "users") {
                 $response = $this->controller->getResponse($request);
             } else {
-                $response = $this->messenger->build(['type' => "error", 'data' => ['code' => 401]]);
+                $response = $this->messenger->build('message',['type' => "error", 'data' => ['code' => 401]]);
             }
         } else {
             $response = $this->controller->getResponse($request);
@@ -90,7 +90,7 @@ class LoaderClass
             if ($this->viewBuilder->find($values['view'])) {
                 $response = $this->viewBuilder->build($values);
             } else {
-                $error = $this->messenger->build(['type' => "error", 'data' => ['code' => 404, $values]]);
+                $error = $this->messenger->build('message',['type' => "error", 'data' => ['code' => 404, $values]]);
                 $response = $this->viewBuilder->buildDefault($error);
             }
         } else {

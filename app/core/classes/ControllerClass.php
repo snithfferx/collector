@@ -90,7 +90,7 @@ class ControllerClass
                 $this->params
             );
         } else {
-            $response = $this->messenger->build(['type' => "error", 'data' => ['code' => 404, 'message' => "No request."]]);
+            $response = $this->messenger->build('message', ['type' => "error", 'data' => ['code' => 404, 'message' => "No request."]]);
         }
         return $response;
     }
@@ -159,7 +159,7 @@ class ControllerClass
                 $class = $vars['default_ctr'];
             }
             if (empty($controller) || is_null($controller)) {
-                $response = $this->messenger->build([
+                $response = $this->messenger->build('message', [
                     'type' => "error",
                     'data' => [
                         'code' => 404,
@@ -168,18 +168,18 @@ class ControllerClass
                 ]);
             } else {
                 $controllerInstance = $this->getComponent($module, "controllers", $controller, $class);
-                if (!is_array($controllerInstance)) {
+                if (!is_null($controllerInstance) && !is_array($controllerInstance)) {
                     if (method_exists($controllerInstance, $method)) {
                         try {
                             $response = $controllerInstance->$method($params);
                         } catch (\Exception $exepcion) {
-                            $response = $this->messenger->build(['type' => "erro", 'data' => [
+                            $response = $this->messenger->build('message', ['type' => "error", 'data' => [
                                 'code' => 404,
                                 'message' => $exepcion->getMessage()
                             ]]);
                         }
                     } else {
-                        $response = $this->messenger->build(['type' => "erro", 'data' => [
+                        $response = $this->messenger->build('message', ['type' => "error", 'data' => [
                             'code' => 404,
                             'message' => "Method Requested Is Not Valid"
                         ]]);
@@ -188,11 +188,6 @@ class ControllerClass
                 }
                 return $controllerInstance;
             }
-        } else {
-            $response = $this->messenger->build(['type' => "error", 'data' => [
-                'code' => 404,
-                'message' => "Error, el modulo no existe"
-            ]]);
         }
         return $response;
     }
@@ -221,7 +216,7 @@ class ControllerClass
                 $componentToUse = str_replace('/', '\\', $componentNameSpace);
                 $response = new $componentToUse;
             } catch (\Exception $exepcion) {
-                $response = $this->messenger->build([
+                $response = $this->messenger->build('message', [
                     'type' => "error", 'data' => [
                         'code' => 404,
                         'message' => $exepcion->getMessage()
@@ -229,7 +224,7 @@ class ControllerClass
                 ]);
             }
         } else {
-            $response = $this->messenger->build(['type' => "error", 'data' => [
+            $response = $this->messenger->build('message', ['type' => "error", 'data' => [
                 'code' => 404,
                 'message' => "Error, el modulo no existe"
             ]]);
@@ -254,7 +249,8 @@ class ControllerClass
             ]
         ];
     }
-    protected function createBreadcrumbs (string|array $values) :array {
+    protected function createBreadcrumbs(string|array $values): array
+    {
         if (is_string($values)) {
             $name = explode("/", $values);
             $mdl = $name[0];
@@ -271,15 +267,17 @@ class ControllerClass
             'main' => $mdl,
             'routes' => [
                 [
-                    'text' => $mdl, 
-                    'controller' => $mdl, 
-                    'method' => 'read', 
-                    'param' => null],
+                    'text' => $mdl,
+                    'controller' => $mdl,
+                    'method' => 'read',
+                    'param' => null
+                ],
                 [
-                    'text' => $mdl, 
-                    'controller' => $ctr, 
-                    'method' => $mtd ?? null, 
-                    'param' => $prm ?? null]
+                    'text' => $mdl,
+                    'controller' => $ctr,
+                    'method' => $mtd ?? null,
+                    'param' => $prm ?? null
+                ]
             ]
         ];
         /* ['text' => 'home', 'controller' => 'home', 'method' => 'index', 'param' => []] */

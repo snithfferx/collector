@@ -216,16 +216,66 @@ class MessengerHelper
     public function mailBuilder()
     {
     }
-    protected function message()
+    protected function message($values)
     {
+        $extra = "";
+        if (!empty($values['type'])) {
+            switch ($values['type']) {
+                case 'info':
+                    $response = [
+                        'color' => "text-info",
+                        'name' => "Aviso de ejecuci&oacute;n",
+                        'code' => (isset($values['code'])) ? $values['code'] : "100",
+                        'icon' => "fas fa-info-circle"
+                    ];
+                    break;
+                case 'warning':
+                    $response = [
+                        'color' => "text-warning",
+                        'name' => "Alerta de ejecuci&oacute;n",
+                        'code' => (isset($values['code'])) ? $values['code'] : "204",
+                        'icon' => "fas fa-exclamation-circle"
+                    ];
+                    break;
+                case 'error':
+                    $response = [
+                        'color' => "text-danger",
+                        'name' => "Alerta de ejecuci&oacute;n",
+                        'code' => (isset($values['code'])) ? $values['code'] : "404",
+                        'icon' => "fas fa-exclamation-triangle"
+                    ];
+                    break;
+                default:
+                    $response = [
+                        'color' => "text-primary",
+                        'name' => "Aviso",
+                        'code' => (isset($values['code'])) ? $values['code'] : "409",
+                        'icon' => "fas fa-info"
+                    ];
+                    break;
+            }
+        } else {
+            $response = ['color' => "text-danger", 'name' => "Error de ejecuci&oacute;n", 'code' => "10-500", 'icon' => "fas fa-exclamation-triangle"];
+            $extra = "El servidor a retornado un error en ejecución.<br>Verifique la información he intente nuevamente.";
+        }
+        if (isset($values['values']) && is_array($values['values'])) {
+            foreach ($values['values'] as $i) {
+                $extra .= $i . "<br>";
+            }
+        } else {
+            if (isset($values['values'])) $extra .= "<br>" . $values['values'];
+        }
+        $response['mensaje'] = (isset($values['mensaje'])) ? $values['mensaje'] : "Ha ocurrido un error al realizar su consulta.";
+        $response['extra']   = $extra;
+        return $response;
     }
     protected function error($code)
     {
         $path = _HELPER_ . "Errors.json";
         $errorList = json_decode(file_get_contents($path), true);
-        foreach ($errorList as $error => $data) {
+        foreach ($errorList as $error => $values) {
             if ($error = $code) {
-                return $data;
+                return $values;
             }
         }
     }
