@@ -84,7 +84,9 @@ class CollectionModel extends ContextClass
     {
         return $this->getLocalCollections();
     }
-
+    public function search () {
+        return $this->getSearchedCollections();
+    }
 
     protected function getMetafields()
     {
@@ -569,16 +571,16 @@ class CollectionModel extends ContextClass
             ],
             'joins' => []
         ];
-        $args = ['id', 'handle', 'categoria', 'tipo', 'title'];
+        //$args = ['id', 'handle', 'categoria', 'tipo', 'title'];
         $conditions = array();
         $separators = array();
-        foreach ($args as $k => $arg) {
+        /* foreach ($args as $k => $arg) {
             if ($k != 0 && !is_null($this->$arg)) {
                 if (!empty($conditions)) array_push($separators, 'Y');
             }
             switch ($arg) {
                 case 'title':
-                    /* Pedir Nombre común por Nombre */
+                    // Pedir Nombre común por Nombre 
                     if (!is_null($this->title)) {
                         array_push($conditions, [
                             'type' => "SIMILAR",
@@ -589,7 +591,7 @@ class CollectionModel extends ContextClass
                     }
                     break;
                 case 'categoria':
-                    /* Pedir Nombre común por Categoría */
+                    // Pedir Nombre común por Categoría
                     if (!is_null($this->categoria)) {
                         array_push($conditions, [
                             'type' => "COMPARE",
@@ -600,7 +602,7 @@ class CollectionModel extends ContextClass
                     }
                     break;
                 case 'tipo':
-                    /* Pedir Nombre común por Tipo */
+                    // Pedir Nombre común por Tipo 
                     if (!is_null($this->tipo)) {
                         array_push($conditions, [
                             'type' => "NEGATIVA",
@@ -611,7 +613,7 @@ class CollectionModel extends ContextClass
                     }
                     break;
                 case 'handle':
-                    /* Pedir Nombre común por handler */
+                    // Pedir Nombre común por handler 
                     if (!is_null($this->handle)) {
                         array_push($conditions, [
                             'type' => "COMPARE",
@@ -622,7 +624,7 @@ class CollectionModel extends ContextClass
                     }
                     break;
                 default:
-                    /* Pedir nombre común por ID */
+                    // Pedir nombre común por ID
                     if (!is_null($this->id)) {
                         array_push($conditions, [
                             'type' => "COMPARE",
@@ -633,14 +635,45 @@ class CollectionModel extends ContextClass
                     }
                     break;
             }
+        } */
+        if ($this->cursor == 'page') {
+            #debe traer los datos de la página
+            $query['params'] = [
+                'condition' => [
+                    'type' => "COMPARE_MA",
+                    'table' => "temp_shopify_collector",
+                    'field' => "id",
+                    'value' => $this->page
+                ],
+                'separator' => $separators
+            ];
+        } elseif ($this->cursor == 'next') {
+            $query['params'] = [
+                'condition' => [
+                    'type' => "COMPARE_MA",
+                    'table' => "temp_shopify_collector",
+                    'field' => "id",
+                    'value' => $this->page
+                ],
+                'separator' => $separators
+            ];
+        } elseif ($this->cursor == 'prev') {
+            $query['params'] = [
+                'condition' => [
+                    'type' => "COMPARE_ME",
+                    'table' => "temp_shopify_collector",
+                    'field' => "id",
+                    'value' => $this->page
+                ],
+                'separator' => $separators
+            ];
         }
-        $query['params'] = (!empty($conditions)) ? ['condition' => $conditions, 'separator' => $separators] : null;
         $response = $this->select("temp_shopify_collector", $query, $this->limit);
         if (!empty($response['data'])) {
             $number = $this->limit - 1;
             $last = $response['data'][$number]['collection_id'];
             $next = $this->limit;
-            $prev = $last - ($this->limit - 1);
+            $prev = $this->page - ($this->limit - 1);
             $response['pagination'] = [
                 'next_page' => $next,
                 'prev_page' => $prev,
@@ -648,6 +681,35 @@ class CollectionModel extends ContextClass
             ];
         }
         return $response;
+    }
+    private function getSearchedCollections () {
+        $this->base = "inventario";
+        $query = [
+            'fields' => [
+                'nombre_comun' => [
+                    'id_nombre_comun=id', 'nombre_comun=name', 'posicion=possition', 'fecha_creacion=date',
+                    'activo=active', 'id_tienda=store_id', 'handle', 'terminos_de_busqueda=keywords'
+                ],
+                'tipo_producto' => ['id_tipo_producto=tp_id', 'tipo_producto=sub_category'],
+                'tipo_categoria' => ['id_tipo_categoria=tc_id', 'tipo_categoria=category']
+            ],
+            'joins' => [
+                [
+                    'type' => "INNER",
+                    'table' => "tipo_producto",
+                    'filter' => "id_tipo_producto",
+                    'compare_table' => "nombre_comun",
+                    'compare_filter' => "id_tipo_producto"
+                ],
+                [
+                    'type' => "INNER",
+                    'table' => "tipo_categoria",
+                    'filter' => "id_tipo_categoria",
+                    'compare_table' => "tipo_producto",
+                    'compare_filter' => "id_tipo_categoria"
+                ]
+            ]
+        ];
     }
     /* private function getGuz()
     {

@@ -12,14 +12,89 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="m-0">Lista de Colecciones</h5>
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination justify-content-end"
-                                id="collections_pagination_top">
+                        <h5 class="m-0">
+                            Lista de Colecciones
+                            <span id="spinger">
+                                <i class="fas fa-sync-alt fa-spin text-info"></i>
+                            </span>
+                        </h5>
+                        <nav aria-label="Page navigation collections_pagination">
+                            <ul class="pagination justify-content-end" id="collections_pagination_top">
                             </ul>
                         </nav>
                     </div>
                     <div class="card-body">
+                        <form role="form">
+                            <div class="row">
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label for="categories">Categoría</label>
+                                        <select class="form-control" id="categories">
+                                            <option value="0" selected="selected">Elija una categoría</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label for="subcategories">Sub-Categoría</label>
+                                        <select class="form-control" id="subcategories">
+                                            <option value="0" selected="selected">Elija una subcategoría</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label for="collection_name"></label>
+                                        <input type="text" class="form-control" id="collection_name"
+                                            aria-describedby="collection_name_help" placeholder="Digite un nombre a filtrar">
+                                        <small id="collection_name_help" class="form-text text-muted">Puede ser un nombre común, colección, categoria o subcategoría</small>
+                                    </div>
+                                </div>
+                                <div class="col-2">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="deshabiliatdo">
+                                        <label class="form-check-label" for="deshabiliatdo">Incluir
+                                            deshabiliatdos</label>
+                                    </div>
+                                </div>
+                                <div class="col-1">
+                                    <button type="submit" class="btn btn-primary" onclick="buscar()">Buscar</button>
+                                </div>
+                                <div class="col-10 offset-1">
+                                    <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                                        <div class="btn-group mr-2" role="group" aria-label="First group">
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('a')" id="letter_Filter_a">A</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('b')" id="letter_Filter_b">B</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('c')" id="letter_Filter_c">C</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('d')" id="letter_Filter_d">D</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('e')" id="letter_Filter_e">E</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('f')" id="letter_Filter_f">F</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('g')" id="letter_Filter_g">G</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('h')" id="letter_Filter_h">H</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('i')" id="letter_Filter_i">I</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('j')" id="letter_Filter_j">J</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('k')" id="letter_Filter_k">K</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('l')" id="letter_Filter_l">L</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('m')" id="letter_Filter_m">M</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('n')" id="letter_Filter_n">N</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('o')" id="letter_Filter_o">O</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('p')" id="letter_Filter_p">P</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('q')" id="letter_Filter_q">Q</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('r')" id="letter_Filter_r">R</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('s')" id="letter_Filter_s">S</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('t')" id="letter_Filter_t">T</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('u')" id="letter_Filter_u">U</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('v')" id="letter_Filter_v">V</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('w')" id="letter_Filter_w">W</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('x')" id="letter_Filter_x">X</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('y')" id="letter_Filter_y">Y</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('z')" id="letter_Filter_z">Z</button>
+                                            <button type="button" class="btn btn-secondary" onclick="buscar('ñ')" id="letter_Filter_ñ">Ñ</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                         <table class="table table-responsive table-striped" id="collectionsList">
                             <thead class="thead-dark">
                                 <tr>
@@ -122,9 +197,8 @@
                         </table>
                     </div>
                     <div class="card-footer">
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination justify-content-center" 
-                                id="collections_pagination_bottom">
+                        <nav aria-label="Page navigation collections_pagination">
+                            <ul class="pagination justify-content-center" id="collections_pagination_bottom">
                             </ul>
                         </nav>
                         <input type="hidden" value="" id="previousPage">
@@ -150,17 +224,17 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Minimal</label>
+                                <label>Categoría</label>
                                 <select class="form-control select2" style="width: 100%;" id="categories">
-                                    <option selected="selected">Elija una categoría</option>
+                                    <option value="0" selected="selected">Elija una categoría</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Minimal</label>
+                                <label>Sub-Categoría</label>
                                 <select class="form-control select2" style="width: 100%;" id="subcategories">
-                                    <option selected="selected">Elija una subcategoría</option>
+                                    <option value="0" selected="selected">Elija una subcategoría</option>
                                 </select>
                             </div>
                         </div>
@@ -296,9 +370,10 @@
     {{literal}}
         <script>
             $('[data-toggle="tooltip"]').tooltip()
-            $("#collections_pagination").hide();
+            $(".collections_pagination").hide();
             $(".collections_pagination_prev").hide();
             $(".collections_pagination_next").hide();
+            $("#spinger").hide();
             const columnas = [
                 { data: 'store_id' },
                 { data: 'date' },
@@ -314,33 +389,45 @@
                 { data: 'metadatos' },
                 { data: 'actions' }
             ];
-            let collections, result, urlNext, urlPrev, collectionsTable;
+            let collections = {}, result, urlNext, urlPrev;
+            let collectionsTable = $("#collectionsList").DataTable({
+                "data": collections,
+                "columns": columnas,
+                "paging": true,
+                "scrollY": 'auto',
+                "lengthMenu": lineas(10),
+                "searching": true,
+                "ordering": true,
+                "order": [
+                    [2, 'asc']
+                ],
+                "autoWidth": true,
+                "responsive": true,
+                "processing" : true,
+                "languagej" : {
+                    "url":'dataTables.spanish.json'
+                },
+                "buttons": botones()
+            });
             $(document).ready(function() {
+                collectionsTable.buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
                 $.ajax({
                     url: '/collections/lista',
-                    type: 'GET',
+                    type: 'POST',
+                    beforeSend : function () {
+                        $("#spinger").show();
+                    },
                     success: function(r) {
                         result = JSON.parse(r);
                         collections = result.collections;
-                        hasPages(result.pagination);
-                        collectionsTable = $("#collectionsList").DataTable({
-                            "data": collections,
-                            "columns": columnas,
-                            "paging": true,
-                            "scrollY": 'auto',
-                            "lengthMenu": lineas(10),
-                            "searching": true,
-                            "ordering": true,
-                            "order": [
-                                [2, 'asc']
-                            ],
-                            "autoWidth": true,
-                            "responsive": true,
-                            "buttons": botones()
-                        }).buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
+                        //hasPages(result.pagination);
+                        collectionsTable.rows.add(collections).draw();
                         if (result.error != undefined) {
                             alertaPopUp(result.error);
                         }
+                    },
+                    complete: function () {
+                        $("#spinger").hide();
                     }
                 });
                 //collectionsTable = tableRefill('collectionsList', collections, columnas, 10, true,2);
@@ -369,9 +456,6 @@
                         //collectionsTable.ajax.reload();
                     });
                 });
-                //$.ajax({
-
-                // });
                 $('#type-Changer').on('show.bs.modal', function(event) {
                     var button = $(event.relatedTarget) // Button that triggered the modal
                     var recipient = button.data('collectid') // Extract info from data-* attributes
@@ -384,7 +468,7 @@
                 });
             });
 
-            function hasPages(paginacion) {
+            /* function hasPages(paginacion) {
                 var pages = '';
                 urlNext = '/collections/next?page=' + paginacion.next + "&cursor=next&limit=" + paginacion.limit;
                 urlPrev = '/collections/previous?page=' + paginacion.prev + "&cursor=prev&limit=" + paginacion.limit;
@@ -397,11 +481,13 @@
                     pages += `
                     <li class="page-item collections_pagination_prev">
                         <a class="page-link" title="Lleva a la página anterior" type="text" target="_self" 
-                            href="/collections/read?page=${paginacion.prev}&cursor=prev">
+                            href="#" onclick="getNewPage(${paginacion.prev},'prev',${paginacion.limit})">
                             <span aria-hidden="true">&laquo;</span>
+                            <span class="sr-only">Anterior</span>
                         </a>
                     </li>`;
                 }
+                //console.log(paginacion.prev);
                 for (var i = 0; i < maxStepPages; i++) {
                     if (max > lim) {
                         max = max - lim;
@@ -409,25 +495,26 @@
                         stepo = (i + 1);
                         pages += `<li class="page-item">
                             <a class="page-link active"
-                                href="/collections/next?page=${pageStep}&cursor=page&limit=${paginacion.limit}">${stepo}</a>
+                            href="#" onclick="getNewPage(${pageStep},'page',${paginacion.limit})">${stepo}</a>
                         </li>`;
                     } else {
                         pages += `<li class="page-item">
                             <a class="page-link"
-                                href="/collections/next?page=${max}&cursor=page&limit=${paginacion.limit}">${stepo}</a>
+                            href="#" onclick="getNewPage(${max},'page',${paginacion.limit})">${stepo}</a>
                         </li>`;
                     }
                 }
-                if (paginacion.nest != undefined && paginacion.nest > 1) {
+                if (paginacion.next != undefined && paginacion.next > 1) {
                     pages += `
                         <li class="page-item collections_pagination_next">
                             <a class="page-link" title="Lleva a la página siguiente" type="text" target="_self"
-                                href="/collections/read?page=${paginacion.prev}&cursor=next">
-                                <span aria-hidden="true">&laquo;</span>
+                                href="#" onclick="getNewPage(${paginacion.prev},'next',${paginacion.limit})">
+                                <span aria-hidden="true">&raquo;</span>
+                                <span class="sr-only">Siguiente</span>
                             </a>
                         </li>`;
                 }
-                //console.log(pages);
+                //console.log(paginacion.next);
                 document.getElementById("collections_pagination_top").innerHTML = pages;
                 document.getElementById("collections_pagination_bottom").innerHTML = pages;
                 if (paginacion.next != paginacion.max) {
@@ -437,33 +524,137 @@
                     $(".collections_pagination_next").hide();
                 }
                 if (paginacion.prev > 1) {
-
                     $("#previousPage").val(urlPrev);
                     $(".collections_pagination_prev").show();
                 }
 
-                $("#collections_pagination").show();
-            }
+                //$(".collections_pagination").show();
+            } */
 
             function syncCollection(id) {
                 $.post('collections/sync',{"id":id},function (r) {
-                result = JSON.parse(r);
-                alertaPopUp(result);
-            });
+                    result = JSON.parse(r);
+                    alertaPopUp(result);
+                });
             }
 
             function deleteCollection(id) {
                 $.post('collections/delete',{"id":id},function (r) {
-                result = JSON.parse(r);
-                alertaPopUp(result);
-            });
+                    result = JSON.parse(r);
+                    alertaPopUp(result);
+                });
             }
 
             function changeState(id, currentState) {
                 $.post('collections/state',{"id":id,"current":currentState},function (r) {
-                result = JSON.parse(r);
-                alertaPopUp(result);
-            });
+                    result = JSON.parse(r);
+                    alertaPopUp(result);
+                });
+            }
+            /* function getNewPage (last,cursor,limit) {
+                $.ajax({
+                    url: '/collections/lista',
+                    type: 'POST',
+                    data: {
+                        page:last,cursor:cursor,limit:limit
+                    },
+                    beforeSend:function () {
+                        $("#spinger").show();
+                    },
+                    success: function(r) {
+                        result = JSON.parse(r);
+                        collections = result.collections;
+                        hasPages(result.pagination);
+                    },
+                    complete: function () {
+                        collectionsTable.ajax.reload();
+                        $("#spinger").hide();
+                    }
+                });
+            } */
+            // Busca reigstros
+            function buscar (parametro) {
+                var activo = $("#deshabiliatdo").val();
+                if (parametro != undefined) {
+                    $.ajax({
+                        url: '/collections/search' + parametro,
+                        type: 'POST',
+                        data: {
+                            letter:parametro, active:activo
+                        },
+                        beforeSend : function () {
+                            $("#spinger").show();
+                        },
+                        success: function(r) {
+                            result = JSON.parse(r);
+                            collections = result.collections;
+                            collectionsTable.rows.add(collections).draw();
+                            if (result.error != undefined) {
+                                alertaPopUp(result.error);
+                            }
+                        },
+                        complete: function () {
+                            $("#spinger").hide();
+                        }
+                    });
+                } else {
+                    var cats = $("#categories").val(), sucat = $("#subcategories").val();
+                    $.ajax({
+                        url: '/collections/search',
+                        type: 'POST',
+                        data: {
+                            cat: cats,
+                            scat: scat,
+                            active:activo
+                        }
+                        beforeSend : function () {
+                            $("#spinger").show();
+                        },
+                        success: function(r) {
+                            result = JSON.parse(r);
+                            collections = result.collections;
+                            collectionsTable.rows.add(collections).draw();
+                            if (result.error != undefined) {
+                                alertaPopUp(result.error);
+                            }
+                        },
+                        complete: function () {
+                            $("#spinger").hide();
+                        }
+                    });
+                }
+                var coleccion = $("#collection_name").val();
+                if (parametro != undefined) {
+                    $.ajax({
+                        url: '/collections/search' + parametro,
+                        type: 'POST',
+                        data: {
+                            name:coleccion, active:activo
+                        },
+                        beforeSend : function () {
+                            $("#spinger").show();
+                        },
+                        success: function(r) {
+                            result = JSON.parse(r);
+                            collections = result.collections;
+                            collectionsTable.rows.add(collections).draw();
+                            if (result.error != undefined) {
+                                alertaPopUp(result.error);
+                            }
+                        },
+                        complete: function () {
+                            $("#spinger").hide();
+                        }
+                    });
+                }
+            }
+            // Trae las categorias
+            function getCategories () {
+                
+            }
+            // Trae las categorias
+            function getCategories () {
+
             }
         </script>
     {{/literal}}

@@ -112,6 +112,16 @@ class CollectionsController extends ControllerClass
     {
         return $this->getdownloadedCollections();
     }
+    public function search ($values) {
+        if (!empty($values)) {
+            $result = $this->searchCommonNames($values);
+        } else {
+            $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error',[]));
+        }
+        return $result;
+    }
+
+
     /* #################### Protecteds #################### */
     /**
      * Función que devuelve la lista de colecciones o una colección a partir del ID de tienda o local
@@ -272,7 +282,7 @@ class CollectionsController extends ControllerClass
         } else {
             $limit = $values['limit'];
             $this->model->page = $values;
-            $list = $this->model->getPage();
+            $list = $this->model->getPage('store');
         }
         if (empty($list['error'])) {
             $response = [
@@ -339,7 +349,7 @@ class CollectionsController extends ControllerClass
      * @param int $limit
      * @return array
      */
-    private function commonNames($value = 1000): array
+    private function commonNames($value = 100): array
     {
         $this->cleanVars();
         $mixedcommonNames = ['collections' => [], 'pagination' => []];
@@ -422,7 +432,8 @@ class CollectionsController extends ControllerClass
     private function nombresComunes($collections)
     {
         $response = array();
-        foreach ($collections as $key => $collection) {
+        $key = 0;
+        foreach ($collections as $collection) {
             $id_store = $collection['id'];
             $this->cleanVars();
             $datas = [];
@@ -480,7 +491,7 @@ class CollectionsController extends ControllerClass
                                 $datas[$g]['sub_category'] = ['id' => $common['tp_id'], 'name' => $common['sub_category']];
                                 $this->model->tipo = $common['tp_id'];
                                 $result = $this->model->hasMetafields();
-                                $datas[$g]['metadatos'] = $result['data']['res'];
+                                $datas[$g]['metadatos'] = $result['data'][0]['res'];
                             }
                             array_push($datas[$g]['actions']['common'], 'editar');
                             $g++;
@@ -515,7 +526,7 @@ class CollectionsController extends ControllerClass
                             $datas[$k]['sub_category'] = ['id' => $v['tp_id'], 'name' => $v['sub_category']];
                             $this->model->id = $v['id'];
                             $result = $this->model->hasMetafields();
-                            $datas[$k]['metadatos'] = $result['data']['res'];
+                            $datas[$k]['metadatos'] = $result['data'][0]['res'];
                         }
                         array_push($datas[$k]['actions']['common'], 'editar');
                     }
@@ -554,7 +565,7 @@ class CollectionsController extends ControllerClass
                                 $result = $this->model->hasMetafields();
                                 $cant = $result['data'][0]['res'];
                                 if ($cant > 0) {
-                                    $data[$i]['metadatos'] = $cant;
+                                    $datas[$i]['metadatos'] = $cant;
                                     $sonIguales = true;
                                     array_push($datas[$i]['actions']['common'], 'sync');
                                 }
@@ -581,9 +592,11 @@ class CollectionsController extends ControllerClass
             if (sizeof($datas) > 0) {
                 foreach ($datas as $item) {
                     $response[$key] = $this->rowTableData($item);
+                    $key++;
                 }
             } else {
                 $response[$key] = $this->rowTableData($data);
+                $key++;
             }
         }
         return $response;
@@ -601,7 +614,7 @@ class CollectionsController extends ControllerClass
             ];
             if ($next != false) {
                 $this->model->page = $next['page_info'];
-                $prevData = $this->model->getPage();
+                $prevData = $this->model->getPage('store');
                 $next = $prevData['data']['next'];
                 $prev = $prevData['data']['prev'];
             }
@@ -873,5 +886,31 @@ class CollectionsController extends ControllerClass
             //str_replace(array(',',';','~','#'),array('/','/',' ',' '),$value);
         }
         return $value;
+    }
+    private function searchCommonNames ($values) {
+        $this->model->activo = $values['active'];
+        if (isset($values['name']) && !empty($values['name'])) {
+            $this->model->title = $values['name'];
+        } elseif (isset($values['letter']) && !empty($values['letter'])) {
+            $this->model->title = $values['letter'];
+        } else {
+            $this->model->categoria = $values['cat'];
+            $this->model->tipo = $values['scat'];
+        }
+        $collections = $this->model->search();
+        if (empty($collections['error'])) {
+            if (!empty($collections['data'])) {
+                $mixedcommonNames = [
+                    'collections' => $this->nombresComunes($collections['data']),
+                    'pagination' => [
+                        'next' => $collections['pagination']['next_page'],
+                        'prev' => $collections['pagination']['prev_page'],
+                        'max' => null,
+                        'limit' => null
+                    ]
+                ];
+            }
+        }
+        return $mixedcommonNames;
     }
 }
