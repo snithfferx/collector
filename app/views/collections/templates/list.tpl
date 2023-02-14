@@ -95,106 +95,108 @@
                                 </div>
                             </div>
                         </form>
-                        <table class="table table-responsive table-striped" id="collectionsList">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th class="text-uppercase font-weight-bolder text-center">ID Tienda</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Fecha</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Titulo</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Handle</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Tipo</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Nombre Común</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Categoría</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Handle Local</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">ID Local</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Productos</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Activo</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">metadatos</th>
-                                    <th class="text-uppercase font-weight-bolder text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {{* foreach $content.collections as $key=>$item}}
-                            <tr>
-                                <td class="text-center">
-                                    <a href="collections/read/{{$item.store_id}}">
-                                        {{$item.store_id}}
-                                    </a>
-                                </td>
-                                <td class="text-center">{{$item.date}}</td>
-                                <td class="text-center">
-                                    <a href="collections/read?id={{$item.id}}" target="_self" title="{{$item.name}}"
-                                        type="text">
-                                        {{$item.name}}
-                                    </a>
-                                </td>
-                                <td class="text-center">{{$item.store_title}}</td>
-                                <td class="text-center">{{$item.store_handle}}</td>
-                                <td class="text-center">{{$item.category}}</td>
-                                <td class="text-center">{{$item.sub_category}}</td>
-                                <td class="text-center">{{$item.handle}}</td>
-                                <td class="text-center">{{$item.id_tienda}}</td>
-                                <td class="text-center">{{$item.keywords}}</td>
-                                <td class="text-center">{{$item.sort_order}}</td>
-                                <td class="text-center">{{$item.product_count}}</td>
-                                <td class="text-center">
-                                    {{if $item.active == 0}}Inactivo{{else}}Activo{{/if}}
-                                </td>
-                                <td class="text-center">{{$item.possition}}</td>
-                                <td class="text-center">
-                                    <div class='btn-group'>
-                                        <button type='button' class='btn btn-outline-info dropdown-toggle dropdown-icon'
-                                            data-toggle='dropdown'>
-                                            Eleija...
-                                        </button>
-                                        <span class='sr-only'>Acciones</span>
-                                        <div class='dropdown-menu' role='menu'>
-                                            {{if !empty($item.id)}}
-                                            <a href="/collections/read?id={{$item.id}}"
-                                                title="Ver detalles de colección" tabindex="{{$key + 1}}" target="_self"
-                                                type="text" class="btn btn-success btn-sm btn-block">
-                                                <i class="fas fa-eye mr-3"></i>Detalles
+                        <div class="row">
+                            <div class="col-12">
+                                <table class="table table-responsive table-striped" id="collectionsList">
+                                    <thead class="thead-dark">
+                                        <tr>
+                                            <th class="text-uppercase font-weight-bolder text-center">ID Tienda</th>
+                                            <th class="text-uppercase font-weight-bolder text-center">ID Local</th>
+                                            <th class="text-uppercase font-weight-bolder text-center">Titulo Tienda</th>
+                                            <th class="text-uppercase font-weight-bolder text-center">Nombre Común</th>
+                                            <th class="text-uppercase font-weight-bolder text-center">Handle Tienda</th>
+                                            <th class="text-uppercase font-weight-bolder text-center">Handle Local</th>
+                                            <th class="text-uppercase font-weight-bolder text-center">Categoría</th>
+                                            <th class="text-uppercase font-weight-bolder text-center">Sub-Categoría</th>
+                                            <th class="text-uppercase font-weight-bolder text-center">Productos</th>
+                                            <th class="text-uppercase font-weight-bolder text-center">Verificado</th>
+                                            <th class="text-uppercase font-weight-bolder text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{* foreach $content.collections as $key=>$item}}
+                                    <tr>
+                                        <td class="text-center">
+                                            <a href="collections/read/{{$item.store_id}}">
+                                                {{$item.store_id}}
                                             </a>
-                                            <a href="/collections/compare?id={{$item.store_id}}"
-                                                title="Compara los datos de una colección" tabindex="{{$key + 2}}"
-                                                target="_self" type="text" class="btn btn-info btn-sm btn-block">
-                                                <i class="fas fa-copy mr-3"></i>Comparar
+                                        </td>
+                                        <td class="text-center">{{$item.date}}</td>
+                                        <td class="text-center">
+                                            <a href="collections/read?id={{$item.id}}" target="_self" title="{{$item.name}}"
+                                                type="text">
+                                                {{$item.name}}
                                             </a>
-                                            <div class="dropdown-divider"></div>
-                                            <a href="/collections/edit?id={{$item.id}}"
-                                                title="Editar datos de la colección local" tabindex="{{$key + 3}}"
-                                                target="_self" type="text" class="btn btn-warning btn-sm btn-block">
-                                                <i class="fas fa-edit mr-3"></i>Editar Local
-                                            </a>
-                                            <a href="/collections/sync?id={{$item.id}}"
-                                                title="Sincroniza datos de tienda a local" tabindex="{{$key + 4}}"
-                                                target="_self" type="text" class="btn btn-primary btn-sm btn-block">
-                                                <i class="fas fa-trash mr-3"></i>Borrar Local
-                                            </a>
-                                            <a href="collections/delete?id={{$item.id}}"
-                                                title="Borra una colección localmente" tabindex="{{$key + 5}}"
-                                                target="_self" type="text" class="btn btn-danger btn-sm btn-block">
-                                                <i class="fas fa-trash mr-3"></i>Borrar Local
-                                            </a>
-                                            <div class="dropdown-divider"></div>
-                                            {{/if}}
-                                            <a href="collections/edit?id={{$item.store_id}}"
-                                                title="Editar datos de la colección tienda" tabindex="{{$key + 6}}"
-                                                target="_self" type="text" class="btn btn-warning btn-sm btn-block">
-                                                <i class="fas fa-edit mr-3"></i>Editar Local
-                                            </a>
-                                            <a href="collections/delete?id={{$item.store_id}}"
-                                                title="Borra una colección en la nube" tabindex="{{$key + 7}}"
-                                                target="_self" type="text" class="btn btn-danger btn-sm btn-block">
-                                                <i class="fas fa-trash mr-3"></i>Borrar Local
-                                            </a>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            {{/foreach *}}
-                            </tbody>
-                        </table>
+                                        </td>
+                                        <td class="text-center">{{$item.store_title}}</td>
+                                        <td class="text-center">{{$item.store_handle}}</td>
+                                        <td class="text-center">{{$item.category}}</td>
+                                        <td class="text-center">{{$item.sub_category}}</td>
+                                        <td class="text-center">{{$item.handle}}</td>
+                                        <td class="text-center">{{$item.id_tienda}}</td>
+                                        <td class="text-center">{{$item.keywords}}</td>
+                                        <td class="text-center">{{$item.sort_order}}</td>
+                                        <td class="text-center">{{$item.product_count}}</td>
+                                        <td class="text-center">
+                                            {{if $item.active == 0}}Inactivo{{else}}Activo{{/if}}
+                                        </td>
+                                        <td class="text-center">{{$item.possition}}</td>
+                                        <td class="text-center">
+                                            <div class='btn-group'>
+                                                <button type='button' class='btn btn-outline-info dropdown-toggle dropdown-icon'
+                                                    data-toggle='dropdown'>
+                                                    Eleija...
+                                                </button>
+                                                <span class='sr-only'>Acciones</span>
+                                                <div class='dropdown-menu' role='menu'>
+                                                    {{if !empty($item.id)}}
+                                                    <a href="/collections/read?id={{$item.id}}"
+                                                        title="Ver detalles de colección" tabindex="{{$key + 1}}" target="_self"
+                                                        type="text" class="btn btn-success btn-sm btn-block">
+                                                        <i class="fas fa-eye mr-3"></i>Detalles
+                                                    </a>
+                                                    <a href="/collections/compare?id={{$item.store_id}}"
+                                                        title="Compara los datos de una colección" tabindex="{{$key + 2}}"
+                                                        target="_self" type="text" class="btn btn-info btn-sm btn-block">
+                                                        <i class="fas fa-copy mr-3"></i>Comparar
+                                                    </a>
+                                                    <div class="dropdown-divider"></div>
+                                                    <a href="/collections/edit?id={{$item.id}}"
+                                                        title="Editar datos de la colección local" tabindex="{{$key + 3}}"
+                                                        target="_self" type="text" class="btn btn-warning btn-sm btn-block">
+                                                        <i class="fas fa-edit mr-3"></i>Editar Local
+                                                    </a>
+                                                    <a href="/collections/sync?id={{$item.id}}"
+                                                        title="Sincroniza datos de tienda a local" tabindex="{{$key + 4}}"
+                                                        target="_self" type="text" class="btn btn-primary btn-sm btn-block">
+                                                        <i class="fas fa-trash mr-3"></i>Borrar Local
+                                                    </a>
+                                                    <a href="collections/delete?id={{$item.id}}"
+                                                        title="Borra una colección localmente" tabindex="{{$key + 5}}"
+                                                        target="_self" type="text" class="btn btn-danger btn-sm btn-block">
+                                                        <i class="fas fa-trash mr-3"></i>Borrar Local
+                                                    </a>
+                                                    <div class="dropdown-divider"></div>
+                                                    {{/if}}
+                                                    <a href="collections/edit?id={{$item.store_id}}"
+                                                        title="Editar datos de la colección tienda" tabindex="{{$key + 6}}"
+                                                        target="_self" type="text" class="btn btn-warning btn-sm btn-block">
+                                                        <i class="fas fa-edit mr-3"></i>Editar Local
+                                                    </a>
+                                                    <a href="collections/delete?id={{$item.store_id}}"
+                                                        title="Borra una colección en la nube" tabindex="{{$key + 7}}"
+                                                        target="_self" type="text" class="btn btn-danger btn-sm btn-block">
+                                                        <i class="fas fa-trash mr-3"></i>Borrar Local
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {{/foreach *}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-footer">
                         <nav aria-label="Page navigation collections_pagination">
@@ -333,9 +335,9 @@
     </div>
 {{/block}}
 {{block name='css'}}
+    <link rel="stylesheet" type="text/css" href="/assets/css/switchmtrlz/switchmtrlz.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" type="text/css"
-        href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-buttons/buttons.bootstrap4.min.css">
     {{* <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-responsive/responsive.bootstrap4.min.css">
@@ -344,10 +346,8 @@
 {{block name="jslibs"}}
     <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap4.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js">
-    </script>
-    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/responsive.bootstrap4.min.js">
-    </script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/responsive.bootstrap4.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/dataTables.buttons.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.bootstrap4.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.flash.min.js"></script>
@@ -376,17 +376,15 @@
             $("#spinger").hide();
             const columnas = [
                 { data: 'store_id' },
-                { data: 'date' },
-                { data: 'store_title' },
-                { data: 'store_handle' },
-                { data: 'store_type' },
-                { data: 'name' },
-                { data: 'category' },
-                { data: 'handle' },
                 { data: 'id_tienda' },
+                { data: 'store_title' },
+                { data: 'name' },
+                { data: 'store_handle' },
+                { data: 'handle' },
+                { data: 'category' },
+                { data: 'sub_category' },
                 { data: 'product_count' },
-                { data: 'active' },
-                { data: 'metadatos' },
+                { data: 'verified' },
                 { data: 'actions' }
             ];
             let collections = {}, result, urlNext, urlPrev;
@@ -404,13 +402,34 @@
                 "autoWidth": true,
                 "responsive": true,
                 "processing" : true,
-                "languagej" : {
-                    "url":'dataTables.spanish.json'
+                "language": {
+                    "emptyTable": "No hay registros en la tabla",
+                    "info": "Mostrando _START_ a _END_ de _TOTAL_ líneas",
+                    "infoEmpty": "No hay registros",
+                    "infoFiltered": "(_MAX_ líneas en total)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Mostrar: _MENU_ líneas",
+                    "loadingRecords": '<i class="fas fa-sync fa-spin fa-2x text-primary"></i>',
+                    "processing": '<i class="fas fa-cog fa-spin fa-2x text-primary"></i>',
+                    "search": "Buscar:",
+                    "zeroRecords": "No se encontraron coincidencias.",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Ultimo",
+                        "next": "Siguiente",
+                        "previous": "Previo"
+                    },
+                    "aria": {
+                        "sortAscending": ": activar para ordenar columna ascendentemente",
+                        "sortDescending": ": activar para ordenar columna descendentemente"
+                    }
                 },
                 "buttons": botones()
             });
+            //$.fn.dataTable.Buttons(collectionsTable, { buttons: botones() });
+            collectionsTable.buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
             $(document).ready(function() {
-                collectionsTable.buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
                 $.ajax({
                     url: '/collections/lista',
                     type: 'POST',
@@ -606,7 +625,7 @@
                             cat: cats,
                             scat: scat,
                             active:activo
-                        }
+                        },
                         beforeSend : function () {
                             $("#spinger").show();
                         },
