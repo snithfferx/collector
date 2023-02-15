@@ -86,6 +86,7 @@ style="height:auto;">
         </div>
     </main>
     <script type="text/javascript" src="/assets/js/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery-ui/jquery-ui.min.js"></script>
     <script type="text/javascript" src="/assets/js/bootstrap/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="/assets/js/toastr/toastr.min.js"></script>
     {{block name="jslibs"}}{{/block}}

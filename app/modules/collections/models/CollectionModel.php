@@ -30,6 +30,7 @@ class CollectionModel extends ContextClass
     public $rules = [];
     public $graphQL_id;
     private $element;
+    public $letra;
     public function __construct()
     {
         $this->external = new ExternalContext;
@@ -84,8 +85,14 @@ class CollectionModel extends ContextClass
     {
         return $this->getLocalCollections();
     }
-    public function search () {
-        return $this->getSearchedCollections();
+    public function search ($value) {
+        if ($value == "common_names") {
+            return $this->getSearchedCommonNames();
+        } elseif ($value == "collections") {
+            return $this->getSearchedCollections();
+        } else {
+            return ['error' => ['code' => 404, 'message' => "Element Not Found"], 'data' => []];
+        }
     }
 
     protected function getMetafields()
@@ -683,7 +690,59 @@ class CollectionModel extends ContextClass
         return $response;
     }
     private function getSearchedCollections () {
+        $query = [
+            'fields' => [
+                'temp_shopify_collector' => [
+                    'collection_id', 'id', 'title', 'handle', 'productsCount=products',
+                    'sortOrder=sort', 'ruleSet=rules', 'metafields=meta', 'seo', 'gqid'
+                    ]
+                ],
+                'joins' => []
+            ];
+        // Pedir Nombre común por Nombre 
+        if (!is_null($this->title)) {
+            if (is_numeric($this->title)) {
+                $numero = intval($this->title);
+                if ($numero > 4) {
+                    array_push($conditions, [
+                        'type' => "COMPARE",
+                        'table' => "temp_shopify_collector",
+                        'field' => "collection_id",
+                        'value' => $numero
+                    ]);
+                } else {
+                    array_push($conditions, [
+                        'type' => "SIMILAR",
+                        'table' => "temp_shopify_collector",
+                        'field' => "title",
+                        'value' => $this->title
+                    ]);
+                }
+            } else {
+                array_push($conditions, [
+                    'type' => "COMPARE",
+                    'table' => "temp_shopify_collector",
+                    'field' => "title",
+                    'value' => $this->title
+                ]);
+            }
+            if (!is_null($this->letra)) $separators = ['Y'];
+        }
+        if (!is_null($this->letra)) {
+            array_push($conditions, [
+                'type' => "START",
+                'table' => "temp_shopify_collector",
+                'field' => "title",
+                'value' => $this->letra
+            ]);
+        }
+        $query['params'] = (!empty($conditions)) ? ['condition' => $conditions, 'separator' => $separators] : null;
+        return $this->select("temp_shopify_collector", $query);
+    }
+    private function getSearchedCommonNames () {
         $this->base = "inventario";
+        $conditions = array();
+        $separators = array();
         $query = [
             'fields' => [
                 'nombre_comun' => [
@@ -710,6 +769,69 @@ class CollectionModel extends ContextClass
                 ]
             ]
         ];
+        $args = ['categoria', 'tipo', 'title', 'activo'];
+        foreach ($args as $k => $arg) {
+            if ($k != 0 && !is_null($this->$arg)) {
+                if (!empty($conditions)) array_push($separators, 'Y');
+            }
+            switch ($arg) {
+                case 'title':
+                    // Pedir Nombre común por Nombre 
+                    if (!is_null($this->title)) {
+                        if (strlen($this->title) > 4) {
+                            array_push($conditions, [
+                                'type' => "SIMILAR",
+                                'table' => "nombre_comun",
+                                'field' => "nombre_comun",
+                                'value' => $this->title
+                            ]);
+                        } else {
+                            if (is_numeric($this->title)) {
+                                array_push($conditions, [
+                                    'type' => "COMPARE",
+                                    'table' => "nombre_comun",
+                                    'field' => "id_nombre_comun",
+                                    'value' => $this->title
+                                ]);
+                            } else {
+                                array_push($conditions,
+                                    [
+                                        'type' => "START",
+                                        'table' => "nombre_comun",
+                                        'field' => "nombre_comun",
+                                        'value' => $this->title
+                                    ]
+                                );
+                            }
+                        }
+                    }
+                    break;
+                case 'categoria':
+                    // Pedir Nombre común por Categoría
+                    if (!is_null($this->categoria)) {
+                        array_push($conditions, [
+                            'type' => "COMPARE",
+                            'table' => "tipo_categoria",
+                            'field' => "id_tipo_categoria",
+                            'value' => $this->categoria
+                        ]);
+                    }
+                    break;
+                case 'tipo':
+                    // Pedir Nombre común por Tipo 
+                    if (!is_null($this->tipo)) {
+                        array_push($conditions, [
+                            'type' => "COMPARE",
+                            'table' => "tipo_producto",
+                            'field' => "id_tipo_producto",
+                            'value' => $this->tipo
+                        ]);
+                    }
+                    break;
+            }
+        }
+        $query['params'] = ['condition' => $conditions, 'separator' => $separators];
+       return $this->select('nombre_comun', $query);
     }
     /* private function getGuz()
     {

@@ -114,7 +114,7 @@ class CollectionsController extends ControllerClass
     }
     public function search ($values) {
         if (!empty($values)) {
-            $result = $this->searchCommonNames($values);
+            $result = $this->getSearchData($values);
         } else {
             $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error',[]));
         }
@@ -271,6 +271,19 @@ class CollectionsController extends ControllerClass
         }
         return $response;
     }
+    protected function getSearchData ($values) {
+        $this->model->activo = $values['active'];
+        if (isset($values['name']) && !empty($values['name'])) $this->model->title = $values['name'];
+        if (isset($values['letter']) && !empty($values['letter'])) $this->model->letra = $values['letter'];
+        if (isset($values['cat']) && !empty($values['cat'])) $this->model->categoria = $values['cat'];
+        if (isset($values['scat']) && !empty($values['scat'])) $this->model->tipo = $values['scat'];
+
+        if (!empty($values['cat']) || !empty($values['scat'])) {
+            return $this->searchCommonNames();
+        } else {
+            return $this->searchCollections();
+        }
+    }
 
     private function downloadCollections($values)
     {
@@ -298,6 +311,10 @@ class CollectionsController extends ControllerClass
             ];
         }
         return $response;
+    }
+    public function fill ($value) {
+        $this->model->title = $value['term'];
+        return $this->getDataFill();
     }
 
 
@@ -1030,30 +1047,80 @@ class CollectionsController extends ControllerClass
         }
         return $value;
     }
-    private function searchCommonNames ($values) {
-        $this->model->activo = $values['active'];
-        if (isset($values['name']) && !empty($values['name'])) {
-            $this->model->title = $values['name'];
-        } elseif (isset($values['letter']) && !empty($values['letter'])) {
-            $this->model->title = $values['letter'];
-        } else {
-            $this->model->categoria = $values['cat'];
-            $this->model->tipo = $values['scat'];
+    private function searchCommonNames () {
+        $commonNames = $this->model->search('commmon_names');
+        if (empty($commonNames['error'])) {
+            if (!empty($commonNames['data'])) {
+                $indice = 0;
+                $data = [];
+                foreach ($commonNames['data'] as $commonName) {
+                    $data[$indice] = [
+                        'id' => $commonName['id'],
+                        'name' => $commonName['name'],
+                        'date' => $commonName['date'],
+                        'active' => $commonName['active'],
+                        'handle' => $commonName['handle'],
+                        'actions' => ['common' => [], 'collection' => []],
+                        'category' => ['id' => $commonName['tc_id'], 'name' => $commonName['category']],
+                        'keywords' => $commonName['keywords'],
+                        'id_tienda' => $commonName['store_id'],
+                        'possition' => $commonName['store_id'],
+                        'sub_category' => ['id' => $commonName['tp_id'], 'name' => $commonName['sub_category']],
+                    ];
+                    $this->model->id = $commonName['store_id'];
+                    $collection = $this->model->find();
+                    if (empty($collection['data'])) {
+                        $this->model->handle = $commonName['handle'];
+                        $collection = $this->model->find();
+                        if (empty($collection['data'])) {
+                            $this->model->title = $commonName['name'];
+                            $collection = $this->model->find();
+                        }
+                    }
+                    if (!empty($collection['data'])) {
+                        if (sizeof($collection['data']) == 1) {
+                            $metagatos = $this->hasMetadatos($commonName['tp_id']);
+                            $data[$indice]['store_id'] = $collection['data'][0]['id'];
+                            $data[$indice]['verified'] = $collection['data'][0]['verified'];
+                            $data[$indice]['store_seo'] = $collection['data'][0]['seo'];
+                            $data[$indice]['metadatos'] = (!empty($metagatos['data'])) ? $metagatos['data'][0]['res'] : 0;
+                            $data[$indice]['sort_order'] = $collection['data'][0]['sort'];
+                            $data[$indice]['store_meta'] = $collection['data'][0]['meta'];
+                            $data[$indice]['store_title'] = $collection['data'][0]['title'];
+                            $data[$indice]['store_handle'] = $collection['data'][0]['handle'];
+                            $data[$indice]['product_count'] = $collection['data'][0]['products'];
+                            $data[$indice]['collection_type'] = (!empty($collection['data'][0]['rules'])) ? 'Smart' : 'Custom';
+                            $indice++;
+                        }
+                    }
+                }
+            }
         }
-        $collections = $this->model->search();
+        return (!empty($commonNames['error'])) ?? $data;
+    }
+    private function searchCollections () {
+        $collections = $this->model->search('collections');
         if (empty($collections['error'])) {
             if (!empty($collections['data'])) {
                 $mixedcommonNames = [
                     'collections' => $this->nombresComunes($collections['data']),
-                    'pagination' => [
-                        'next' => $collections['pagination']['next_page'],
-                        'prev' => $collections['pagination']['prev_page'],
-                        'max' => null,
-                        'limit' => null
-                    ]
+                    'pagination' =>
+                    []
                 ];
             }
         }
-        return $mixedcommonNames;
+        return (!empty($collections['error'])) ?? $mixedcommonNames;
+    }
+    private function getDataFill () {
+        $this->model->limit = 0;
+        $result = $this->model->localGet('commonName');
+        $data = array();
+        foreach ($result['data'] as $key => $nombre) {
+            $data[$key] = [
+                'id' => $nombre['store_id'],
+                'value' => $nombre['name']
+            ];
+        }
+        return $data;
     }
 }

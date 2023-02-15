@@ -47,7 +47,7 @@
                                         <label for="collection_name"></label>
                                         <input type="text" class="form-control" id="collection_name"
                                             aria-describedby="collection_name_help" placeholder="Digite un nombre a filtrar">
-                                        <small id="collection_name_help" class="form-text text-muted">Puede ser un nombre común, colección, categoria o subcategoría</small>
+                                        <small id="collection_name_help" class="form-text text-muted">Puede ser un nombre común, colección</small>
                                     </div>
                                 </div>
                                 <div class="col-2">
@@ -114,85 +114,6 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {{* foreach $content.collections as $key=>$item}}
-                                    <tr>
-                                        <td class="text-center">
-                                            <a href="collections/read/{{$item.store_id}}">
-                                                {{$item.store_id}}
-                                            </a>
-                                        </td>
-                                        <td class="text-center">{{$item.date}}</td>
-                                        <td class="text-center">
-                                            <a href="collections/read?id={{$item.id}}" target="_self" title="{{$item.name}}"
-                                                type="text">
-                                                {{$item.name}}
-                                            </a>
-                                        </td>
-                                        <td class="text-center">{{$item.store_title}}</td>
-                                        <td class="text-center">{{$item.store_handle}}</td>
-                                        <td class="text-center">{{$item.category}}</td>
-                                        <td class="text-center">{{$item.sub_category}}</td>
-                                        <td class="text-center">{{$item.handle}}</td>
-                                        <td class="text-center">{{$item.id_tienda}}</td>
-                                        <td class="text-center">{{$item.keywords}}</td>
-                                        <td class="text-center">{{$item.sort_order}}</td>
-                                        <td class="text-center">{{$item.product_count}}</td>
-                                        <td class="text-center">
-                                            {{if $item.active == 0}}Inactivo{{else}}Activo{{/if}}
-                                        </td>
-                                        <td class="text-center">{{$item.possition}}</td>
-                                        <td class="text-center">
-                                            <div class='btn-group'>
-                                                <button type='button' class='btn btn-outline-info dropdown-toggle dropdown-icon'
-                                                    data-toggle='dropdown'>
-                                                    Eleija...
-                                                </button>
-                                                <span class='sr-only'>Acciones</span>
-                                                <div class='dropdown-menu' role='menu'>
-                                                    {{if !empty($item.id)}}
-                                                    <a href="/collections/read?id={{$item.id}}"
-                                                        title="Ver detalles de colección" tabindex="{{$key + 1}}" target="_self"
-                                                        type="text" class="btn btn-success btn-sm btn-block">
-                                                        <i class="fas fa-eye mr-3"></i>Detalles
-                                                    </a>
-                                                    <a href="/collections/compare?id={{$item.store_id}}"
-                                                        title="Compara los datos de una colección" tabindex="{{$key + 2}}"
-                                                        target="_self" type="text" class="btn btn-info btn-sm btn-block">
-                                                        <i class="fas fa-copy mr-3"></i>Comparar
-                                                    </a>
-                                                    <div class="dropdown-divider"></div>
-                                                    <a href="/collections/edit?id={{$item.id}}"
-                                                        title="Editar datos de la colección local" tabindex="{{$key + 3}}"
-                                                        target="_self" type="text" class="btn btn-warning btn-sm btn-block">
-                                                        <i class="fas fa-edit mr-3"></i>Editar Local
-                                                    </a>
-                                                    <a href="/collections/sync?id={{$item.id}}"
-                                                        title="Sincroniza datos de tienda a local" tabindex="{{$key + 4}}"
-                                                        target="_self" type="text" class="btn btn-primary btn-sm btn-block">
-                                                        <i class="fas fa-trash mr-3"></i>Borrar Local
-                                                    </a>
-                                                    <a href="collections/delete?id={{$item.id}}"
-                                                        title="Borra una colección localmente" tabindex="{{$key + 5}}"
-                                                        target="_self" type="text" class="btn btn-danger btn-sm btn-block">
-                                                        <i class="fas fa-trash mr-3"></i>Borrar Local
-                                                    </a>
-                                                    <div class="dropdown-divider"></div>
-                                                    {{/if}}
-                                                    <a href="collections/edit?id={{$item.store_id}}"
-                                                        title="Editar datos de la colección tienda" tabindex="{{$key + 6}}"
-                                                        target="_self" type="text" class="btn btn-warning btn-sm btn-block">
-                                                        <i class="fas fa-edit mr-3"></i>Editar Local
-                                                    </a>
-                                                    <a href="collections/delete?id={{$item.store_id}}"
-                                                        title="Borra una colección en la nube" tabindex="{{$key + 7}}"
-                                                        target="_self" type="text" class="btn btn-danger btn-sm btn-block">
-                                                        <i class="fas fa-trash mr-3"></i>Borrar Local
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {{/foreach *}}
                                     </tbody>
                                 </table>
                             </div>
@@ -430,26 +351,17 @@
             //$.fn.dataTable.Buttons(collectionsTable, { buttons: botones() });
             collectionsTable.buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
             $(document).ready(function() {
-                $.ajax({
-                    url: '/collections/lista',
-                    type: 'POST',
-                    beforeSend : function () {
-                        $("#spinger").show();
-                    },
-                    success: function(r) {
-                        result = JSON.parse(r);
-                        collections = result.collections;
-                        //hasPages(result.pagination);
-                        collectionsTable.rows.add(collections).draw();
-                        if (result.error != undefined) {
-                            alertaPopUp(result.error);
-                        }
-                    },
-                    complete: function () {
-                        $("#spinger").hide();
+                getTableData('/collections/lista');
+                getCategories();
+                getSubCategories();
+                $("#collection_name").autocomplete({
+                    source : "/collections/fill",
+                    limit : 10,
+                    select : function (e,u) {
+                        var id = u.item.id
+                        getTableData('/collections/search',{name:id});
                     }
                 });
-                //collectionsTable = tableRefill('collectionsList', collections, columnas, 10, true,2);
                 $(".collections_pagination_next").click(function(e) {
                     e.preventDefault();
                     var url = $("#nextPage").val();
@@ -485,8 +397,11 @@
                     modal.find('.modal-title').text('New message to ' + recipient)
                     modal.find('.modal-body input').val(recipient)
                 });
+                $("#categories").change(function () {
+                    var cat = $("#categories").val();
+                    getSubCategories(cat);
+                });
             });
-
             /* function hasPages(paginacion) {
                 var pages = '';
                 urlNext = '/collections/next?page=' + paginacion.next + "&cursor=next&limit=" + paginacion.limit;
@@ -549,7 +464,6 @@
 
                 //$(".collections_pagination").show();
             } */
-
             function syncCollection(id) {
                 $.post('collections/sync',{"id":id},function (r) {
                     result = JSON.parse(r);
@@ -593,10 +507,15 @@
             } */
             // Busca reigstros
             function buscar (parametro) {
-                var activo = $("#deshabiliatdo").val();
+                var activo,cats = $("#categories").val(), sucat = $("#subcategories").val(),coleccion = $("#collection_name").val();
+                if ($('#deshabiliatdo').is(':checked')) {
+                    activo = true;
+                } else {
+                    activo = false;
+                }
                 if (parametro != undefined) {
                     $.ajax({
-                        url: '/collections/search' + parametro,
+                        url: '/collections/search',
                         type: 'POST',
                         data: {
                             letter:parametro, active:activo
@@ -617,38 +536,14 @@
                         }
                     });
                 } else {
-                    var cats = $("#categories").val(), sucat = $("#subcategories").val();
                     $.ajax({
                         url: '/collections/search',
                         type: 'POST',
                         data: {
                             cat: cats,
-                            scat: scat,
-                            active:activo
-                        },
-                        beforeSend : function () {
-                            $("#spinger").show();
-                        },
-                        success: function(r) {
-                            result = JSON.parse(r);
-                            collections = result.collections;
-                            collectionsTable.rows.add(collections).draw();
-                            if (result.error != undefined) {
-                                alertaPopUp(result.error);
-                            }
-                        },
-                        complete: function () {
-                            $("#spinger").hide();
-                        }
-                    });
-                }
-                var coleccion = $("#collection_name").val();
-                if (parametro != undefined) {
-                    $.ajax({
-                        url: '/collections/search' + parametro,
-                        type: 'POST',
-                        data: {
-                            name:coleccion, active:activo
+                            scat: sucat,
+                            active:activo,
+                            name:coleccion
                         },
                         beforeSend : function () {
                             $("#spinger").show();
@@ -669,11 +564,60 @@
             }
             // Trae las categorias
             function getCategories () {
-                
+                $.ajax({
+                    url: '/categories/categorieslist',
+                    type:'POST',
+                    success: function (r) {
+                        var result = JSON.parse(r);
+                        var fopcion;
+                        $.each(result,function (index,val) {
+                            fopcion = new Option(val.name,val.id,false,false);
+                            $("#categories").append(fopcion);
+                        });
+                    }
+                });
             }
-            // Trae las categorias
-            function getCategories () {
-
+            // Trae las sub categorias
+            function getSubCategories (id) {
+                $.ajax({
+                    url: '/categories/subcategorieslist',
+                    type:'POST',
+                    data: {
+                        cid : id
+                    },
+                    success: function (r) {
+                        let opcion = new Option('Elija una subcategoria',0,true,true);
+                        $("#subcategories").append(opcion).trigger('change');
+                        var result = JSON.parse(r);
+                        var fopcion;
+                        $.each(result,function (index,val) {
+                            fopcion = new Option(val.name,val.id,false,false); 
+                            $("#subcategories").append(fopcion);
+                        });
+                    } 
+                });
+            }
+            function getTableData (direccion,args=null) {
+                $.ajax({
+                    url: direccion,
+                    type: 'POST',
+                    data: args,
+                    beforeSend : function () {
+                        $("#spinger").show();
+                    },
+                    success: function(r) {
+                        result = JSON.parse(r);
+                        collections = result.collections;
+                        //hasPages(result.pagination);
+                        collectionsTable.rows.add(collections).draw();
+                        if (result.error != undefined) {
+                            alertaPopUp(result.error);
+                        }
+                    },
+                    complete: function () {
+                        $("#spinger").hide();
+                    }
+                });
             }
         </script>
     {{/literal}}
