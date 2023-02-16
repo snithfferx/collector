@@ -8,15 +8,17 @@
                 <ol class="breadcrumb float-sm-right">
                     {{foreach $breadcrumb.routes as $item}}
                         {{if $item@last}}
-                            <li class="breadcrumb-item active">{{$item.text}}</li>
+                            <li class="breadcrumb-item active">
+                                {{$item.text}}
+                                |
+                                {{if !empty($item.param) or !is_null($item.param)}}
+                                    {{$item.param}}
+                                {{/if}}
+                            </li>
                         {{else}}
                             <li class="breadcrumb-item">
-                                <a href="
-                                    /{{$item.controller}}
-                                    /{{$item.method}}
-                                    {{if !empty($item.param) or !is_null($item.param)}}
-                                        /{{$item.param}}
-                                    {{/if}}">
+                                <a
+                                    href="/{{$item.controller}}/{{$item.method}}{{if !empty($item.param) or !is_null($item.param)}}/{{$item.param}}{{/if}}">
                                     {{$item.text}}
                                 </a>
                             </li>
