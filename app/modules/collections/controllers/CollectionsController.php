@@ -120,6 +120,9 @@ class CollectionsController extends ControllerClass
         }
         return $result;
     }
+    public function index ($algo) {
+        return $this->read($algo);
+    }
 
 
     /* #################### Protecteds #################### */
@@ -139,7 +142,7 @@ class CollectionsController extends ControllerClass
         $viewOrigin = "read";
         if (!empty($value)) {
             if (isset($value['id'])) {
-                $result = (strlen($value['id']) > 6) ? $this->collection($value) : $this->commonName($value);
+                $result = (strlen($value['id']) > 4) ? $this->collection($value['id']) : $this->commonName($value['id']);
                 $lista = false;
             } else {
                 $result = $this->commonNames($value);
@@ -147,7 +150,7 @@ class CollectionsController extends ControllerClass
         } else {
             $result = $this->commonNames($value);
         }
-        if (!$lista) {
+        if ($lista === false) {
             if (!empty($result['error'])) {
                 $viewtype = "layout";
                 $viewCode = $result['error']['code'];
@@ -418,22 +421,23 @@ class CollectionsController extends ControllerClass
         }
         return (!empty($response)) ?? $result;
     }
-    private function commonName(int $id): array
+    private function commonName($id): array
     {
         $this->model->id = $id;
-        $result = $this->model->localGet();
+        $result = $this->model->localGet('commonName');
         $response = [];
-        if (!$result['error']) {
-            foreach ($result['data'] as $k => $coleccion) {
-                $this->model->id = $coleccion['id'];
-                $collection = $this->model->storeGet();
-                $response['data'][$k] = [
-                    'local' => $coleccion,
-                    'store' => (!$collection['error']) ? $collection['data'] : ['id' => null, 'title' => null, 'handle' => null]
-                ];
+        if (empty($result['error'])) {
+            $this->model->id = $result['data'][0]['store_id'];
+            $response['data']['common'] = $result['data'];
+            $collection = $this->model->localGet('collection');
+            if (empty($collection['error'])) {
+                $response['data']['collection'] = $collection['data'];
+            } else {
+                $response['data']['collection'] = null;
             }
+            $response['error'] = (!empty($collection['error'])) ? $collection['error'] : [];
         }
-        return (!empty($response)) ?? $result;
+        return (!empty($result['error'])) ? $result : $response;
     }
     private function makeURL($datos)
     {
@@ -772,7 +776,7 @@ class CollectionsController extends ControllerClass
             $nombreComun = '<a href="/collections/create?id=' . $arreglo['store_id'] . '" 
                 class="btn btn-block btn-outline-info btn-sm" target="_self" title="crear colección" type="text">Sincronizar</a>';
         } else {
-            $nombreComun = '<a href="collections/read?id=' . $arreglo['id'] . '" 
+            $nombreComun = '<a href="/collections/read?id=' . $arreglo['id'] . '" 
                 class="btn btn-block btn-outline-info btn-sm" target="_self" title="' . $arreglo['name'] . '" 
                 type="text">' .
                 $arreglo['name'] . '
@@ -793,7 +797,7 @@ class CollectionsController extends ControllerClass
                 '" class="btn btn-block btn-outline-secondary btn-sm" target="_self" 
                 title="crear colección" type="text"> Crear|Sincronizar</a>';
         } else {
-            $collectionHandle = '<a href="collections/read?id=' . $arreglo['id'] .
+            $collectionHandle = '<a href="/collections/read?id=' . $arreglo['id'] .
                 '" class="btn btn-block btn-outline-secondary btn-sm" target="_self" title="' .
                 $arreglo['handle'] . '" type="text">' . $arreglo['handle'] . '</a>';
         }
