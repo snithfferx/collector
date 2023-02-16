@@ -259,8 +259,8 @@ class ControllerClass
         } else {
             $name = explode("/", $values['view']);
             $mdl = $name[0];
-            $ctr = $name[1];
-            $prm = $values['params'];
+            $ctr = $name[0];
+            $prm = (isset($values['params']['id'])) ? $values['params']['id'] : $values['params'];
             $mtd = $values['method'];
         }
         return [

@@ -39,7 +39,7 @@
         {{if isset($head.template) && !empty($head.template)}}
             {{include file=_VIEW_|cat:$head.template}}
         {{else}}
-            {{include file=_VIEW_|cat:"_shared/_head.tpl"}}
+            {{include file=_VIEW_|cat:"_shared/templates/_head.tpl"}}
         {{/if}}
     {{/block}}
 </head>
@@ -63,7 +63,7 @@ style="height:auto;">
                 {{if isset($navbar.template)}}
                     {{include file=_VIEW_|cat:$navbar.template}}
                 {{else}}
-                    {{include file=_VIEW_|cat:"_shared/_navbar.tpl"}}
+{{include file=_VIEW_|cat:"_shared/templates/_navbar.tpl"}}
                 {{/if}}
                 <!-- NAVBAR END -->
             {{/block}}
@@ -74,7 +74,7 @@ style="height:auto;">
                 {{if isset($sidebar.template)}}
                     {{include file=_VIEW_|cat:$sidebar.template}}
                 {{else}}
-                    {{include file=_VIEW_|cat:"_shared/_sidebar.tpl"}}
+{{include file=_VIEW_|cat:"_shared/templates/_sidebar.tpl"}}
                 {{/if}}
                 <!-- SIDEBAR END -->
             {{/block}}
@@ -87,7 +87,7 @@ style="height:auto;">
             {{block name="breadcrumbs"}}
                 <!-- Content Header (Page header) -->
                 {{if isset($data.content.breadcrumbs) && !empty($data.content.breadcrumbs)}}
-                    {{include file=_VIEW_|cat:"_shared/_breadcrumbs.tpl"}}
+{{include file=_VIEW_|cat:"_shared/templates/_breadcrumbs.tpl"}}
                 {{/if}}
                 <!-- /.content-header -->
             {{/block}}
@@ -112,18 +112,18 @@ style="height:auto;">
             {{if isset($footer.template)}}
                 {{include file=_VIEW_|cat:$footer.template}}
             {{else}}
-                {{include file=_VIEW_|cat:"_shared/_footer.tpl"}}
+{{include file=_VIEW_|cat:"_shared/templates/_footer.tpl"}}
             {{/if}}
             <!-- FOOTER END -->
         {{/block}}
     </div>
-    <script src="assets/plugins/jquery/jquery.min.js"></script>
-    <script src="assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/plugins/jquery/jquery.min.js"></script>
+    <script src="/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
     {{block name="jslibs"}}{{/block}}
     <!-- Toastr -->
-    <script src="assets/plugins/toastr/toastr.min.js"></script>
-    <script src="assets/js/adminlte.min.js"></script>
-    <script src="assets/js/functions.js"></script>
+    <script src="/assets/plugins/toastr/toastr.min.js"></script>
+    <script src="/assets/js/adminlte.min.js"></script>
+    <script src="/assets/js/functions.js"></script>
     {{block name="scripts"}}{{/block}}
 </body>
 
