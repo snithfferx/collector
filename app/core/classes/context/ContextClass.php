@@ -524,6 +524,12 @@ class ContextClass extends ConnectionClass
                 case 'SIMILAR':
                     $string .= " LIKE CONCAT('%', ?, '%') ";
                     break;
+                case 'START':
+                    $string .= " LIKE CONCAT(?, '%') ";
+                    break;
+                case 'END':
+                    $string .= " LIKE CONCAT('%', ?) ";
+                    break;
                 case 'RANGO':
                     $string .= ' BETWEEN ? AND ? ';
                     break;
