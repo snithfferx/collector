@@ -710,6 +710,8 @@ class CollectionModel extends ContextClass
             'joins' => []
         ];
         // Pedir Nombre común por Nombre 
+        $conditions = array();
+        $separators = array();
         if (!is_null($this->title)) {
             if (is_numeric($this->title)) {
                 $numero = intval($this->title);

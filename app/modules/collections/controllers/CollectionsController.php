@@ -116,7 +116,7 @@ class CollectionsController extends ControllerClass
         if (!empty($values)) {
             $result = $this->getSearchData($values);
         } else {
-            $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error',[]));
+            $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error',['data'=>['code'=>400,'message'=>"Información invalida"]]));
         }
         return $result;
     }
