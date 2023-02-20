@@ -41,8 +41,8 @@ class RouterHelper
             ];
         } else {
             $pathArray = explode('/', $path);
-            array_shift($pathArray);
             if ($method == "post") {
+                array_shift($pathArray);
                 $prms = $_POST;
             } else {
                 if ($this->qmPos != false) {
