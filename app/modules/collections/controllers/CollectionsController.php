@@ -35,6 +35,33 @@ class CollectionsController extends ControllerClass
         $this->messenger = new MessengerHelper;
     }
     /**
+     * Función que devuelve la lista de colecciones creadas en la base de datos y la tienda
+     * 
+     * @param mixed $values
+     * @return array
+     * @version 1.0.0
+     * 27/01/23
+     */
+    public function read($values)
+    {
+        $response = (!empty($values)) ? $this->getCollections($values) : $this->createViewData('collections/list');
+        return $response;
+    }
+    public function lista($value = [])
+    {
+        if (!empty($value)) {
+            $result = $this->commonNames($value);
+        } else {
+            $result = $this->commonNames();
+        }
+        if (!empty($result['error'])) {
+            $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error', $result['error']));
+        }
+        return $result;
+    }
+
+
+    /**
      * Función que crea una colección en la base de datos y en la tienda
      * 
      * Devuelve una vista de la colección
@@ -48,19 +75,6 @@ class CollectionsController extends ControllerClass
             return $this->createCollection($values);
         }
         return $this->createViewData('collections/create');
-    }
-    /**
-     * Función que devuelve la lista de colecciones creadas en la base de datos y la tienda
-     * 
-     * @param mixed $values
-     * @return array
-     * @version 1.0.0
-     * 27/01/23
-     */
-    public function read($values)
-    {
-        $response = (!empty($values)) ? $this->getCollections($values) : $this->createViewData('collections/list');
-        return $response;
     }
     /**
      * Función que edita la información de una colección.
@@ -93,18 +107,6 @@ class CollectionsController extends ControllerClass
     {
         return (!is_null($value)) ? $this->getCompareData($value) : $this->getCompareData();
     }
-    public function lista($value = [])
-    {
-        if (!empty($value)) {
-            $result = $this->commonNames($value);
-        } else {
-            $result = $this->commonNames();
-        }
-        if (!empty($result['error'])) {
-            $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error', $result['error']));
-        }
-        return $result;
-    }
     public function sync($value)
     {
     }
@@ -122,6 +124,9 @@ class CollectionsController extends ControllerClass
     }
     public function index ($algo) {
         return $this->read($algo);
+    }
+    public function verify ($values) {
+        return $this->collectionVerified($values);
     }
 
 
@@ -275,16 +280,30 @@ class CollectionsController extends ControllerClass
         return $response;
     }
     protected function getSearchData ($values) {
-        $this->model->activo = $values['active'];
+        $this->model->activo = ($values['active']) ?? false;
         if (isset($values['name']) && !empty($values['name'])) $this->model->title = $values['name'];
         if (isset($values['letter']) && !empty($values['letter'])) $this->model->letra = $values['letter'];
         if (isset($values['cat']) && !empty($values['cat'])) $this->model->categoria = $values['cat'];
         if (isset($values['scat']) && !empty($values['scat'])) $this->model->tipo = $values['scat'];
-
         if (!empty($values['cat']) || !empty($values['scat'])) {
             return $this->searchCommonNames();
         } else {
             return $this->searchCollections();
+        }
+    }
+    protected function collectionVerified ($values) {
+        if (isset($values['id_collection']) && !empty($values['id_collection'])) {
+            if (isset($values['id_common']) && !empty($values['id_common'])) {
+                if (isset($values['current']) && !empty($values['current'])) {
+                    $result = $this->unverified($values['id_collection'],$values['id_common']);
+                } else {
+                    $result = $this->setVerification($values['id_collection'],$values['id_common']);
+                }
+            } else {
+                $result = $this->setVerification($values['id_collection']);
+            }
+        } else {
+
         }
     }
 
@@ -369,16 +388,14 @@ class CollectionsController extends ControllerClass
      * @param int $limit
      * @return array
      */
-    private function commonNames($value = 100): array
+    private function commonNames($value = []): array
     {
         $this->cleanVars();
         $mixedcommonNames = ['collections' => [], 'pagination' => []];
+        $limit = ($value['limit']) ?? 0;
         if (isset($value['page'])) {
             $this->model->page = $value['page'];
-            $limit = $value['limit'];
             $this->model->cursor = ($value['cursor']) ?? null;
-        } else {
-            $limit = $value;
         }
         $this->model->limit = $limit;
         $collections = (isset($value['page'])) ? $this->model->getPage('local') : $this->model->localGet();
@@ -399,7 +416,7 @@ class CollectionsController extends ControllerClass
             $mixedcommonNames = [
                 'collections' => [],
                 'pagination' => [],
-                'error' => $collections['error']
+                'error' => $this->messenger->messageBuilder('alert',$this->messenger->build('error',$collections['error']))
             ];
         }
         return $mixedcommonNames;
@@ -481,7 +498,6 @@ class CollectionsController extends ControllerClass
                 'product_count' => ($collection['products']) ?? null,
                 'collection_type' => (!empty($collection['rules'])) ? 'Smart' : 'Custom',
             ];
-            //$titleNormalized = $this->normalizate($collection['title']);
             $this->model->categoria = $collection['title'];
             $result = $this->model->localGet('isCategory');
             if ($result['data']['isCategory'] === true) {
@@ -491,6 +507,7 @@ class CollectionsController extends ControllerClass
                         $g = 0;
                         foreach ($result['data']['list'] as $common) {
                             $datas[$g] = $data;
+                            array_push($datas[$g]['actions']['common'], 'eliminar');
                             if (!empty($common['id'])) {
                                 $datas[$g]['id'] = $common['id'];
                                 array_push($datas[$g]['actions']['common'], 'detalles');
@@ -499,7 +516,6 @@ class CollectionsController extends ControllerClass
                                 $datas[$g]['name'] = $common['name'];
                                 if ($common['name'] != $collection['title']) {
                                     array_push($datas[$g]['actions']['common'], 'name');
-                                    $datas[$g]['store_title'] = null;
                                 }
                             }
                             if (!empty($common['date'])) $datas[$g]['date'] = date("d/m/Y", strtotime($common['date']));
@@ -508,7 +524,6 @@ class CollectionsController extends ControllerClass
                                 $datas[$g]['handle'] = $common['handle'];
                                 if ($common['handle'] != $collection['handle']) {
                                     array_push($datas[$g]['actions']['common'], 'handle');
-                                    $datas[$g]['store_handle'] = null;
                                 }
                             }
                             if (!empty($common['category'])) $datas[$g]['category'] = ['id' => $common['tc_id'], 'name' => $common['category']];
@@ -538,7 +553,7 @@ class CollectionsController extends ControllerClass
                         if (isset($common)) unset($common);
                     }
                 } else {
-                    array_push($data['actions']['collection'], 'crear');
+                    array_push($data['actions']['collection'], 'sync');
                 }
             } else {
                 $this->cleanVars();
@@ -547,8 +562,10 @@ class CollectionsController extends ControllerClass
                 $this->model->handle = $collection['handle'];
                 $result = $this->model->localGet('commonNames');
                 if (sizeof($result['data']) > 0) {
+                    array_push($data['actions']['collection'], 'eliminar');
+                    array_push($data['actions']['common'], 'eliminar');
                     foreach ($result['data'] as $k => $v) {
-                        array_push($datas[$k]['actions']['collection'], 'eliminar');
+                        $datas[$k] = $data;
                         if (!empty($v['id'])) {
                             $datas[$k]['id'] = $v['id'];
                             array_push($datas[$k]['actions']['common'], 'detalles');
@@ -557,7 +574,6 @@ class CollectionsController extends ControllerClass
                             $datas[$k]['name'] = $v['name'];
                             if ($v['name'] != $collection['title']) {
                                 array_push($datas[$k]['actions']['common'], 'name');
-                                $datas[$k]['store_title'] = null;
                             }
                         }
                         if (!empty($v['date'])) $datas[$k]['date'] = date("d/m/Y", strtotime($v['date']));
@@ -566,7 +582,6 @@ class CollectionsController extends ControllerClass
                             $datas[$k]['handle'] = $v['handle'];
                             if ($v['name'] != $collection['handle']) {
                                 array_push($datas[$k]['actions']['common'], 'handle');
-                                $datas[$k]['store_handle'] = null;
                             }
                         }
                         if (!empty($v['category'])) $datas[$k]['category'] = ['id' => $v['tc_id'], 'name' => $v['category']];
@@ -606,22 +621,17 @@ class CollectionsController extends ControllerClass
                             $datas[$i] = $data;
                             if ($commonName['name'] === $collection['title']) {
                                 $sonIguales = true;
-                            } else {
-                                $datas[$i]['store_title'] = null;
-                                if (isset($datas[$i]['actions']['common'])) {
-                                    array_push($datas[$i]['actions']['common'], 'name');
-                                } else {
-                                    $datas[$i]['actions']['common'][] = 'name';
-                                }
                             }
                             if ($commonName['handle'] === $collection['handle']) {
                                 $sonIguales = true;
                             } else {
-                                $datas[$i]['store_handle'] = null;
-                                if (isset($datas[$i]['actions']['common'])) {
-                                    array_push($datas[$i]['actions']['common'], 'handle');
-                                } else {
-                                    $datas[$i]['actions']['common'][] = 'handle';
+                                if ($sonIguales === true) {
+                                    $datas[$i]['store_handle'] = null;
+                                    if (isset($datas[$i]['actions']['common'])) {
+                                        array_push($datas[$i]['actions']['common'], 'handle');
+                                    } else {
+                                        $datas[$i]['actions']['common'][] = 'handle';
+                                    }
                                 }
                             }
                             if ($sonIguales === false) {
@@ -634,15 +644,6 @@ class CollectionsController extends ControllerClass
                                     $sonIguales = true;
                                     array_push($datas[$i]['actions']['common'], 'sync');
                                 }
-                            }
-                            if ($commonName['store_id'] != $id_store) {
-                                array_push($datas[$i]['actions']['common'], 'store_id');
-                                $datas[$i]['store_id'] = null;
-                                $datas[$i]['store_seo'] = null;
-                                $datas[$i]['sort_order'] = null;
-                                $datas[$i]['store_meta'] = null;
-                                $datas[$i]['product_count'] = null;
-                                $datas[$i]['collection_type'] = null;
                             }
                             if ($sonIguales === true) {
                                 $datas[$i]['id'] = $commonName['id'];
@@ -714,11 +715,11 @@ class CollectionsController extends ControllerClass
         } else {
             $badgeColor = "danger";
         }
-        if (!is_null($arreglo['store_handle'])) {
+        $handleHandler = "";
+        if (!is_null($arreglo['store_handle']) && !empty($arreglo['store_handle'])) {
             $eliminable = false;
             $handleParts = explode('-', $arreglo['store_handle']);
             $handleSize = count($handleParts);
-            $handleHandler = '<a href="#" class="btn btn-block btn-outline-secondary btn-sm" onclick="deleteCollection(\'' . $arreglo['store_id'] . '\')" target="_self" title="';
             for (
                 $p = 0;
                 $p < $handleSize;
@@ -726,19 +727,21 @@ class CollectionsController extends ControllerClass
             ) {
                 if (is_numeric($handleParts[$p])) {
                     if ($p == ($handleSize - 1)) {
-                        $handleHandler .= $arreglo['store_handle'] . '" type="text">' . $arreglo['store_handle'] . '
-                        <span class="badge badge-dark">' . $arreglo['collection_type'] . '</span>
-                        </a>';
                         $eliminable = true;
                     }
                 }
             }
-            if ($eliminable === false) $handleHandler = $arreglo['store_handle'];
-        } else {
-            $handleHandler = '<a href="#" onclick="deleteCollection(\'' . $arreglo['store_id'] . '\')" 
-                target="_self" title="' . $arreglo['store_handle'] . '" class="btn btn-block btn-sm btn-outline-danger" type="text">
-                <i class="fas fa-trash-alt"></i>
-            </a>'; 
+            if ($eliminable === false) {
+                $handleHandler = '<a href="#" class="btn btn-block btn-outline-secondary btn-sm" onclick="deleteCollection(\'' . $arreglo['store_id'] . '\')" 
+                    target="_self" title="' . $arreglo['store_handle'] . '" type="text">' . $arreglo['store_handle'];
+            } else {
+                $handleHandler = '<a href="#" class="btn btn-block btn-outline-danger btn-sm" onclick="deleteCollection(\'' . $arreglo['store_id'] . '\')" 
+                target="_self" title="' . $arreglo['store_handle'] . '" type="text"><i class="fas fa-trash-alt mr-3"></i>' . $arreglo['store_handle'];
+            }
+            $handleHandler .= '
+                <span class="badge badge-pill badge-dark">' . $arreglo['collection_type'] . '</span>
+                <span class="sr-only">Collection type</span>
+            </a>';
         }
         $activador = '<div class="switch">
                     <label>                          
@@ -751,7 +754,7 @@ class CollectionsController extends ControllerClass
         $activador .= ' data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '>
                         <span class="lever"></span> 
                     </label>
-                </div>' . $text;
+                </div><span class="badge badge-pill badge-primary">' . $text . '</span>';
         $state = false;
         $text = 'No Verificado';
         $check = '';
@@ -764,9 +767,9 @@ class CollectionsController extends ControllerClass
                     <label>                          
                         <input type="checkbox" id="' . $arreglo['store_id'] . '-verify_' . $arreglo['id'] . '"';
         if (!is_null($arreglo['id']) && !empty($arreglo['id'])) {
-            $verify .= ' onclick="veificar(' . $arreglo['store_id'] . ',' . $arreglo['id'] . ',\'' . $state . '\')"';
+            $verify .= ' onclick="verifyCollection(' . $arreglo['store_id'] . ',' . $arreglo['id'] . ',\'' . $state . '\')"';
         } else {
-            $verify .= ' onclick="veificar(' . $arreglo['store_id'] . ',null,\'' . $state . '\')"';
+            $verify .= ' onclick="verifyCollection(' . $arreglo['store_id'] . ',null,\'' . $state . '\')"';
         }
         $verify .= 'data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '>
                         <span class="lever"></span> 
@@ -1039,18 +1042,6 @@ class CollectionsController extends ControllerClass
         $this->model->fields = null;
         $this->model->seo = null;
     }
-    private function normalizate(string $value): string
-    {
-        $arreglo = preg_split('/([,|;|~|#])/', $value, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-        if (sizeof($arreglo) > 1) {
-            $value = str_replace(chr(152), ' ', $value);
-            $value = str_replace('#', ' ', $value);
-            $value = str_replace(';', '/', $value);
-            $value = str_replace(',', '/', $value);
-            //str_replace(array(',',';','~','#'),array('/','/',' ',' '),$value);
-        }
-        return $value;
-    }
     private function searchCommonNames () {
         $commonNames = $this->model->search('commmon_names');
         if (empty($commonNames['error'])) {
@@ -1076,10 +1067,10 @@ class CollectionsController extends ControllerClass
                     if (empty($collection['data'])) {
                         $this->model->handle = $commonName['handle'];
                         $collection = $this->model->find();
-                        if (empty($collection['data'])) {
+                        /* if (empty($collection['data'])) {
                             $this->model->title = $commonName['name'];
                             $collection = $this->model->find();
-                        }
+                        } */
                     }
                     if (!empty($collection['data'])) {
                         if (sizeof($collection['data']) == 1) {
@@ -1100,20 +1091,40 @@ class CollectionsController extends ControllerClass
                 }
             }
         }
-        return (!empty($commonNames['error'])) ?? $data;
+        if (!empty($commonNames['error'])) {
+            $result = [
+                'collections' => [],
+                'pagination' => [],
+                'error' => $this->messenger->messageBuilder('alert', $this->messenger->build('error', $commonNames['error']))
+            ];
+        } else {
+            $result = [
+                'collections' => $data,
+                'pagination' => []
+            ];
+        }
+        return $result;
     }
     private function searchCollections () {
         $collections = $this->model->search('collections');
+        $mixedcommonNames = array();
         if (empty($collections['error'])) {
             if (!empty($collections['data'])) {
                 $mixedcommonNames = [
                     'collections' => $this->nombresComunes($collections['data']),
-                    'pagination' =>
-                    []
+                    'pagination' => []
                 ];
             }
         }
-        return (!empty($collections['error'])) ?? $mixedcommonNames;
+        if (!empty($collections['error'])) {
+            return [
+                'collections' => [],
+                'pagination' => [],
+                'error' => $this->messenger->messageBuilder('alert', $this->messenger->build('error', $collections['error']))
+            ];
+        } else {
+            return $mixedcommonNames;
+        }
     }
     private function getDataFill () {
         $this->model->limit = 0;
@@ -1126,5 +1137,15 @@ class CollectionsController extends ControllerClass
             ];
         }
         return $data;
+    }
+    private function unverified ($collection,$common = null,$current = null) :array {
+        $this->model->id = $collection;
+        $this->model->tipo = $common;
+        return $this->model->setVerification('change',$current);
+    }
+    private function setVerification ($collection, $common = null) {
+        $this->model->id = $collection;
+        $this->model->tipo = $common;
+        return $this->model->setVerification('set',true);
     }
 }

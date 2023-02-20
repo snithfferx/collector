@@ -313,7 +313,7 @@
                 "data": collections,
                 "columns": columnas,
                 "paging": true,
-                "scrollY": 'auto',
+                "scrollY": '600px',
                 "lengthMenu": lineas(10),
                 "searching": true,
                 "ordering": true,
@@ -348,7 +348,7 @@
                 },
                 "buttons": botones()
             });
-            //$.fn.dataTable.Buttons(collectionsTable, { buttons: botones() });
+            $.fn.dataTable.Buttons(collectionsTable, { buttons: botones() });
             collectionsTable.buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
             $(document).ready(function() {
                 getTableData('/collections/lista');
@@ -358,8 +358,13 @@
                     source : "/collections/fill",
                     limit : 10,
                     select : function (e,u) {
-                        var id = u.item.id
-                        getTableData('/collections/search',{name:id});
+                        var id = u.item.id, activo;
+                        if ($('#deshabiliatdo').is(':checked')) {
+                            activo = true;
+                        } else {
+                            activo = false;
+                        }
+                        getTableData('/collections/search',{name:id,active:activo});
                     }
                 });
                 $(".collections_pagination_next").click(function(e) {
@@ -507,6 +512,7 @@
             } */
             // Busca reigstros
             function buscar (parametro) {
+                event.preventDefault();
                 var activo,cats = $("#categories").val(), sucat = $("#subcategories").val(),coleccion = $("#collection_name").val();
                 if ($('#deshabiliatdo').is(':checked')) {
                     activo = true;
@@ -526,6 +532,7 @@
                         success: function(r) {
                             result = JSON.parse(r);
                             collections = result.collections;
+                            collectionsTable.clear();
                             collectionsTable.rows.add(collections).draw();
                             if (result.error != undefined) {
                                 alertaPopUp(result.error);
@@ -551,6 +558,7 @@
                         success: function(r) {
                             result = JSON.parse(r);
                             collections = result.collections;
+                            collectionsTable.clear();
                             collectionsTable.rows.add(collections).draw();
                             if (result.error != undefined) {
                                 alertaPopUp(result.error);
@@ -586,6 +594,7 @@
                         cid : id
                     },
                     success: function (r) {
+                        $("#subcategories").empty();
                         let opcion = new Option('Elija una subcategoria',0,true,true);
                         $("#subcategories").append(opcion).trigger('change');
                         var result = JSON.parse(r);
@@ -609,6 +618,30 @@
                         result = JSON.parse(r);
                         collections = result.collections;
                         //hasPages(result.pagination);
+                        collectionsTable.clear();
+                        collectionsTable.rows.add(collections).draw();
+                        if (result.error != undefined) {
+                            alertaPopUp(result.error);
+                        }
+                    },
+                    complete: function () {
+                        $("#spinger").hide();
+                    }
+                });
+            }
+            function verifyCollection (collection,common,state) {
+                $.ajax({
+                    url: '/collections/verify',
+                    type: 'POST',
+                    data: {id_collection:collection,id_common:common,current:state},
+                    beforeSend : function () {
+                        $("#spinger").show();
+                    },
+                    success: function(r) {
+                        result = JSON.parse(r);
+                        collections = result.collections;
+                        //hasPages(result.pagination);
+                        collectionsTable.clear();
                         collectionsTable.rows.add(collections).draw();
                         if (result.error != undefined) {
                             alertaPopUp(result.error);

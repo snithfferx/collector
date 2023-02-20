@@ -95,6 +95,16 @@ class CollectionModel extends ContextClass
             return ['error' => ['code' => 404, 'message' => "Element Not Found"], 'data' => []];
         }
     }
+    public function setVerification ($method,$current) {
+        if ($method === "set") {
+            $result = $this->setVerificationCollection();
+        } elseif ($method === "change") {
+            $result = $this->setVerificationCollection($current);
+        } else {
+            return [];
+        }
+        return $result;
+    }
 
     protected function getMetafields()
     {
@@ -846,6 +856,25 @@ class CollectionModel extends ContextClass
         }
         $query['params'] = ['condition' => $conditions, 'separator' => $separators];
         return $this->select('nombre_comun', $query);
+    }
+    private function setVerificationCollection ($value = false) {
+        if ($value === false) {
+            if (!is_null($this->id) && !empty($this->id)) {
+                $query = [
+                    'fields'=>['verified'],
+                    'values'=>[true],
+                    'params'=>[
+                        'type' => "COMPARE",
+                        'table' => "temp_shopify_collector",
+                        'field' => "id",
+                        'value' => $this->id]
+                ];
+            }
+
+        } else {
+
+        }
+        return $this->update("temp_shopify_collector", $query);
     }
     /* private function getGuz()
     {

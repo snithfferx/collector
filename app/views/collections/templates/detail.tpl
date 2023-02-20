@@ -99,7 +99,7 @@
                                                             <td>ID</td>
                                                             <td> : </td>
                                                             <td>
-                                                                {{assign var="gid" value=json_decode($item.gqid)}}
+                                                                {{assign var="gid" value=explode("/",$item.gqid)}}
                                                                 <a href="https://piensads.myshopify.com/admin/{{$gid[3]}}/{{$gid[4]}}">
                                                                     {{$item.id}}
                                                                 </a>
