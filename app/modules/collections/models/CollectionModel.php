@@ -439,7 +439,7 @@ class CollectionModel extends ContextClass
                     /* Pedir Nombre común por Nombre */
                     if (!is_null($this->title)) {
                         array_push($conditions, [
-                            'type' => "SIMILAR",
+                            'type' => "COMPARE",
                             'table' => "temp_shopify_collector",
                             'field' => "title",
                             'value' => $this->title

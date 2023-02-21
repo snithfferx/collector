@@ -6,7 +6,7 @@
  * @category Controller
  * @version 1.9.7
  * @package app\modules\collections\controllers
- * 31-01-2023
+ * 31-01 | 21-2-2023
  */
 
 namespace app\modules\collections\controllers;
@@ -40,20 +40,29 @@ class CollectionsController extends ControllerClass
      * @param mixed $values
      * @return array
      * @version 1.0.0
-     * 27/01/23
+     * 27/01 | 21/02 2023
      */
     public function read($values)
     {
-        $response = (!empty($values)) ? $this->getCollections($values) : $this->createViewData('collections/list');
-        return $response;
+        if (empty($values) || is_null($values)) {
+            $result = $this->createViewData('collections/list');
+        } else {
+            if (is_numeric($values)) {
+                $result = $this->getCollectionsById($values);
+            } else {
+                $result = $this->getCollectionsByParams($values);
+            }
+        }
+        return $result;
     }
+    /**
+     * Devuelve lista de colecciones
+     * @param array $value REcibe un arreglo con el limite y parametros para iltrar la lista
+     * @return array Devuelve un arreglo listo para ser usado por la vista
+     */
     public function lista($value = [])
     {
-        if (!empty($value)) {
-            $result = $this->commonNames($value);
-        } else {
-            $result = $this->commonNames();
-        }
+        $result = (!empty($value)) ? $this->getCollectionsByParams($value) : $this->getCollectionsByParams();
         if (!empty($result['error'])) {
             $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error', $result['error']));
         }
@@ -114,35 +123,39 @@ class CollectionsController extends ControllerClass
     {
         return $this->getdownloadedCollections();
     }
-    public function search ($values) {
+    public function search($values)
+    {
         if (!empty($values)) {
             $result = $this->getSearchData($values);
         } else {
-            $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error',['data'=>['code'=>400,'message'=>"Información invalida"]]));
+            $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error', ['data' => ['code' => 400, 'message' => "Información invalida"]]));
         }
         return $result;
     }
-    public function index ($algo) {
+    public function index($algo)
+    {
         return $this->read($algo);
     }
-    public function verify ($values) {
+    public function verify($values)
+    {
         return $this->collectionVerified($values);
     }
 
 
     /* #################### Protecteds #################### */
+
     /**
      * Función que devuelve la lista de colecciones o una colección a partir del ID de tienda o local
      * 
      * @param string|int $value Puede contener el nombre de la colección o el ID de la colección
      * @return array
      */
-    protected function getCollections($value = []): array
+    protected function getCollectionsById($value): array
     {
         $viewData = [];
         $viewtype = "template";
         $viewCode = null;
-        $viewName = "collections/list";
+        $viewName = "collections/details";
         $lista = true;
         $viewOrigin = "read";
         if (!empty($value)) {
@@ -150,10 +163,10 @@ class CollectionsController extends ControllerClass
                 $result = (strlen($value['id']) > 4) ? $this->collection($value['id']) : $this->commonName($value['id']);
                 $lista = false;
             } else {
-                $result = $this->commonNames($value);
+                $result = (strlen($value) > 4) ? $this->collection($value) : $this->commonName($value);
             }
         } else {
-            $result = $this->commonNames($value);
+            $result = $this->messenger->messageBuilder('alert',$this->messenger->build('error',['code'=>"00400",'message'=>$value]));
         }
         if ($lista === false) {
             if (!empty($result['error'])) {
@@ -178,6 +191,11 @@ class CollectionsController extends ControllerClass
         $response = $this->createViewData($viewName, $datos, $breadcrumbs, $viewtype, $viewCode, $viewData);
         return $response;
     }
+
+    protected function getCollectionsByParams () {
+
+    }
+
     protected function getCompareData($value = "all"): array
     {
         $viewData = [];
@@ -279,32 +297,61 @@ class CollectionsController extends ControllerClass
         }
         return $response;
     }
-    protected function getSearchData ($values) {
+    protected function getSearchData($values)
+    {
         $this->model->activo = ($values['active']) ?? false;
         if (isset($values['name']) && !empty($values['name'])) $this->model->title = $values['name'];
         if (isset($values['letter']) && !empty($values['letter'])) $this->model->letra = $values['letter'];
-        if (isset($values['cat']) && !empty($values['cat'])) $this->model->categoria = $values['cat'];
-        if (isset($values['scat']) && !empty($values['scat'])) $this->model->tipo = $values['scat'];
-        if (!empty($values['cat']) || !empty($values['scat'])) {
+        if (isset($values['cat']) && !empty($values['cat'])) $this->model->categoria = (!empty($values['cat']) && $values['cat'] > 0) ? $values['cat'] : null;
+        if (isset($values['scat']) && !empty($values['scat'])) $this->model->tipo = (!empty($values['scat']) && $values['scat'] > 0) ? $values['scat'] : null;
+        if (!is_null($values['cat']) || !is_null($values['scat'])) {
             return $this->searchCommonNames();
         } else {
             return $this->searchCollections();
         }
     }
-    protected function collectionVerified ($values) {
+    protected function collectionVerified($values)
+    {
         if (isset($values['id_collection']) && !empty($values['id_collection'])) {
             if (isset($values['id_common']) && !empty($values['id_common'])) {
                 if (isset($values['current']) && !empty($values['current'])) {
-                    $result = $this->unverified($values['id_collection'],$values['id_common']);
+                    $result = $this->unverified($values['id_collection'], $values['id_common']);
                 } else {
-                    $result = $this->setVerification($values['id_collection'],$values['id_common']);
+                    $result = $this->setVerification($values['id_collection'], $values['id_common']);
                 }
             } else {
                 $result = $this->setVerification($values['id_collection']);
             }
         } else {
-
         }
+    }
+    protected function syncronizeCollection($values)
+    {
+        if (isset($values['id']) && !empty($values['id'])) {
+            $result = $this->syncData($values);
+            if ($result['type'] == "view") {
+                return $this->createViewData('collections/edit', ['error' => ['message' => "Existen mas de un nombre comun"]], [], 'template', 400);
+            }
+        } else {
+            $result = $this->createViewData('_shared/_error', ['error' => ['message' => "Something when worng!!"]], [], 'template', 500);
+        }
+        return $result;
+    }
+    protected function syncronizeCommonName($values)
+    {
+        if (isset($values['id']) && !empty($values['id'])) {
+            $result = $this->createCollection($values);
+            if ($result['type'] == "view") {
+                return $this->createViewData('collections/edit', ['error' => ['message' => "Existen mas de un nombre comun"]], [], 'template', 400);
+            }
+        } else {
+            $result = $this->createViewData('_shared/error', ['error' => ['messenge' => "Something when worng!!"]], [], 'template', 500);
+        }
+        return $result;
+    }
+
+    protected function getCollectionById () {
+
     }
 
     private function downloadCollections($values)
@@ -334,7 +381,8 @@ class CollectionsController extends ControllerClass
         }
         return $response;
     }
-    public function fill ($value) {
+    public function fill($value)
+    {
         $this->model->title = $value['term'];
         return $this->getDataFill();
     }
@@ -416,7 +464,7 @@ class CollectionsController extends ControllerClass
             $mixedcommonNames = [
                 'collections' => [],
                 'pagination' => [],
-                'error' => $this->messenger->messageBuilder('alert',$this->messenger->build('error',$collections['error']))
+                'error' => $this->messenger->messageBuilder('alert', $this->messenger->build('error', $collections['error']))
             ];
         }
         return $mixedcommonNames;
@@ -427,13 +475,15 @@ class CollectionsController extends ControllerClass
         $this->model->id = $id;
         $result = $this->model->storeGet();
         if (!$result['error']) {
-            foreach ($result['data'] as $k => $collection) {
-                $this->model->title = $collection['title'];
-                $coleccion = $this->model->localGet();
-                $response['data'][$k] = [
-                    'store' => $collection,
-                    'local' => (empty($coleccion['error'])) ? $coleccion['data'] : null
-                ];
+            if (isset($result['data']) && !empty($result['data'])) {
+                foreach ($result['data'] as $k => $collection) {
+                    $this->model->title = $collection['title'];
+                    $coleccion = $this->model->localGet();
+                    $response['data'][$k] = [
+                        'store' => $collection,
+                        'local' => (empty($coleccion['error'])) ? $coleccion['data'] : null
+                    ];
+                }
             }
         }
         return (!empty($response)) ?? $result;
@@ -790,13 +840,13 @@ class CollectionsController extends ControllerClass
         }
         $collectionTitle = '';
         if ($arreglo['store_title']) {
-            $collectionTitle = '<a href="/collections/read?id=' . $arreglo['store_id'] . 
-                '" class="btn btn-block btn-outline-info btn-sm" target="_self" title="' . 
+            $collectionTitle = '<a href="/collections/read?id=' . $arreglo['store_id'] .
+                '" class="btn btn-block btn-outline-info btn-sm" target="_self" title="' .
                 $arreglo['store_title'] . '" type="text">' . $arreglo['store_title'] . '
             </a>';
         }
         if ($arreglo['handle'] == "No asociado" || empty($arreglo['handle'])) {
-            $collectionHandle = '<a href="/collections/create?id=' . $arreglo['store_id'] . 
+            $collectionHandle = '<a href="/collections/create?id=' . $arreglo['store_id'] .
                 '" class="btn btn-block btn-outline-secondary btn-sm" target="_self" 
                 title="crear colección" type="text"> Crear|Sincronizar</a>';
         } else {
@@ -805,8 +855,8 @@ class CollectionsController extends ControllerClass
                 $arreglo['handle'] . '" type="text">' . $arreglo['handle'] . '</a>';
         }
         $response = [
-            'store_id' => '<a href="/collections/read?id=' . $arreglo['store_id'] . 
-                '" target="_self" title="' . $arreglo['name'] . '" type="text">' . 
+            'store_id' => '<a href="/collections/read?id=' . $arreglo['store_id'] .
+                '" target="_self" title="' . $arreglo['name'] . '" type="text">' .
                 $arreglo['store_id'] . '
             </a>',
             'store_title' => $collectionTitle,
@@ -839,8 +889,8 @@ class CollectionsController extends ControllerClass
             if (!empty($arreglo['category']['id'])) {
                 $response['category'] .= '
                     data-prodcat="' . $arreglo['category']['id'] . '">' .
-                $arreglo['category']['name'] .
-                '</button>';
+                    $arreglo['category']['name'] .
+                    '</button>';
             } else {
                 $response['category'] .= ' data-prodtype="">Asignar</button>';
             }
@@ -866,7 +916,7 @@ class CollectionsController extends ControllerClass
                 </button>';
             } else {
                 $response['subcategory'] .=
-                ' data-prodtype="">Asignar</button>';
+                    ' data-prodtype="">Asignar</button>';
             }
         } else {
             $response['sub_category'] = '
@@ -1042,12 +1092,13 @@ class CollectionsController extends ControllerClass
         $this->model->fields = null;
         $this->model->seo = null;
     }
-    private function searchCommonNames () {
-        $commonNames = $this->model->search('commmon_names');
+    private function searchCommonNames()
+    {
+        $commonNames = $this->model->search('common_names');
+        $data = [];
         if (empty($commonNames['error'])) {
             if (!empty($commonNames['data'])) {
                 $indice = 0;
-                $data = [];
                 foreach ($commonNames['data'] as $commonName) {
                     $data[$indice] = [
                         'id' => $commonName['id'],
@@ -1105,7 +1156,8 @@ class CollectionsController extends ControllerClass
         }
         return $result;
     }
-    private function searchCollections () {
+    private function searchCollections()
+    {
         $collections = $this->model->search('collections');
         $mixedcommonNames = array();
         if (empty($collections['error'])) {
@@ -1114,19 +1166,33 @@ class CollectionsController extends ControllerClass
                     'collections' => $this->nombresComunes($collections['data']),
                     'pagination' => []
                 ];
+            } else {
+                $mixedcommonNames = [
+                    'collections' => [],
+                    'pagination' => [],
+                    'error' => $this->messenger->messageBuilder(
+                        'alert',
+                        $this->messenger->build('error', [
+                            'code' => '00404',
+                            'message' => "Sin informacion"
+                        ])
+                    )
+                ];
             }
-        }
-        if (!empty($collections['error'])) {
-            return [
+        } else {
+            $mixedcommonNames = [
                 'collections' => [],
                 'pagination' => [],
-                'error' => $this->messenger->messageBuilder('alert', $this->messenger->build('error', $collections['error']))
+                'error' => $this->messenger->messageBuilder(
+                    'alert',
+                    $this->messenger->build('error', $collections['error'])
+                )
             ];
-        } else {
-            return $mixedcommonNames;
         }
+        return $mixedcommonNames;
     }
-    private function getDataFill () {
+    private function getDataFill()
+    {
         $this->model->limit = 0;
         $result = $this->model->localGet('commonName');
         $data = array();
@@ -1138,14 +1204,52 @@ class CollectionsController extends ControllerClass
         }
         return $data;
     }
-    private function unverified ($collection,$common = null,$current = null) :array {
+    private function unverified($collection, $common = null, $current = null): array
+    {
         $this->model->id = $collection;
         $this->model->tipo = $common;
-        return $this->model->setVerification('change',$current);
+        return $this->model->setVerification('change', $current);
     }
-    private function setVerification ($collection, $common = null) {
+    private function setVerification($collection, $common = null)
+    {
         $this->model->id = $collection;
         $this->model->tipo = $common;
-        return $this->model->setVerification('set',true);
+        return $this->model->setVerification('set', true);
+    }
+    private function syncData($values)
+    {
+        if (!empty($values['id'])) $this->model->id;
+        $collection = $this->model->find();
+        if (empty($collection['error'])) {
+            if (!empty($collection['data'])) {
+                $common = $this->model->localGet('commonName');
+                if (sizeof($common['data']) > 1) {
+                    return [
+                        'type' => "view",
+                        'collection' => $collection,
+                        'common' => $common
+                    ];
+                } else {
+                    $collectionData = $collection['data'][0];
+                    $commonData = $common['data'][0];
+                    if ($collectionData['title'] == $commonData['name']) $this->model->title = $collectionData['title'];
+                    if ($collectionData['handle'] == $commonData['handle']) $this->model->handle = $collectionData['handle'];
+                    return $this->messenger->messageBuilder('alert', [
+                        'type' => "success",
+                        'message' => "Informacion actualizada"
+                    ]);
+                }
+            } else {
+                return $this->messenger->messageBuilder('alert', [
+                    'type' => "warning",
+                    'message' => "Informacion invalida"
+                ]);
+            }
+        } else {
+            return $this->messenger->messageBuilder(
+                'alert',
+                $this->messenger->build('error', $collection['error'])
+            );
+        }
     }
 }
