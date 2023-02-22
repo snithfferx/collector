@@ -51,7 +51,11 @@ class CollectionsController extends ControllerClass
         if (empty($values) || is_null($values)) {
             $result = $this->createViewData('collections/list');
         } else {
-            if (is_numeric($values)) {
+            if (is_array($values) && sizeof($values) > 1) {
+                $result = $this->getCollectionsByParams($values);
+            } elseif (isset($values['id'])) {
+                $result = $this->getCollectionsById($values['id']);
+            } elseif (is_numeric($values)) {
                 $result = $this->getCollectionsById($values);
             } else {
                 $result = $this->getCollectionsByParams($values);
@@ -144,6 +148,11 @@ class CollectionsController extends ControllerClass
     {
         return $this->collectionVerified($values);
     }
+    public function fill($value)
+    {
+        $this->model->title = $value['term'];
+        return $this->getDataFill();
+    }
 
 
     /* #################### Protecteds #################### */
@@ -156,57 +165,52 @@ class CollectionsController extends ControllerClass
      */
     protected function getCollectionsById($value): array
     {
-        $viewData = [];
-        $viewtype = "template";
-        $viewCode = null;
-        $viewName = "collections/details";
-        $lista = true;
-        $viewOrigin = "read";
         if (!empty($value)) {
             if (isset($value['id'])) {
-                $result = (strlen($value['id']) > 4) ? $this->collection($value['id']) : $this->commonName($value['id']);
+                $result = (strlen($value['id']) > 4) ? $this->collectionById($value['id']) : $this->commonNameById($value['id']);
             } else {
-                $result = (strlen($value) > 4) ? $this->collection($value) : $this->commonName($value);
+                $result = (strlen($value) > 4) ? $this->collectionById($value) : $this->commonNameById($value);
             }
         } else {
-            $result = $this->messenger->messageBuilder('alert',$this->messenger->build('error',['code'=>"00400",'message'=>$value]));
+            $result = $this->messenger->messageBuilder('alert', $this->messenger->build('error', ['code' => "00400", 'message' => $value]));
         }
-        if (!empty($result)) {
-            if (sizeof($result['data']) > 1) $lista = false;
-            if ($lista === false) {
-                if (!empty($result['error'])) {
-                    $viewtype = "layout";
-                    $viewCode = $result['error']['code'];
-                    $viewName = "_shared/_error";
-                } else {
-                    $viewtype = "template";
-                    $viewName = "collections/detail";
-                }
-                $viewOrigin = "detail";
-            } else {
-                if (!empty($result['error'])) {
-                    $viewtype = "layout";
-                    $viewCode = $result['error']['code'];
-                    $viewName = "_shared/_error";
-                }
-            }
-            $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $value]);
-            $datos = (!empty($result['error'])) ? $result['error'] : $result['data'];
-            $datos['view_origin'] = $viewOrigin;
-        } else  {
-            $viewtype = "layout";
-            $viewCode = "00400";
-            $viewName = "_shared/_error";
-        }
-        $response = $this->createViewData($viewName, $datos, $breadcrumbs, $viewtype, $viewCode, $viewData);
+        return $result;
+    }
+    /**
+     * Detruye variables
+     * @param array $vars
+     * @return void
+     */
+    protected function unsetVars(array $vars)
+    {
+        if (isset($vars)) unset($vars);
+    }
+    /**
+     * Genera el array que se usará en una vista
+     * @param array $values Lista de colecciones a ser usada para crear los datos.
+     * @return array
+     */
+    protected function createDataForView(array $values): array
+    {
+        $response = array();
+        echo "<pre>";
+        var_dump($values);
+        echo "</pre>";
         return $response;
     }
-
-    protected function getCollectionsByParams ($values = []) {
-        if ($values ) {
-            
+    protected function getCollectionsByParams(array|string $values = []): array
+    {
+        if (is_string($values) && !empty($values)) {
+            $result = $this->collectionByParams($values);
+        } else {
+            $result = $this->commonNameByParams($values);
         }
+
     }
+
+
+
+
 
     protected function getCompareData($value = "all"): array
     {
@@ -361,12 +365,18 @@ class CollectionsController extends ControllerClass
         }
         return $result;
     }
-
-    protected function getCollectionById () {
-
+    protected function getCollectionById()
+    {
     }
 
-    private function downloadCollections($values)
+    /* ############# Private ############## */
+    /**
+     * Funcion que descarga las colecciones desde la tienda a la base local
+     * Devuelve la lista de colecciones según cursor de paginación
+     * @param array $values Valores de paginación
+     * @return array
+     */
+    private function downloadCollections(array $values = []): array
     {
         $this->cleanVars();
         if (empty($values)) {
@@ -393,13 +403,224 @@ class CollectionsController extends ControllerClass
         }
         return $response;
     }
-    public function fill($value)
+    /**
+     * Obtiene una colección a partir de su ID y devuelve su información
+     * incluyendo los nombres comunes relacionados con ella.
+     *
+     * @param integer $id
+     * @return array
+     */
+    private function collectionById(int $id): array
     {
-        $this->model->title = $value['term'];
-        return $this->getDataFill();
+        $response = [];
+        $this->model->id = $id;
+        $result = $this->model->get('collection', 'all');
+        if (!empty($result['error'])) {
+            return [
+                'data' => $result['data'],
+                'error' => $result['error']
+            ];
+        } else {
+            if (isset($result['data']) && !empty($result['data'])) {
+                $data = array();
+                foreach ($result['data'] as $k => $collection) {
+                    $data[$k] = $collection;
+                    $this->model->store_id = $collection['id'];
+                    $cn = $this->model->get('common_name', 'all');
+                    if (empty($cn['error']) && !empty($cn['data'])) {
+                        foreach ($cn as $nombre) {
+                            $data[$k]['common'][] = $nombre;
+                        }
+                    } else {
+                        $data[$k]['common'] = array();
+                    }
+                }
+                $this->unsetVars(['k', 'collection', 'nombre']);
+                $response = $this->createDataForView($data);
+            } else {
+                $response = [
+                    'error' => $this->messenger->build('error', ['code' => '00404'])
+                ];
+            }
+        }
+        return $response;
     }
-
-
+    /**
+     * Obtiene un nombre común y buscar sus colecciones relacionadas
+     *
+     * @param int|string $value
+     * @return array
+     */
+    private function commonNameById(int|string $value): array
+    {
+        if (is_string($value)) {
+            $this->model->title = $value;
+        } else {
+            $this->model->id = $value;
+        }
+        $result = $this->model->get('common_name', 'all');
+        $response = [];
+        if (empty($result['error']) && !empty($result['data'])) {
+            $data = array();
+            foreach ($result['data'] as $k => $nombre) {
+                $this->model->id = $nombre['store_id'];
+                $collection = $this->model->get('collection', 'all');
+                if (empty($collection['error']) && !empty($collection['data'])) {
+                    foreach ($collection['data'] as $i => $col) {
+                        if (isset($data[$col['id']])) {
+                            $data[$col['id']]['common'][] = $nombre;
+                        } else {
+                            $data[$col['id']] = [
+                                'store_id' => $col['id'],
+                                'store_seo' => ($col['seo']) ?? null,
+                                'sort_order' => ($col['sort']) ?? null,
+                                'store_meta' => ($col['meta']) ?? null,
+                                'store_title' => ($col['title']) ?? null,
+                                'store_handle' => ($col['handle']) ?? null,
+                                'product_count' => ($col['products']) ?? null,
+                                'collection_type' => (!empty($col['rules'])) ? 'Smart' : 'Custom',
+                                'common' => $nombre
+                            ];
+                        }
+                    }
+                } else {
+                    if (isset($data['No asignado'])) {
+                        $data['No asignado']['common'][] = $nombre;
+                    } else {
+                        $data['No asignado'] = [
+                            'store_id' => null,
+                            'store_seo' => null,
+                            'sort_order' => null,
+                            'store_meta' => null,
+                            'store_title' => null,
+                            'store_handle' => null,
+                            'product_count' => null,
+                            'collection_type' => null,
+                            'common' => $nombre
+                        ];
+                    }
+                }
+                $response[] = $data;
+            }
+            $this->unsetVars(['k', 'collection', 'nombre', 'i', 'col']);
+        } else {
+            $response = [
+                'error' => $this->messenger->build('error', ['code' => '00404'])
+            ];
+        }
+        return $response;
+    }
+    private function collectionByParams($values)
+    {
+        if (is_string($values)) {
+            $this->model->title = $values;
+            $collections = $this->model->get('collection', 'all');
+            if (empty($collections['error']) && empty($collections['data'])) {
+                $this->model->handle;
+                $collections = $this->model->get('collection', 'all');
+                if (empty($collections['error']) && empty($collections['data'])) {
+                    $msg = $this->messenger->build('error', ['code' => "00404"]);
+                    $response = $this->messenger->messageBuilder('alert', $msg, 'json');
+                }
+            }
+        } else {
+            if (!is_null($values['title']) && !empty($values['title'])) $this->model->title = $values['title'];
+            if (!is_null($values['handle']) && !empty($values['handle'])) $this->model->title = $values['handle'];
+            if (!is_null($values['id']) && !empty($values['id'])) $this->model->title = $values['id'];
+            $collections = $this->model->get('collection', 'all');
+        }
+        if (empty($collections['error']) && !empty($collections['data'])) {
+            $data = array();
+            foreach ($collections['data'] as $k => $collection) {
+                $data[$k] = $collection;
+                $this->model->store_id = $collection['id'];
+                $cn = $this->model->get('common_name', 'all');
+                if (empty($cn['error']) && !empty($cn['data'])) {
+                    foreach ($cn as $nombre) {
+                        $data[$k]['common'][] = $nombre;
+                    }
+                } else {
+                    $data[$k]['common'] = array();
+                }
+            }
+            $this->unsetVars(['k', 'collection', 'nombre']);
+            $response = $this->createDataForView($data);
+        } else {
+            $msg = $this->messenger->build('error', ['code' => "00404"]);
+            $response = $this->messenger->messageBuilder('alert', $msg, 'json');
+        }
+        return $response;
+    }
+    private function commonNameByParams($values)
+    {
+        if (is_string($values)) {
+            $this->model->title = $values;
+            $commonNames = $this->model->get('common_name', 'all');
+            if (empty($commonNames['error']) && empty($commonNames['data'])) {
+                $this->model->handle = $values;
+                $commonNames = $this->model->get('common_name', 'all');
+                if (empty($commonNames['error']) && empty($commonNames['data'])) {
+                    $msg = $this->messenger->build('error', ['code' => "00404"]);
+                    $response = $this->messenger->messageBuilder('alert', $msg, 'json');
+                }
+            }
+        } else {
+            if (!is_null($values['title']) && !empty($values['title'])) $this->model->title = $values['title'];
+            if (!is_null($values['handle']) && !empty($values['handle'])) $this->model->title = $values['handle'];
+            if (!is_null($values['tipo']) && !empty($values['scat'])) $this->model->title = $values['scat'];
+            if (!is_null($values['category']) && !empty($values['cat'])) $this->model->title = $values['cat'];
+            $commonNames = $this->model->get('collection', 'all');
+        }
+        if (empty($commonNames['error']) && !empty($commonNames['data'])) {
+            $data = array();
+            foreach ($commonNames['data'] as $k => $nombre) {
+                $this->model->id = $nombre['store_id'];
+                $collection = $this->model->get('collection', 'all');
+                if (empty($collection['error']) && !empty($collection['data'])) {
+                    foreach ($collection['data'] as $i => $col) {
+                        if (isset($data[$col['id']])) {
+                            $data[$col['id']]['common'][] = $nombre;
+                        } else {
+                            $data[$col['id']] = [
+                                'store_id' => $col['id'],
+                                'store_seo' => ($col['seo']) ?? null,
+                                'sort_order' => ($col['sort']) ?? null,
+                                'store_meta' => ($col['meta']) ?? null,
+                                'store_title' => ($col['title']) ?? null,
+                                'store_handle' => ($col['handle']) ?? null,
+                                'product_count' => ($col['products']) ?? null,
+                                'collection_type' => (!empty($col['rules'])) ? 'Smart' : 'Custom',
+                                'common' => $nombre
+                            ];
+                        }
+                    }
+                } else {
+                    if (isset($data['No asignado'])) {
+                        $data['No asignado']['common'][] = $nombre;
+                    } else {
+                        $data['No asignado'] = [
+                            'store_id' => null,
+                            'store_seo' => null,
+                            'sort_order' => null,
+                            'store_meta' => null,
+                            'store_title' => null,
+                            'store_handle' => null,
+                            'product_count' => null,
+                            'collection_type' => null,
+                            'common' => $nombre
+                        ];
+                    }
+                }
+                $response[] = $data;
+            }
+            $this->unsetVars(['k','i', 'col', 'nombre']);
+            $response = $this->createDataForView($data);
+        } else {
+            $msg = $this->messenger->build('error', ['code' => "00404"]);
+            $response = $this->messenger->messageBuilder('alert', $msg, 'json');
+        }
+        return $response;
+    }
 
     private function compareCollections($value = 100)
     {
@@ -481,43 +702,7 @@ class CollectionsController extends ControllerClass
         }
         return $mixedcommonNames;
     }
-    private function collection(int $id): array
-    {
-        $response = [];
-        $this->model->id = $id;
-        $result = $this->model->storeGet();
-        if (!$result['error']) {
-            if (isset($result['data']) && !empty($result['data'])) {
-                foreach ($result['data'] as $k => $collection) {
-                    $this->model->title = $collection['title'];
-                    $coleccion = $this->model->localGet();
-                    $response['data'][$k] = [
-                        'store' => $collection,
-                        'local' => (empty($coleccion['error'])) ? $coleccion['data'] : null
-                    ];
-                }
-            }
-        }
-        return (!empty($response)) ?? $result;
-    }
-    private function commonName($id): array
-    {
-        $this->model->id = $id;
-        $result = $this->model->localGet('commonName');
-        $response = [];
-        if (empty($result['error'])) {
-            $this->model->id = $result['data'][0]['store_id'];
-            $response['data']['common'] = $result['data'];
-            $collection = $this->model->localGet('collection');
-            if (empty($collection['error'])) {
-                $response['data']['collection'] = $collection['data'];
-            } else {
-                $response['data']['collection'] = null;
-            }
-            $response['error'] = (!empty($collection['error'])) ? $collection['error'] : [];
-        }
-        return (!empty($result['error'])) ? $result : $response;
-    }
+
     private function makeURL($datos)
     {
         $urlString = "";

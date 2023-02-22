@@ -17,6 +17,7 @@ class CollectionModel extends ContextClass
     public $fields;
     public $limit = 0;
     public $id = null;
+    public $id_store = null;
     public $title = null;
     public $categoria = null;
     public $tipo = null;
@@ -43,16 +44,16 @@ class CollectionModel extends ContextClass
         $response = $this->grafkuel();
         return $response;
     }
-    public function localGet(string $list = 'collections'): array
+    public function get(string $list = 'collections',array|string $fields = []): array
     {
         if ($list == "collections") {
-            return $this->getLocalCollections();
-        } elseif ($list == "commonNames") {
-            return $this->getCommonNames();
-        } elseif ($list == "commonName") {
-            return $this->getCommonNames();
+            return $this->getLocalCollections($fields);
+        } elseif ($list == "common_names") {
+            return $this->getCommonNames($fields);
+        } elseif ($list == "common_name") {
+            return $this->getCommonNames($fields);
         } elseif ($list == "collection") {
-            return $this->getLocalCollections();
+            return $this->getLocalCollections($fields);
         } elseif ($list == "isCategory") {
             return $this->isCategory();
         } else {
@@ -69,6 +70,8 @@ class CollectionModel extends ContextClass
             return $this->countMetadata();
         }
     }
+
+
     public function getPage($value)
     {
         return $this->getCollectionsPage($value);
@@ -415,8 +418,11 @@ class CollectionModel extends ContextClass
         return $response;
     }
 
-    private function getLocalCollections()
+    private function getLocalCollections($values)
     {
+        if (!empty($values)) {
+            
+        }
         $this->base = "shopify";
         $query = [
             'fields' => [
