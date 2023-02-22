@@ -10,7 +10,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 use app\core\LoaderClass;
 
 $app = new LoaderClass;
-$app->init();
+//$app->init();
 $response = $app->verifyRequest();
 $app->display($response);
 $app->terminate();

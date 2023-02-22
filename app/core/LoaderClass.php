@@ -59,10 +59,10 @@ class LoaderClass
     function verifyRequest(): array
     {
         $request = $this->route->resolve();
-        if ($this->userAlive == false) {
-            if ($request['app_module'] == "users") {
+        //if ($this->userAlive == false) {
+            //if ($request['app_module'] == "users") {
                 $response = $this->controller->getResponse($request);
-            } else {
+            /* } else {
                 $msg = $this->messenger->build('error', ['code' => 401]);
                 $msg['data'] = $request;
                 $response = $this->messenger->messageBuilder('message',[
@@ -71,7 +71,7 @@ class LoaderClass
             }
         } else {
             $response = $this->controller->getResponse($request);
-        }
+        } */
         return $response;
     }
     function display($values)
