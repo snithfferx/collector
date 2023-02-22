@@ -28,6 +28,10 @@ class CollectionsController extends ControllerClass
      * @var object $model Contiene el modelo de las colecciones
      */
     private $model;
+    /**
+     * Helper Messenger
+     * @var object $messenger Contiene el modelo de las colecciones
+     */
     private $messenger;
     public function __construct()
     {
@@ -161,39 +165,47 @@ class CollectionsController extends ControllerClass
         if (!empty($value)) {
             if (isset($value['id'])) {
                 $result = (strlen($value['id']) > 4) ? $this->collection($value['id']) : $this->commonName($value['id']);
-                $lista = false;
             } else {
                 $result = (strlen($value) > 4) ? $this->collection($value) : $this->commonName($value);
             }
         } else {
             $result = $this->messenger->messageBuilder('alert',$this->messenger->build('error',['code'=>"00400",'message'=>$value]));
         }
-        if ($lista === false) {
-            if (!empty($result['error'])) {
-                $viewtype = "layout";
-                $viewCode = $result['error']['code'];
-                $viewName = "_shared/_error";
+        if (!empty($result)) {
+            if (sizeof($result['data']) > 1) $lista = false;
+            if ($lista === false) {
+                if (!empty($result['error'])) {
+                    $viewtype = "layout";
+                    $viewCode = $result['error']['code'];
+                    $viewName = "_shared/_error";
+                } else {
+                    $viewtype = "template";
+                    $viewName = "collections/detail";
+                }
+                $viewOrigin = "detail";
             } else {
-                $viewtype = "template";
-                $viewName = "collections/detail";
+                if (!empty($result['error'])) {
+                    $viewtype = "layout";
+                    $viewCode = $result['error']['code'];
+                    $viewName = "_shared/_error";
+                }
             }
-            $viewOrigin = "detail";
-        } else {
-            if (!empty($result['error'])) {
-                $viewtype = "layout";
-                $viewCode = $result['error']['code'];
-                $viewName = "_shared/_error";
-            }
+            $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $value]);
+            $datos = (!empty($result['error'])) ? $result['error'] : $result['data'];
+            $datos['view_origin'] = $viewOrigin;
+        } else  {
+            $viewtype = "layout";
+            $viewCode = "00400";
+            $viewName = "_shared/_error";
         }
-        $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $value]);
-        $datos = (!empty($result['error'])) ? $result['error'] : $result['data'];
-        $datos['view_origin'] = $viewOrigin;
         $response = $this->createViewData($viewName, $datos, $breadcrumbs, $viewtype, $viewCode, $viewData);
         return $response;
     }
 
-    protected function getCollectionsByParams () {
-
+    protected function getCollectionsByParams ($values = []) {
+        if ($values ) {
+            
+        }
     }
 
     protected function getCompareData($value = "all"): array
