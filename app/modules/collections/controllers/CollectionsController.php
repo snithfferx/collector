@@ -205,7 +205,7 @@ class CollectionsController extends ControllerClass
         } else {
             $result = $this->commonNameByParams($values);
         }
-
+        return $result;         
     }
 
 
@@ -679,7 +679,7 @@ class CollectionsController extends ControllerClass
             $this->model->cursor = ($value['cursor']) ?? null;
         }
         $this->model->limit = $limit;
-        $collections = (isset($value['page'])) ? $this->model->getPage('local') : $this->model->localGet();
+        $collections = (isset($value['page'])) ? $this->model->getPage('local') : $this->model->get();
         $max = $this->model->calcular('collections');
         if (empty($collections['error'])) {
             if (!empty($collections['data'])) {

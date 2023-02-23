@@ -18,7 +18,7 @@ class MessengerHelper
                 $result = $this->message($values);
                 break;
             case 'error':
-                $result = $this->error($values['code']);
+                $result = (isset($values['code'])) ? $this->error($values['code']) : null;
                 $result['data'] = $values['message'];
                 break;
         }
