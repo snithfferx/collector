@@ -70,9 +70,32 @@ class CollectionsController extends ControllerClass
      */
     public function lista($value = [])
     {
-        $result = (!empty($value)) ? $this->getCollectionsByParams($value) : $this->getCollectionsByParams();
+        $result = $this->getCollectionsByParams($value);
         if (!empty($result['error'])) {
             $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error', $result['error']));
+        }
+        return $result;
+    }
+    /**
+     * Function que devuelve la vista de lista de las colecciones
+     * @param mixed $algo
+     * @return array
+     */
+    public function index($algo)
+    {
+        return $this->read($algo);
+    }
+    /**
+     * Función que devuelve los detalles de una colección o nombre común.
+     * @param mixed $values
+     * @return array
+     */
+    public function search($values)
+    {
+        if (!empty($values)) {
+            $result = $this->getSearchData($values);
+        } else {
+            $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error', ['data' => ['code' => 400, 'message' => "Información invalida"]]));
         }
         return $result;
     }
@@ -131,19 +154,7 @@ class CollectionsController extends ControllerClass
     {
         return $this->getdownloadedCollections();
     }
-    public function search($values)
-    {
-        if (!empty($values)) {
-            $result = $this->getSearchData($values);
-        } else {
-            $result['error'] = $this->messenger->messageBuilder('alert', $this->messenger->build('error', ['data' => ['code' => 400, 'message' => "Información invalida"]]));
-        }
-        return $result;
-    }
-    public function index($algo)
-    {
-        return $this->read($algo);
-    }
+    
     public function verify($values)
     {
         return $this->collectionVerified($values);
@@ -171,6 +182,8 @@ class CollectionsController extends ControllerClass
             } else {
                 $result = (strlen($value) > 4) ? $this->collectionById($value) : $this->commonNameById($value);
             }
+            $viewName = 'collections/' . $result['view'];
+            $result = $this->createViewData($viewName,$result['collections']);
         } else {
             $result = $this->messenger->messageBuilder('alert', $this->messenger->build('error', ['code' => "00400", 'message' => $value]));
         }
@@ -200,12 +213,14 @@ class CollectionsController extends ControllerClass
     }
     protected function getCollectionsByParams(array|string $values = []): array
     {
-        if (is_string($values) && !empty($values)) {
+        if (empty($value)) {
+            $result = $this->collectionByParams($values);
+        } elseif (is_string($values) && !empty($values)) {
             $result = $this->collectionByParams($values);
         } else {
             $result = $this->commonNameByParams($values);
         }
-        return $result;         
+        return $result;
     }
 
 
@@ -416,27 +431,21 @@ class CollectionsController extends ControllerClass
         $this->model->id = $id;
         $result = $this->model->get('collection', 'all');
         if (!empty($result['error'])) {
-            return [
-                'data' => $result['data'],
-                'error' => $result['error']
-            ];
+            return $result;
         } else {
             if (isset($result['data']) && !empty($result['data'])) {
                 $data = array();
                 foreach ($result['data'] as $k => $collection) {
                     $data[$k] = $collection;
-                    $this->model->store_id = $collection['id'];
+                    $this->model->id_store = $collection['id'];
                     $cn = $this->model->get('common_name', 'all');
+                    $data[$k]['common'] = array();
                     if (empty($cn['error']) && !empty($cn['data'])) {
-                        foreach ($cn as $nombre) {
-                            $data[$k]['common'][] = $nombre;
-                        }
-                    } else {
-                        $data[$k]['common'] = array();
+                        $data[$k]['common'] = $cn['data'];
                     }
                 }
-                $this->unsetVars(['k', 'collection', 'nombre']);
-                $response = $this->createDataForView($data);
+                $this->unsetVars(['k', 'collection', 'nombre','i']);
+                $response = ['collections'=>$data,'view'=>"collection_details"];
             } else {
                 $response = [
                     'error' => $this->messenger->build('error', ['code' => '00404'])
@@ -523,28 +532,29 @@ class CollectionsController extends ControllerClass
                     $response = $this->messenger->messageBuilder('alert', $msg, 'json');
                 }
             }
-        } else {
+        } elseif (is_array($values) && !empty($values)) {
             if (!is_null($values['title']) && !empty($values['title'])) $this->model->title = $values['title'];
             if (!is_null($values['handle']) && !empty($values['handle'])) $this->model->title = $values['handle'];
             if (!is_null($values['id']) && !empty($values['id'])) $this->model->title = $values['id'];
+            $collections = $this->model->get('collection', 'all');
+        } else {
             $collections = $this->model->get('collection', 'all');
         }
         if (empty($collections['error']) && !empty($collections['data'])) {
             $data = array();
             foreach ($collections['data'] as $k => $collection) {
                 $data[$k] = $collection;
-                $this->model->store_id = $collection['id'];
+                $this->model->id_store = $collection['id'];
                 $cn = $this->model->get('common_name', 'all');
+                $data[$k]['common'] = array();
                 if (empty($cn['error']) && !empty($cn['data'])) {
-                    foreach ($cn as $nombre) {
-                        $data[$k]['common'][] = $nombre;
+                    foreach ($cn['data'] as $i=>$nombre) {
+                        $data[$k]['common'][$i] = $nombre;
                     }
-                } else {
-                    $data[$k]['common'] = array();
                 }
             }
-            $this->unsetVars(['k', 'collection', 'nombre']);
-            $response = $this->createDataForView($data);
+            $this->unsetVars(['k', 'collection', 'nombre','i']);
+            $response = ['collections' => $this->rowTableData($data), 'pagination' => []];
         } else {
             $msg = $this->messenger->build('error', ['code' => "00404"]);
             $response = $this->messenger->messageBuilder('alert', $msg, 'json');
@@ -613,7 +623,7 @@ class CollectionsController extends ControllerClass
                 }
                 $response[] = $data;
             }
-            $this->unsetVars(['k','i', 'col', 'nombre']);
+            $this->unsetVars(['k', 'i', 'col', 'nombre']);
             $response = $this->createDataForView($data);
         } else {
             $msg = $this->messenger->build('error', ['code' => "00404"]);
@@ -945,199 +955,198 @@ class CollectionsController extends ControllerClass
     }
     private function rowTableData($arreglo): array
     {
-        $state = 'active';
-        $text = 'Inactivo';
-        $check = '';
-        if ($arreglo['active'] > 0) {
-            $state = 'diactive';
-            $text = 'Activo';
-            $check = 'checked="checked"';
-        }
-        if ($arreglo['metadatos'] > 1) {
-            $badgeColor = "primary";
-        } elseif ($arreglo['metadatos'] > 10) {
-            $badgeColor = "warning";
-        } elseif ($arreglo['metadatos'] > 25) {
-            $badgeColor = "success";
-        } else {
-            $badgeColor = "danger";
-        }
-        $handleHandler = "";
-        if (!is_null($arreglo['store_handle']) && !empty($arreglo['store_handle'])) {
-            $eliminable = false;
-            $handleParts = explode('-', $arreglo['store_handle']);
-            $handleSize = count($handleParts);
-            for (
-                $p = 0;
-                $p < $handleSize;
-                $p++
-            ) {
-                if (is_numeric($handleParts[$p])) {
-                    if ($p == ($handleSize - 1)) {
-                        $eliminable = true;
+        $response = [];
+        $index = 0;
+        foreach ($arreglo as $item) {
+            if (!is_null($item['handle']) && !empty($item['handle'])) {
+                $eliminable = false;
+                $handleParts = explode('-', $item['handle']);
+                $handleSize = count($handleParts);
+                for (
+                    $p = 0;
+                    $p < $handleSize;
+                    $p++
+                ) {
+                    if (is_numeric($handleParts[$p])) {
+                        if ($p == ($handleSize - 1)) {
+                            $eliminable = true;
+                        }
                     }
                 }
+                $collectionType = "Custom";
+                $collectionTypeColor = "dark";
+                if (!empty($item['rules'])) {
+                    $rules = json_decode($item['rules'],true);
+                    if (is_array($rules)) {
+                        if (sizeof($rules['rules']) > 1) {
+                            $collectionType = "Smart";
+                            $collectionTypeColor = "primary";
+                        }
+                    }
+                }
+                if ($eliminable === false) {
+                    $handleHandler = '<a href="#" class="btn btn-block btn-outline-secondary btn-sm" onclick="deleteCollection(\'' . $item['id'] . '\')" 
+                                target="_self" title="' . $item['handle'] . '" type="text">' . $item['handle'];
+                } else {
+                    $handleHandler = '<a href="#" class="btn btn-block btn-outline-danger btn-sm" onclick="deleteCollection(\'' . $item['id'] . '\')" 
+                            target="_self" title="' . $item['handle'] . '" type="text"><i class="fas fa-trash-alt mr-3"></i>' . $item['handle'];
+                }
+                $handleHandler .= '
+                            <span class="badge badge-pill badge-' . $collectionTypeColor . '">' . $collectionType . '</span>
+                            <span class="sr-only">Collection type</span>
+                        </a>';
             }
-            if ($eliminable === false) {
-                $handleHandler = '<a href="#" class="btn btn-block btn-outline-secondary btn-sm" onclick="deleteCollection(\'' . $arreglo['store_id'] . '\')" 
-                    target="_self" title="' . $arreglo['store_handle'] . '" type="text">' . $arreglo['store_handle'];
+            $state = false;
+            $text = 'No Verificado';
+            $check = '';
+            if (isset($item['verified']) && $item['verified'] != 0) {
+                $state = true;
+                $text = 'Verificado';
+                $check = 'checked="checked"';
+            }
+            $verify = '<div class="switch">
+                        <label>                          
+                            <input type="checkbox" id="' . $item['id'] . '-verify_' . $item['collection_id'] . '"';
+            if (!is_null($item['id']) && !empty($item['id'])) {
+                $verify .= ' onclick="verifyCollection(' . $item['id'] . ',' . $item['collection_id'] . ',\'' . $state . '\')"';
             } else {
-                $handleHandler = '<a href="#" class="btn btn-block btn-outline-danger btn-sm" onclick="deleteCollection(\'' . $arreglo['store_id'] . '\')" 
-                target="_self" title="' . $arreglo['store_handle'] . '" type="text"><i class="fas fa-trash-alt mr-3"></i>' . $arreglo['store_handle'];
+                $verify .= ' onclick="verifyCollection(' . $item['id'] . ',null,\'' . $state . '\')"';
             }
-            $handleHandler .= '
-                <span class="badge badge-pill badge-dark">' . $arreglo['collection_type'] . '</span>
-                <span class="sr-only">Collection type</span>
-            </a>';
-        }
-        $activador = '<div class="switch">
+            $verify .= 'data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '>
+                            <span class="lever"></span> 
+                        </label>
+                    </div>';
+            $countColor = ($item['products'] > 0) ? "success" : "danger";
+            $collectionTitle = '<a href="/collections/read?id=' . $item['id'] .
+                                    '" class="btn btn-block btn-outline-info btn-sm" target="_self" title="' .
+                                    $item['title'] . '" type="text">' . $item['title'] . '
+                                    <span class="badge badge-pill badge-' . $countColor . '">' . $item['products'] . '</span>
+                                </a>';
+            $response[$index] = [
+                'store_id' => '<a href="/collections/read?id=' . $item['id'] . '" target="_self" title="' . 
+                                    $item['title'] . '" type="text">' . $item['id'] . '
+                                </a>',
+                'store_title' => $collectionTitle,
+                'store_handle' => $handleHandler,
+                'store_type' => $collectionType,
+                'store_seo' => $item['seo'],
+                'sort_order' => $item['sort'],
+                'product_count' => $item['products'],
+                'verified' => $verify,
+                'id_tienda'=>null,
+                'keywords' => null,
+                'active' => null,
+                'possition' => null,
+                'name' => null,
+                'handle' => null,
+                'category' => null,
+                'sub_category'=>null,
+                'metadatos'=>null,
+                'actions' => "
+                    <div class='btn-group'>
+                        <button type='button' class='btn btn-outline-info btn-block btn-sm dropdown-toggle dropdown-icon' data-toggle='dropdown'>
+                            Eleija...
+                        </button>
+                        <span class='sr-only'>Acciones</span>
+                        <div class='dropdown-menu' role='menu'>"
+            ];
+            foreach ($item['common'] as $commonName) {
+                if ($item['title'] != $commonName['name']) {
+                    $response[$index]['store_id']   = null;
+                    $response[$index]['verified']   = null;
+                    $response[$index]['store_seo']  = null;
+                    $response[$index]['store_type'] = null;
+                    $response[$index]['sort_order'] = null;
+                    $response[$index]['store_title'] = null;
+                    $response[$index]['store_handle'] = null;
+                    $response[$index]['product_count'] = null;
+                }
+                if ($item['handle'] != $commonName['handle']) {
+                    $response[$index]['store_id']   = null;
+                    $response[$index]['verified']   = null;
+                    $response[$index]['store_seo']  = null;
+                    $response[$index]['store_type'] = null;
+                    $response[$index]['sort_order'] = null;
+                    $response[$index]['store_title'] = null;
+                    $response[$index]['store_handle'] = null;
+                    $response[$index]['product_count'] = null;
+                }
+                $state = 'active';
+                $text = 'Inactivo';
+                $check = '';
+                if ($commonName['active'] > 0) {
+                    $state = 'diactive';
+                    $text = 'Activo';
+                    $check = 'checked="checked"';
+                }
+                $metadatos = 0;
+                $this->model->id = $commonName['id'];
+                $result = $this->model->hasMetafields();
+                $cant = $result['data'][0]['res'];
+                if ($cant > 0) {
+                    $metadatos = $cant;
+                }
+                if ($metadatos < 10) {
+                    $badgeColor = "danger";
+                } elseif ($metadatos < 25) {
+                    $badgeColor = "warning";
+                } elseif ($metadatos > 25) {
+                    $badgeColor = "primary";
+                } else {
+                    $badgeColor = "danger";
+                }
+                $activador = '<div class="switch">
                     <label>                          
-                        <input type="checkbox" id="' . $arreglo['store_id'] . '-Switch"';
-        if (!empty($arreglo['id'])) {
-            $activador .= ' onclick="changeState(' . $arreglo['id'] . ',\'' . $state . '\')"';
-        } else {
-            $activador .= ' onclick="changeState(' . $arreglo['store_id'] . ',\'' . $state . '\')"';
-        }
-        $activador .= ' data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '>
+                        <input type="checkbox" id="' . $commonName['store_id'] . '-Switch" 
+                            onclick="changeState(' . $commonName['id'] . ',\'' . $state . '\')" 
+                            data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '/>
                         <span class="lever"></span> 
                     </label>
                 </div><span class="badge badge-pill badge-primary">' . $text . '</span>';
-        $state = false;
-        $text = 'No Verificado';
-        $check = '';
-        if ($arreglo['verified']) {
-            $state = true;
-            $text = 'Verificado';
-            $check = 'checked="checked"';
-        }
-        $verify = '<div class="switch">
-                    <label>                          
-                        <input type="checkbox" id="' . $arreglo['store_id'] . '-verify_' . $arreglo['id'] . '"';
-        if (!is_null($arreglo['id']) && !empty($arreglo['id'])) {
-            $verify .= ' onclick="verifyCollection(' . $arreglo['store_id'] . ',' . $arreglo['id'] . ',\'' . $state . '\')"';
-        } else {
-            $verify .= ' onclick="verifyCollection(' . $arreglo['store_id'] . ',null,\'' . $state . '\')"';
-        }
-        $verify .= 'data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '>
-                        <span class="lever"></span> 
-                    </label>
-                </div>';
-        if ($arreglo['name'] == "No asociado") {
-            $nombreComun = '<a href="/collections/create?id=' . $arreglo['store_id'] . '" 
-                class="btn btn-block btn-outline-info btn-sm" target="_self" title="crear colección" type="text">Sincronizar</a>';
-        } else {
-            $nombreComun = '<a href="/collections/read?id=' . $arreglo['id'] . '" 
-                class="btn btn-block btn-outline-info btn-sm" target="_self" title="' . $arreglo['name'] . '" 
-                type="text">' .
-                $arreglo['name'] . '
-                <span class="badge badge-' . $badgeColor . '">' .
-                $arreglo['metadatos'] . '
-                </span>
-            </a>';
-        }
-        $collectionTitle = '';
-        if ($arreglo['store_title']) {
-            $collectionTitle = '<a href="/collections/read?id=' . $arreglo['store_id'] .
-                '" class="btn btn-block btn-outline-info btn-sm" target="_self" title="' .
-                $arreglo['store_title'] . '" type="text">' . $arreglo['store_title'] . '
-            </a>';
-        }
-        if ($arreglo['handle'] == "No asociado" || empty($arreglo['handle'])) {
-            $collectionHandle = '<a href="/collections/create?id=' . $arreglo['store_id'] .
-                '" class="btn btn-block btn-outline-secondary btn-sm" target="_self" 
-                title="crear colección" type="text"> Crear|Sincronizar</a>';
-        } else {
-            $collectionHandle = '<a href="/collections/read?id=' . $arreglo['id'] .
-                '" class="btn btn-block btn-outline-secondary btn-sm" target="_self" title="' .
-                $arreglo['handle'] . '" type="text">' . $arreglo['handle'] . '</a>';
-        }
-        $response = [
-            'store_id' => '<a href="/collections/read?id=' . $arreglo['store_id'] .
-                '" target="_self" title="' . $arreglo['name'] . '" type="text">' .
-                $arreglo['store_id'] . '
-            </a>',
-            'store_title' => $collectionTitle,
-            'store_handle' => $handleHandler,
-            'store_type' => $arreglo['collection_type'],
-            'store_seo' => $arreglo['store_seo'],
-            'sort_order' => $arreglo['sort_order'],
-            'product_count' => $arreglo['product_count'],
-            'date' => $arreglo['date'],
-            'name' => $nombreComun,
-            'handle' => $collectionHandle,
-            'id_tienda' => $arreglo['id_tienda'],
-            'keywords' => $arreglo['keywords'],
-            'active' => $arreglo['active'],
-            'possition' => $arreglo['possition'],
-            'verified' => $verify,
-            'meta' => [
-                'is_' => ($arreglo['store_meta']) ?? null,
-                'id' => ($arreglo['id_meta']) ?? 0,
-                'type' => ($arreglo['type']) ?? null
-            ]
-        ];
-        if (is_array($arreglo['category'])) {
-            $response['category'] = '
-                <button type="button" class="btn btn-';
-            $response['category'] .= (!empty($arreglo['category']['id'])) ? "primary" : "danger";
-            $response['category'] .= ' btn-block btn-sm" data-toggle="modal" 
-                    data-target="#type-Changer" 
-                    data-collectid="' . $arreglo['store_id'] . '"';
-            if (!empty($arreglo['category']['id'])) {
-                $response['category'] .= '
-                    data-prodcat="' . $arreglo['category']['id'] . '">' .
-                    $arreglo['category']['name'] .
-                    '</button>';
-            } else {
-                $response['category'] .= ' data-prodtype="">Asignar</button>';
+                $response[$index]['name'] = '<a href="/collections/read?id=' . $commonName['id'] . '" 
+                        class="btn btn-block btn-outline-info btn-sm" target="_self" title="' . $commonName['name'] . '" 
+                        type="text">' .
+                        $commonName['name'] . '
+                        <span class="badge badge-' . $badgeColor . '">' . $metadatos . ' <sub>Tags</sub></span>
+                    </a>';
+                $response[$index]['active'] = $commonName['active'];
+                $response[$index]['handle'] = '<a href="#" class="btn btn-block btn-outline-secondary btn-sm" onclick="deleteCommonName(\'' . $commonName['id'] . '\')" 
+                                                target="_self" title="' . $commonName['handle'] . '" type="text">' . $commonName['handle'] . '</a>';
+                $response[$index]['keywords'] = $commonName['keywords'];
+                $response[$index]['category'] = '<button type="button" class="btn btn-';
+                $response[$index]['category'] .= (!empty($commonName['tc_id'])) ? "primary" : "danger";
+                $response[$index]['id_tienda'] = $commonName['store_id'];
+                $response[$index]['possition'] = $commonName['possition'];
+                if (!empty($commonName['category'])) {
+                    $response[$index]['category'] .= ' btn-block btn-sm" data-toggle="modal" data-target="#type-Changer" data-collectid="' . $commonName['store_id'] . '" 
+                                                        data-prodcat="' . $commonName['category'] . '">' . $commonName['category'] . '</button>';
+                } else {
+                    $response['category'] = '<button type="button" class="btn btn-primary btn-block btn-sm" data-toggle="modal" 
+                                            data-target="#type-Changer" data-collectid="' . $commonName['store_id'] . '" data-prodcat="">Asignar</button>';
+                }
+                $response[$index]['sub_category'] = '<button type="button" class="btn btn-';
+                $response[$index]['sub_category'] .= (!empty($commonName['tp_id'])) ? "primary" : "danger";
+                if (!empty($commonName['sub_category'])) {
+                    $response[$index]['sub_category'] .= ' btn-block btn-sm" data-toggle="modal" data-target="#type-Changer" data-collectid="' . $commonName['store_id'] . '"
+                                                    data-prodtype="' . $commonName['tp_id'] . '">' .
+                    $commonName['sub_category'] . '</button>';
+                } else {
+                    $response[$index]['sub_category'] = '<button type="button" class="btn btn-danger btn-block btn-sm" data-toggle="modal" 
+                                                data-target="#type-Changer" data-collectid="' . $item['store_id'] . '" data-prodcat="">Asignar</button>';
+                }
+                $response[$index]['metadatos'] = $metadatos;
+                $response[$index]['actions'] .= '<div class="dropdown-divider"></div>' . $activador;
+                $response[$index]['actions'] .= '</div></div>';
+                $index++;
             }
-        } else {
-            $response['category'] = '
-                <button type="button" class="btn btn-primary btn-block btn-sm" 
-                    data-toggle="modal" 
-                    data-target="#type-Changer" 
-                    data-collectid="' . $arreglo['store_id'] . '" 
-                    data-prodcat="">
-                    Asignar
-                </button>';
         }
-        if (is_array($arreglo['sub_category'])) {
-            $response['subcategory'] =  '
-                <button type="button" class="btn btn-';
-            $response['subcategory'] .= (!empty($arreglo['sub_category']['id'])) ? "primary" : "danger";
-            $response['subcategory'] .= ' btn-block btn-sm" data-toggle="modal" 
-                    data-target="#type-Changer" data-collectid="' . $arreglo['store_id'] . '"';
-            if (!empty($arreglo['sub_category']['id'])) {
-                $response['subcategory'] .= ' data-prodtype="' . $arreglo['sub_category']['id'] . '">' .
-                    $arreglo['sub_category']['name'] . '
-                </button>';
-            } else {
-                $response['subcategory'] .=
-                    ' data-prodtype="">Asignar</button>';
-            }
-        } else {
-            $response['sub_category'] = '
-                <button type="button" class="btn btn-danger btn-block btn-sm" 
-                    data-toggle="modal" 
-                    data-target="#type-Changer" 
-                    data-collectid="' . $arreglo['store_id'] . '" 
-                    data-prodcat="">
-                    Asignar
-                </button>';
-        }
-        $response['metadatos'] = $arreglo['metadatos'];
-        $response['actions'] = "
-            <div class='btn-group'>
-                <button type='button' class='btn btn-outline-info btn-block btn-sm dropdown-toggle dropdown-icon' data-toggle='dropdown'>
-                    Eleija...
-                </button>
-                <span class='sr-only'>Acciones</span>
-                <div class='dropdown-menu' role='menu'>";
-        foreach ($arreglo['actions']['common'] as $action) {
+        
+        /* 
+        foreach ($item['actions']['common'] as $action) {
             switch ($action) {
                 case "detalles":
                     $response['actions'] .= '
-                            <a href="/collections/read?id=' . $arreglo['id'] . '"
+                            <a href="/collections/read?id=' . $item['id'] . '"
                                 title="Ver detalles de colección" target="_self"
                                 type="text" class="btn btn-success btn-block btn-sm">
                                 <i class="fas fa-eye mr-3"></i>Detalles
@@ -1146,7 +1155,7 @@ class CollectionsController extends ControllerClass
                 case "eliminar":
                     $response['actions'] .=
                         '<button type="button" class="btn btn-default" data-toggle="modal" data-target="#deleteCommon_modal"
-                                data-CommonID="' . $arreglo['id'] . '"
+                                data-CommonID="' . $item['id'] . '"
                                 title="Borra una colección localmente" 
                                 target="_self" type="text" 
                                 class="btn btn-danger btn-block btn-sm">
@@ -1155,7 +1164,7 @@ class CollectionsController extends ControllerClass
                     break;
                 case "sync":
                     $response['actions'] .= '
-                            <a href="#" onclick="syncCollection(\'' . $arreglo['store_id'] . '\'")
+                            <a href="#" onclick="syncCollection(\'' . $item['store_id'] . '\'")
                                 title="Sincroniza datos de tienda a local" 
                                 target="_self" type="text" class="btn btn-primary btn-block btn-sm">
                                 <i class="fas fa-trash mr-3"></i>Sincronizar
@@ -1163,7 +1172,7 @@ class CollectionsController extends ControllerClass
                     break;
                 case "editar":
                     $response['actions'] .= '
-                            <a href="/collections/edit?id=' . $arreglo['id'] . '"
+                            <a href="/collections/edit?id=' . $item['id'] . '"
                                 title="Edita datos local" 
                                 target="_self" type="text" class="btn btn-warning btn-block btn-sm">
                                 <i class="fas fa-edit mr-3"></i>Editar
@@ -1172,7 +1181,7 @@ class CollectionsController extends ControllerClass
                 case "name":
                     $response['actions'] .= '
                             <button type="button" class="btn btn-default" data-toggle="modal" data-target="#editCommon_modal"
-                                data-CommonID="' . $arreglo['id'] . '"
+                                data-CommonID="' . $item['id'] . '"
                                 data-CommonField="name"
                                 title="Editar Nombre" 
                                 target="_self" type="text" 
@@ -1183,7 +1192,7 @@ class CollectionsController extends ControllerClass
                 case "handle":
                     $response['actions'] .= '
                             <button type="button" class="btn btn-default" data-toggle="modal" data-target="#editCommon_modal"
-                                data-CommonID="' . $arreglo['id'] . '"
+                                data-CommonID="' . $item['id'] . '"
                                 data-CommonField="handle"
                                 title="Editar handle" 
                                 target="_self" type="text" 
@@ -1193,7 +1202,7 @@ class CollectionsController extends ControllerClass
                     break;
                 default:
                     $response['actions'] .= '
-                            <a href="#" onclick="syncCollection(\'' . $arreglo['store_id'] . '\'")
+                            <a href="#" onclick="syncCollection(\'' . $item['store_id'] . '\'")
                                 title="Sincroniza datos de tienda a local" 
                                 target="_self" type="text" class="btn btn-primary btn-block btn-sm">
                                 <i class="fas fa-trash mr-3"></i>Crear
@@ -1201,13 +1210,13 @@ class CollectionsController extends ControllerClass
                     break;
             }
         }
-        if (!empty($arreglo['actions']['common'])) $response['actions'] .= '<div class="dropdown-divider"></div>';
-        foreach ($arreglo['actions']['collection'] as $action) {
+        if (!empty($item['actions']['common'])) $response['actions'] .= '<div class="dropdown-divider"></div>';
+        foreach ($item['actions']['collection'] as $action) {
             switch ($action) {
                 case 'eliminar':
                     $response['actions'] .=
                         '<button type="button" class="btn btn-default" data-toggle="modal" data-target="#deleteCollection_modal"
-                            data-CollectionID="' . $arreglo['store_id'] . '"
+                            data-CollectionID="' . $item['store_id'] . '"
                             title="Borra una colección en nube" 
                             class="btn btn-danger btn-block btn-sm">
                             <i class="fas fa-trash mr-3"></i>Borrar Colección
@@ -1215,7 +1224,7 @@ class CollectionsController extends ControllerClass
                     break;
                 case 'crear':
                     $response['actions'] .=
-                        '<a href="/collections/crear/' . $arreglo['store_id'] . '"
+                        '<a href="/collections/crear/' . $item['store_id'] . '"
                             title="Crear colección" 
                             target="_self" type="text" 
                             class="btn btn-secondary btn-block btn-sm">
@@ -1224,7 +1233,7 @@ class CollectionsController extends ControllerClass
                     break;
                 default:
                     $response['actions'] .= '
-                        <a href="/collections/compare?id=' . $arreglo['store_id'] . '"
+                        <a href="/collections/compare?id=' . $item['store_id'] . '"
                             title="Compara los datos de una colección" 
                             target="_self" type="text" class="btn btn-info btn-block btn-sm">
                             <i class="fas fa-copy mr-3"></i>Comparar
@@ -1232,10 +1241,7 @@ class CollectionsController extends ControllerClass
                     break;
             }
         }
-        $response['actions'] .= '<div class="dropdown-divider"></div>' . $activador;
-        $response['actions'] .= '
-                </div>
-            </div>';
+         */
         return $response;
     }
     private function verifyCommonName($id, $tipo)

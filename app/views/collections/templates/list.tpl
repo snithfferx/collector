@@ -61,7 +61,7 @@
                                     <button type="submit" class="btn btn-primary" onclick="buscar()">Buscar</button>
                                 </div>
                                 <div class="col-10 offset-1">
-                                    <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                                    <div class="btn-toolbar justify-content-between" role="toolbar" aria-label="Toolbar with button groups">
                                         <div class="btn-group mr-2" role="group" aria-label="First group">
                                             <button type="button" class="btn btn-secondary" onclick="buscar('a')" id="letter_Filter_a">A</button>
                                             <button type="button" class="btn btn-secondary" onclick="buscar('b')" id="letter_Filter_b">B</button>
@@ -108,7 +108,6 @@
                                             <th class="text-uppercase font-weight-bolder text-center">Handle Local</th>
                                             <th class="text-uppercase font-weight-bolder text-center">Categoría</th>
                                             <th class="text-uppercase font-weight-bolder text-center">Sub-Categoría</th>
-                                            <th class="text-uppercase font-weight-bolder text-center">Productos</th>
                                             <th class="text-uppercase font-weight-bolder text-center">Verificado</th>
                                             <th class="text-uppercase font-weight-bolder text-center">Acciones</th>
                                         </tr>
@@ -298,14 +297,13 @@
             const columnas = [
                 { data: 'store_id' },
                 { data: 'id_tienda' },
-                { data: 'store_title' },
-                { data: 'name' },
-                { data: 'store_handle' },
-                { data: 'handle' },
-                { data: 'category' },
-                { data: 'sub_category' },
-                { data: 'product_count' },
-                { data: 'verified' },
+                { data: 'store_title', width: '120px' },
+                { data: 'name', width: '120px' },
+                { data: 'store_handle', width: '120px' },
+                { data: 'handle', width: '120px' },
+                { data: 'category', width: '100px' },
+                { data: 'sub_category', width: '120px' },
+                { data: 'verified', className: 'text-center' },
                 { data: 'actions' }
             ];
             let collections = {}, result, urlNext, urlPrev;
@@ -320,7 +318,6 @@
                 "order": [
                     [2, 'asc']
                 ],
-                "autoWidth": true,
                 "responsive": true,
                 "processing" : true,
                 "language": {
@@ -348,7 +345,7 @@
                 },
                 "buttons": botones()
             });
-            $.fn.dataTable.Buttons(collectionsTable, { buttons: botones() });
+            //$.fn.dataTable.Buttons(collectionsTable, { buttons: botones() });
             collectionsTable.buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
             $(document).ready(function() {
                 getTableData('/collections/lista');
@@ -371,12 +368,10 @@
                     e.preventDefault();
                     var url = $("#nextPage").val();
                     $.post(url, {}, function(r) {
-                        //console.log(collectionsTable);
                         result = JSON.parse(r);
                         collections = result.collections;
                         collectionsTable = $("#collectionsList").DataTable().clear().draw();
                         collectionsTable.rows.add(collections).draw();
-                        //collectionsTable.ajax.reload();
                         tableRefiller('collectionsList', collections);
                     });
                 });
@@ -388,8 +383,6 @@
                         result = JSON.parse(r);
                         collections = result.collections;
                         hasPages(result.pagination);
-                        //collectionsTable.draw();
-                        //collectionsTable.ajax.reload();
                     });
                 });
                 $('#type-Changer').on('show.bs.modal', function(event) {

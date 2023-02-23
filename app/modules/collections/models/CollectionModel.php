@@ -155,7 +155,7 @@ class CollectionModel extends ContextClass
                 ]
             ]
         ];
-        $args = ['id', 'tipo', 'handle', 'categoria', 'title'];
+        $args = ['id', 'tipo', 'handle', 'categoria', 'title', 'id_store'];
         $conditions = [];
         $separators = [];
         foreach ($args as $k => $arg) {
@@ -204,6 +204,17 @@ class CollectionModel extends ContextClass
                             'table' => "nombre_comun",
                             'field' => "handle",
                             'value' => $this->handle
+                        ]);
+                    }
+                    break;
+                case 'id_store':
+                    /* Pedir Nombre común por id de tienda */
+                    if (!is_null($this->id_store)) {
+                        array_push($conditions, [
+                            'type' => "COMPARE",
+                            'table' => "nombre_comun",
+                            'field' => "id_tienda",
+                            'value' => $this->id_store
                         ]);
                     }
                     break;
@@ -395,7 +406,7 @@ class CollectionModel extends ContextClass
             $response = $this->insert('temp_shopify_collector', [
                 'fields' => [
                     'id', 'title', 'handle', 'productsCount', 'sortOrder',
-                    'ruleSet', 'metafields', 'seo', 'gqid'
+                    'ruleSet', 'metafields', 'seo', 'gqid','verified'
                 ],
                 'values' => [
                     $this->id, $this->title, $this->handle, $this->products, $this->order,
@@ -421,18 +432,32 @@ class CollectionModel extends ContextClass
     private function getLocalCollections($values)
     {
         if (!empty($values)) {
-            
+            if ($values == "all") {
+                $query = [
+                    'fields' => [
+                        'temp_shopify_collector' => [
+                            'collection_id',
+                            'id',
+                            'title',
+                            'handle',
+                            'productsCount=products',
+                            'sortOrder=sort',
+                            'ruleSet=rules',
+                            'metafields=meta',
+                            'seo',
+                            'gqid'
+                        ]
+                    ]
+                ];
+            } else {
+                $query = [
+                    'fields' => [
+                        'temp_shopify_collector' => $values
+                    ]
+                ];
+            }
         }
         $this->base = "shopify";
-        $query = [
-            'fields' => [
-                'temp_shopify_collector' => [
-                    'collection_id', 'id', 'title', 'handle', 'productsCount=products',
-                    'sortOrder=sort', 'ruleSet=rules', 'metafields=meta', 'seo', 'gqid'
-                ]
-            ],
-            'joins' => []
-        ];
         $args = ['id', 'handle', 'categoria', 'tipo', 'title'];
         $conditions = array();
         $separators = array();
