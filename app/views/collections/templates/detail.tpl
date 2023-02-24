@@ -28,7 +28,7 @@
                                         <tr>
                                             <td>Fecha de creacion</td>
                                             <td> : </td>
-                                            <td>{{$item.date}}</td>
+                                            <td>{{date("d/m/Y",strtotime($item.date))}}</td>
                                         </tr>
                                         <tr>
                                             <td>ID Tienda</td>

@@ -47,7 +47,7 @@
                                         <label for="collection_name"></label>
                                         <input type="text" class="form-control" id="collection_name"
                                             aria-describedby="collection_name_help" placeholder="Digite un nombre a filtrar">
-                                        <small id="collection_name_help" class="form-text text-muted">Puede ser un nombre común, colección</small>
+                                        <small id="collection_name_help" class="form-text text-muted">Puede ser un nombre común o colección</small>
                                     </div>
                                 </div>
                                 <div class="col-2">
@@ -62,42 +62,19 @@
                                 </div>
                                 <div class="col-10 offset-1">
                                     <div class="btn-toolbar justify-content-between" role="toolbar" aria-label="Toolbar with button groups">
-                                        <div class="btn-group mr-2" role="group" aria-label="First group">
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('a')" id="letter_Filter_a">A</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('b')" id="letter_Filter_b">B</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('c')" id="letter_Filter_c">C</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('d')" id="letter_Filter_d">D</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('e')" id="letter_Filter_e">E</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('f')" id="letter_Filter_f">F</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('g')" id="letter_Filter_g">G</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('h')" id="letter_Filter_h">H</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('i')" id="letter_Filter_i">I</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('j')" id="letter_Filter_j">J</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('k')" id="letter_Filter_k">K</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('l')" id="letter_Filter_l">L</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('m')" id="letter_Filter_m">M</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('n')" id="letter_Filter_n">N</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('o')" id="letter_Filter_o">O</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('p')" id="letter_Filter_p">P</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('q')" id="letter_Filter_q">Q</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('r')" id="letter_Filter_r">R</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('s')" id="letter_Filter_s">S</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('t')" id="letter_Filter_t">T</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('u')" id="letter_Filter_u">U</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('v')" id="letter_Filter_v">V</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('w')" id="letter_Filter_w">W</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('x')" id="letter_Filter_x">X</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('y')" id="letter_Filter_y">Y</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('z')" id="letter_Filter_z">Z</button>
-                                            <button type="button" class="btn btn-secondary" onclick="buscar('ñ')" id="letter_Filter_ñ">Ñ</button>
-                                        </div>
+                                        {{assign var="letras" value=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','Ñ']}}
+                                        {{foreach $letras as $key => $letra}}
+                                            <div class="btn-group mr-2" role="group" aria-label="Group-{{$key}}">
+                                                <button type="button" class="btn btn-secondary" onclick="buscar('{{$letra}}')" id="letter_Filter_{{$letra}}">{{$letra}}</button>
+                                            </div>
+                                        {{/foreach}}
                                     </div>
                                 </div>
                             </div>
                         </form>
                         <div class="row">
                             <div class="col-12">
-                                <table class="table table-responsive table-striped" id="collectionsList">
+<table class="table table-striped table-bordered" style="width:100%" id="collectionsList">
                                     <thead class="thead-dark">
                                         <tr>
                                             <th class="text-uppercase font-weight-bolder text-center">ID Tienda</th>
@@ -256,16 +233,22 @@
 {{/block}}
 {{block name='css'}}
     <link rel="stylesheet" type="text/css" href="/assets/css/switchmtrlz/switchmtrlz.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    {{* <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.bootstrap4.min.css">
-    <link rel="stylesheet" type="text/css" href="/assets/css/datatables-buttons/buttons.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="/assets/css/datatables-buttons/buttons.bootstrap4.min.css"> *}}
     {{* <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-responsive/responsive.bootstrap4.min.css">
      *}}
+     <link href="https://cdn.datatables.net/v/bs4/dt-1.13.2/b-2.3.4/b-colvis-2.3.4/b-html5-2.3.4/b-print-2.3.4/r-2.4.0/datatables.min.css"/>
 {{/block}}
 {{block name="jslibs"}}
-    <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/v/bs4/dt-1.13.2/b-2.3.4/b-colvis-2.3.4/b-html5-2.3.4/b-print-2.3.4/r-2.4.0/datatables.min.js"></script>
+ 
+    {{* <script type="text/javascript" src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.2/js/dataTables.bootstrap4.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/responsive.bootstrap4.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/dataTables.buttons.min.js"></script>
@@ -273,17 +256,12 @@
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.flash.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.html5.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.print.min.js"></script>
-    <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.colVis.min.js"></script>
-    {{* 
-        <script type="text/javascript" src="/assets/js/datatables/jquery.dataTables.min.js"></script>
-        <script type="text/javascript" src="/assets/js/datatables-bs4/dataTables.bootstrap4.min.js"></script>
-        <script type="text/javascript" src="/assets/js/datatables-responsive/dataTables.responsive.min.js"></script>
-        <script type="text/javascript" src="/assets/js/datatables-responsive/responsive.bootstrap4.min.js"></script>
-        <script type="text/javascript" src="/assets/js/jszip/jszip.min.js"></script>
-        <script type="text/javascript" src="/assets/js/pdfmake/pdfmake.min.js"></script>
-        <script type="text/javascript" src="/assets/js/pdfmake/vfs_fonts.js"></script>
-        <script type="text/javascript" src="/assets/js/moment/moment-with-locales.min.js"></script>
-    *}}
+    <script type="text/javascript" src="/assets/js/jszip/jszip.min.js"></script>
+    <script type="text/javascript" src="/assets/js/pdfmake/pdfmake.min.js"></script>
+    <script type="text/javascript" src="/assets/js/pdfmake/vfs_fonts.js"></script>
+    <script type="text/javascript" src="/assets/js/moment/moment-with-locales.min.js"></script>
+    <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.colVis.min.js"></script> *}}
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script type="text/javascript" src="/assets/js/global/tabler.js"></script>
 {{/block}}
 {{block name="scripts"}}
@@ -297,7 +275,7 @@
             const columnas = [
                 { data: 'store_id' },
                 { data: 'id_tienda' },
-                { data: 'store_title', width: '120px' },
+                { data: 'store_title' },
                 { data: 'name', width: '120px' },
                 { data: 'store_handle', width: '120px' },
                 { data: 'handle', width: '120px' },
@@ -310,6 +288,9 @@
             let collectionsTable = $("#collectionsList").DataTable({
                 "data": collections,
                 "columns": columnas,
+                "columnDefs": [
+                    { width: '120px', "targets": [ 2,3,4,7 ] }
+                ],
                 "paging": true,
                 "scrollY": '600px',
                 "lengthMenu": lineas(10),
@@ -346,7 +327,10 @@
                 "buttons": botones()
             });
             //$.fn.dataTable.Buttons(collectionsTable, { buttons: botones() });
-            collectionsTable.buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
+            //collectionsTable.buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
+            collectionsTable.buttons()
+                            .container()
+                            .appendTo( $('.col-sm-6:eq(0)', collectionsTable.table().container() ) );
             $(document).ready(function() {
                 getTableData('/collections/lista');
                 getCategories();
@@ -379,7 +363,7 @@
                     e.preventDefault();
                     var url = $("#nextPage").val();
                     $.post(url, {}, function(r) {
-                        console.log(collectionsTable);
+                        //console.log(collectionsTable);
                         result = JSON.parse(r);
                         collections = result.collections;
                         hasPages(result.pagination);
@@ -506,14 +490,42 @@
             // Busca reigstros
             function buscar (parametro) {
                 event.preventDefault();
-                var activo,cats = $("#categories").val(), sucat = $("#subcategories").val(),coleccion = $("#collection_name").val();
-                if ($('#deshabiliatdo').is(':checked')) {
+                var searched,activo,cats = $("#categories").val(), sucat = $("#subcategories").val(),coleccion = $("#collection_name").val();
+                if ($('#deshabilitado').is(':checked')) {
                     activo = true;
                 } else {
                     activo = false;
                 }
                 if (parametro != undefined) {
-                    $.ajax({
+                    searched = new Array;
+                    $.each(collections,function (index,value) {
+                        if (value.title != null) {
+                            if (value.title.startsWith(parametro)) {
+                                if (activo == true) {
+                                    searched.push(value);
+                                } else {
+                                    if (value.active == 1) {
+                                        searched.push(value);
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    if (searched.length == 0) {
+                        alertaPopUp('error',{
+                            class : "bg-info",
+                            title : "¡AVISO!",
+                            subtitle : "No data parsed..",
+                            autohide : true,
+                            delay : 7500,
+                            body : "Sorry no data found!",
+                            icon : "fas fa-info-circle",
+                        });
+                    } else {
+                        collectionsTable.clear();
+                        collectionsTable.rows.add(searched).draw();
+                    }
+                    /* $.ajax({
                         url: '/collections/search',
                         type: 'POST',
                         data: {
@@ -534,7 +546,7 @@
                         complete: function () {
                             $("#spinger").hide();
                         }
-                    });
+                    }); */
                 } else {
                     $.ajax({
                         url: '/collections/search',
@@ -606,6 +618,7 @@
                     data: args,
                     beforeSend : function () {
                         $("#spinger").show();
+                        toastr.info('Acquiring data..')
                     },
                     success: function(r) {
                         result = JSON.parse(r);
@@ -619,6 +632,7 @@
                     },
                     complete: function () {
                         $("#spinger").hide();
+                        toastr.success('Data acquiried..')
                     }
                 });
             }
