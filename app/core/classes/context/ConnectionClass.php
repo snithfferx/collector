@@ -17,9 +17,9 @@
         private $user;
         private $password;
         private $dbName;
-        private function stablish_connection($base)
+        private function stablish_connection()
         {
-            $db_DNS = "mysql:host=$this->host;port=$this->port;dbname=$base;";
+            $db_DNS = "mysql:host=$this->host;port=$this->port;dbname=$this->dbName;";
             try {
                 $this->conexion = new \PDO($db_DNS, $this->user, $this->password);
                 $this->conexion->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -39,8 +39,9 @@
             $affected = null;
             $id = null;
             $rows = null;
-            if ($this->getConfig()) {
-                $this->ds_context = ($base != null) ? $this->stablish_connection($base) : $this->stablish_connection($this->dbName);
+            if ($this->getConfig($base)) {
+                //$this->ds_context = ($base != null) ? $this->stablish_connection($base) : $this->stablish_connection($this->dbName);
+                $this->stablish_connection();
                 if (is_array($this->ds_context)) {
                     $errors = $this->ds_context;
                 } else {
@@ -56,7 +57,7 @@
                                     'message' => "Error:&nbsp;&nbsp;&nbsp;" . $th->getMessage()
                                 ];
                             }
-                            $id = $this->ds_context->lastInsertId();
+                            $id = null; //$this->ds_context->lastInsertId();
                         } elseif ($type == 'select') {
                             try {
                                 $pdo_Statement->execute($query['params']);
@@ -96,10 +97,14 @@
             ];
             return $retorna;
         }
-        private function getConfig()
+        private function getConfig($database)
         {
             $this->globalConf = new ConfigHelper;
-            $__CONF = $this->globalConf->get('config');
+            if ($database == null || $database == "default") {
+                $__CONF = $this->globalConf->get('config');
+            } else {
+                $__CONF = $this->globalConf->get($database);
+            }
             if (!empty($__CONF)) {
                 $this->host     = $__CONF['dbhost'];
                 $this->port     = $__CONF['dbport'];
@@ -116,4 +121,3 @@
             return $this->getDBResponse($request, $type, $base);
         }
     }
-?>

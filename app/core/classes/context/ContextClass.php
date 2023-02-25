@@ -92,7 +92,7 @@ class ContextClass extends ConnectionClass
      */
     protected function update(string $tableName, array $data): array
     {
-        if (empty($table)) {
+        if (empty($tableName)) {
             return ['error' => ['code' => 400, 'message' => "A table name is needing."], 'data' => array()];
         } elseif (empty($data)) {
             return ['error' => ['code' => 400, 'message' => "Changes are needing."], 'data' => array()];
@@ -173,7 +173,9 @@ class ContextClass extends ConnectionClass
                 $query_request .= " WHERE ";
                 $conditions = $this->conditions($params);
                 $query_request .= $conditions['cadena'];
-                $query_Values = $conditions['valores'];
+                foreach ($conditions['valores'] as $vals) {
+                    array_push($query_Values, $vals);
+                }
             }
             /* $pspt = preg_split('/([,|;|~])/', $params, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
             foreach ($pspt as $ps) {
