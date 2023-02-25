@@ -226,7 +226,8 @@ class MessengerHelper
                         'color' => "text-info",
                         'name' => "Aviso de ejecuci&oacute;n",
                         'code' => (isset($values['code'])) ? $values['code'] : "100",
-                        'icon' => "fas fa-info-circle"
+                        'icon' => "fas fa-info-circle",
+                        'type' => "info"
                     ];
                     break;
                 case 'warning':
@@ -234,7 +235,8 @@ class MessengerHelper
                         'color' => "text-warning",
                         'name' => "Alerta de ejecuci&oacute;n",
                         'code' => (isset($values['code'])) ? $values['code'] : "204",
-                        'icon' => "fas fa-exclamation-circle"
+                        'icon' => "fas fa-exclamation-circle",
+                        'type' => "warning"
                     ];
                     break;
                 case 'error':
@@ -242,7 +244,8 @@ class MessengerHelper
                         'color' => "text-danger",
                         'name' => "Alerta de ejecuci&oacute;n",
                         'code' => (isset($values['code'])) ? $values['code'] : "404",
-                        'icon' => "fas fa-exclamation-triangle"
+                        'icon' => "fas fa-exclamation-triangle",
+                        'type' => "error"
                     ];
                     break;
                 default:
@@ -250,12 +253,19 @@ class MessengerHelper
                         'color' => "text-primary",
                         'name' => "Aviso",
                         'code' => (isset($values['code'])) ? $values['code'] : "409",
-                        'icon' => "fas fa-info"
+                        'icon' => "fas fa-info",
+                        'type' => "success"
                     ];
                     break;
             }
         } else {
-            $response = ['color' => "text-danger", 'name' => "Error de ejecuci&oacute;n", 'code' => "10-500", 'icon' => "fas fa-exclamation-triangle"];
+            $response = [
+                'color' => "text-danger",
+                'name' => "Error de ejecuci&oacute;n",
+                'code' => "10-500",
+                'icon' => "fas fa-exclamation-triangle",
+                'type' => "error"
+            ];
             $extra = "El servidor a retornado un error en ejecución.<br>Verifique la información he intente nuevamente.";
         }
         if (isset($values['values']) && is_array($values['values'])) {
