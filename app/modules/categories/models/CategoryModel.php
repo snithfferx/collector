@@ -6,7 +6,7 @@ namespace app\Modules\categories\models;
 use app\core\classes\context\ContextClass;
 class CategoryModel extends ContextClass {
     public function __construct() {
-        $this->base = 'inventario';
+        $this->base = 'default';
     }
     public function getCategoriesList () {
         return $this->select('tipo_categoria', [

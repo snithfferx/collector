@@ -44,7 +44,7 @@ class CollectionModel extends ContextClass
         $response = $this->grafkuel();
         return $response;
     }
-    public function get(string $list = 'collections',array|string $fields = []): array
+    public function get(string $list = 'collections', array|string $fields = []): array
     {
         if ($list == "collections") {
             return $this->getLocalCollections($fields);
@@ -98,13 +98,14 @@ class CollectionModel extends ContextClass
             return ['error' => ['code' => 404, 'message' => "Element Not Found"], 'data' => []];
         }
     }
-    public function setVerification ($method,$current) {
+    public function setVerification($method, $current)
+    {
         if ($method === "set_collection") {
             $result = $this->setVerificationCollection($current);
         } elseif ($method === "set_common") {
             $result = $this->setVerificationCommon($current);
         } else {
-            return ['error'=>['code'=>"00404",'message'=>"No collection found"],'data'=>array()];
+            return ['error' => ['code' => "00404", 'message' => "No collection found"], 'data' => array()];
         }
         return $result;
     }
@@ -128,7 +129,7 @@ class CollectionModel extends ContextClass
     } */
     private function getCommonNames($fields): array
     {
-        $this->base = "inventario";
+        $this->base = "default";
         $query = [
             'fields' => [
                 'nombre_comun' => [
@@ -280,7 +281,7 @@ class CollectionModel extends ContextClass
     }
     private function calcCommonNames($calculo)
     {
-        $this->base = "inventario";
+        $this->base = "default";
         return $this->calculate("nombre_comun", $calculo, "id_nombre_comun");
     }
     private function calcCollections($calculo)
@@ -301,7 +302,7 @@ class CollectionModel extends ContextClass
     }
     private function getMetadata()
     {
-        $this->base = "inventario";
+        $this->base = "default";
         $query = [
             'fields' => [
                 'metadatos' => ['id_metadato=id', 'activo=active', 'feature'],
@@ -387,7 +388,7 @@ class CollectionModel extends ContextClass
     }
     private function countMetadata()
     {
-        $this->base = "inventario";
+        $this->base = "default";
         return $this->calculate("metadatos", 'count', 'id_metadato', [
             'condition' => [
                 [
@@ -406,7 +407,7 @@ class CollectionModel extends ContextClass
             $response = $this->insert('temp_shopify_collector', [
                 'fields' => [
                     'id', 'title', 'handle', 'productsCount', 'sortOrder',
-                    'ruleSet', 'metafields', 'seo', 'gqid','verified'
+                    'ruleSet', 'metafields', 'seo', 'gqid', 'verified'
                 ],
                 'values' => [
                     $this->id, $this->title, $this->handle, $this->products, $this->order,
@@ -414,7 +415,7 @@ class CollectionModel extends ContextClass
                 ]
             ]);
         } else {
-            $this->base = "inventario";
+            $this->base = "default";
             $response = $this->insert('nombre_comun', [
                 'fields' => [
                     'id_nombre_comun', 'nombre_comun', 'handle', 'posicion', 'fecha_creacion',
@@ -541,7 +542,7 @@ class CollectionModel extends ContextClass
     }
     private function isCategory()
     {
-        $this->base = "inventario";
+        $this->base = "default";
         $isCategory = false;
         $isCommon = false;
         $collections = [];
@@ -795,7 +796,7 @@ class CollectionModel extends ContextClass
     }
     private function getSearchedCommonNames()
     {
-        $this->base = "inventario";
+        $this->base = "default";
         $conditions = array();
         $separators = array();
         $query = [
@@ -889,34 +890,40 @@ class CollectionModel extends ContextClass
         $query['params'] = ['condition' => $conditions, 'separator' => $separators];
         return $this->select('nombre_comun', $query);
     }
-    private function setVerificationCollection ($value = false) {
+    private function setVerificationCollection($value = false)
+    {
         if ($value === false) {
             if (!is_null($this->id) && !empty($this->id)) {
                 $query = [
-                    'fields'=>['verified'],
-                    'values'=>[true],
-                    'params'=>[
+                    'fields' => ['verified'],
+                    'values' => [true],
+                    'params' => [
                         'type' => "COMPARE",
                         'table' => "temp_shopify_collector",
                         'field' => "id",
-                        'value' => $this->id]
+                        'value' => $this->id
+                    ]
                 ];
             }
         } else {
             $query = [
-                'fields'=>['verified'],
-                'values'=>[false],
-                'params'=>[
-                    'type' => "COMPARE",
+                'fields' => ['verified'
+                ],
+                'values' => [false],
+                'params' => [
+                    'condition' =>[
+                    ['type' => "COMPARE",
                     'table' => "temp_shopify_collector",
                     'field' => "id",
                     'value' => $this->id]
+                    ],'separator' =>array()]
             ];
         }
         return $this->update("temp_shopify_collector", $query);
     }
-    private function setVerificationCommon ($state) {
-        return ['data'=>['message'=>"OK"],'error'=>array()];
+    private function setVerificationCommon($state)
+    {
+        return ['data' => ['message' => "OK"], 'error' => array()];
     }
     /* private function getGuz()
     {

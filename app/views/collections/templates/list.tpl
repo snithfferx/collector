@@ -645,13 +645,13 @@
                         $("#spinger").show();
                     },
                     success: function(r) {
-                        result = JSON.parse(r);
-                        collections = result.collections;
+                        //result = JSON.parse(r);
+                        //collections = result.collections;
                         //hasPages(result.pagination);
-                        collectionsTable.clear();
-                        collectionsTable.rows.add(collections).draw();
+                        //collectionsTable.clear();
+                        //collectionsTable.rows.add(collections).draw();
                         if (result.error != undefined) {
-                            alertaPopUp(result.error);
+                            alertaPopUp(result);
                         }
                     },
                     complete: function () {

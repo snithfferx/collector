@@ -338,6 +338,18 @@ class CollectionsController extends ControllerClass
     protected function collectionVerified($values)
     {
         $result = $this->setVerification($values);
+        if (!empty($result['error'])) {
+            $msg = $this->messenger->build('message',$result['error']);
+        } else {
+            $msg = $this->messenger->build(
+                'message',
+                [
+                    'code' => "00200",
+                    'message' => "Petición realizada con éxito"
+                ]
+            );
+        }
+        return $this->messenger->messageBuilder('alert',$msg);
     }
     protected function syncronizeCollection($values)
     {
@@ -767,11 +779,11 @@ class CollectionsController extends ControllerClass
                             <span class="sr-only">Collection type</span>
                         </a>';
             }
-            $state = false;
+            $state = 'false';
             $text = 'No Verificado';
             $check = '';
             if (isset($item['verified']) && $item['verified'] != 0) {
-                $state = true;
+                $state = 'true';
                 $text = 'Verificado';
                 $check = 'checked="checked"';
             }
@@ -779,9 +791,9 @@ class CollectionsController extends ControllerClass
                         <label>                          
                             <input type="checkbox" id="' . $item['id'] . '-verify_' . $item['collection_id'] . '"';
             if (!is_null($item['id']) && !empty($item['id'])) {
-                $verify .= ' onclick="verifyCollection(' . $item['id'] . ',' . $item['collection_id'] . ',\'' . $state . '\')"';
+                $verify .= ' onclick="verifyCollection(' . $item['id'] . ',' . $item['collection_id'] . ',' . $state . ')"';
             } else {
-                $verify .= ' onclick="verifyCollection(' . $item['id'] . ',null,\'' . $state . '\')"';
+                $verify .= ' onclick="verifyCollection(' . $item['id'] . ',null,' . $state . ')"';
             }
             $verify .= 'data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '/>
                             <span class="lever"></span> 
@@ -1158,7 +1170,6 @@ class CollectionsController extends ControllerClass
     }
     private function setVerification($data): array
     {
-        /* id_collection:collection,id_common:common,current:state */
         $this->model->id = ($data['id_collection']) ?? null;
         //$this->model->id_store = ($data['id_common']) ?? null;
         $state = ($data['current']) ?? false;
@@ -1169,16 +1180,7 @@ class CollectionsController extends ControllerClass
             $result = $this->model->setVerification('set_common', $state);
             if (!empty($result['error'])) return $result;
         }
-        return $this->messenger->messageBuilder(
-            'alert',
-            $this->messenger->build(
-                'message',
-                [
-                    'code' => "00200",
-                    'message' => "Petición realizada con éxito"
-                ]
-            )
-        );
+        return $result;
     }
     private function syncData($values)
     {
