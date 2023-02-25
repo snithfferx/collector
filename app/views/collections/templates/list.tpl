@@ -74,7 +74,7 @@
                         </form>
                         <div class="row">
                             <div class="col-12">
-<table class="table table-striped table-bordered" style="width:100%" id="collectionsList">
+                                <table class="table table-striped table-bordered" style="width:100%" id="collectionsList">
                                     <thead class="thead-dark">
                                         <tr>
                                             <th class="text-uppercase font-weight-bolder text-center">ID Tienda</th>
