@@ -84,9 +84,9 @@ class CollectionModel extends ContextClass
     {
         return $this->create('collection');
     }
-    public function find()
+    public function find($fields = "all")
     {
-        return $this->getLocalCollections();
+        return $this->getLocalCollections($fields);
     }
     public function search($value)
     {
@@ -126,7 +126,7 @@ class CollectionModel extends ContextClass
         }
         return $result;
     } */
-    private function getCommonNames(): array
+    private function getCommonNames($fields): array
     {
         $this->base = "inventario";
         $query = [
