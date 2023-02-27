@@ -16,7 +16,7 @@
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <a class="dropdown-item" href="/collections/read">Lista</a>
-                        <a class="dropdown-item" href="/collections/compare">Comparar</a>
+                        <a class="dropdown-item" href="/collections/download">Descargar</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="http://10.0.10.35/Views/colecciones.php">Admin</a>
                     </div>
@@ -24,9 +24,13 @@
                 {{* <a class="nav-item nav-link" href="http://10.0.10.35/Views/actualizacion.php">Actualización
                     <b><span id="spannotupdated" class="badge badge-warning" style="color: white"></span></b>
                 </a> *}}
-                <a class="nav-item nav-link" href="/orders/admin">Ordenes<b><span id="lastOrders"
-                            class="badge badge-warning" style="color: white"></span></b></a>
-                <a class="nav-item nav-link" href="/products/admin">Edicion en masa</a>
+                <a class="nav-item nav-link" href="/orders/index">
+                    Ordenes
+                    <b>
+                        <span id="lastOrders" class="badge badge-warning" style="color: white"></span>
+                    </b>
+                </a>
+                <a class="nav-item nav-link" href="/products/index">Edicion en masa</a>
             </div>
         </div>
     </nav>
