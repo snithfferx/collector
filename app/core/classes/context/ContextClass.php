@@ -115,7 +115,7 @@ class ContextClass extends ConnectionClass
     protected function calculate(string $table, string $function = 'count', string $field = 'id', array $cond = null): array
     {
         if (empty($table)) {
-            return ['error' => ['code' => 400, 'message' => "A table name is need it."], 'data' => array()];
+            return ['error' => ['code' => '00400', 'message' => "A table name is need it."], 'data' => array()];
         } else {
             return $this->getDBDataFunction($function, $table, $field, $cond);
         }
@@ -188,7 +188,7 @@ class ContextClass extends ConnectionClass
             }
             $query_request .= " ;";
         } else {
-            return ['data'  => array(), 'error' => ['code' => 400, 'message' => "The statement is not admited"]];
+            return ['data'  => array(), 'error' => ['code' => '00400', 'message' => "The statement is not admited"]];
         }
         $result = $this->getResponse($type, ['prepare_string' => $query_request, 'params' => $query_Values], $this->base);
         return $this->interpreter($type, $result);

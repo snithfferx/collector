@@ -261,7 +261,7 @@
             return $this->sessionKiller();
         }
         public function __destruct() {
-            $this->sessionUser = null;
+            if (isset($this->sessionUser)) unset($this->sessionUser);
         }
 
         protected function setTimeOut($time = 0, $limit = true) {
