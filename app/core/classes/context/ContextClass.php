@@ -322,17 +322,25 @@ class ContextClass extends ConnectionClass
      */
     private function interpreter(string $type, array $result): array
     {
+        $error = array();
+        $data =  array();
         if (isset($result['error']['code']) && !empty($result['error']['code'])) {
             return ['data' => [], 'error' => $result['error']];
         } else {
             if ($type == "select") {
-                return ['data' => $result['rows'], 'error' => []];
+                $data = $result['rows'];
             } elseif ($type == "insert") {
-                return ['data' => $result['lastid'], 'error' => []];
+                $data = $result['lastid'];
             } else {
-                return ['data'  => $result['affedted'], 'error' => $result['error']];
+                $data = $result['affected'];
+            }
+            if (isset($result['error']['extra'])) {
+                if ($result['error']['extra'][0] != "00000") {
+                    $error = $result['error']['extra'];
+                }
             }
         }
+        return ['data'=>$data,'error'=>$error];
     }
     private function conditions(array $arreglo): array
     {
