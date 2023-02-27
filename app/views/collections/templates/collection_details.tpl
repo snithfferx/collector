@@ -170,9 +170,6 @@
             </div>
         </div>
     </div>
-    <pre>
-    {{var_dump($data.content.datos)}}
-    </pre>
 {{/block}}
 {{block name="scripts"}}
     <script>

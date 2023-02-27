@@ -103,16 +103,22 @@ class CollectionsController extends ControllerClass
      * Cambia el valor de verificación de una colección en la base de datos
      * @param mixed $values Contiene los datos necesarios para realizar la verificación de una colección.
      * ['id_collection' ID de la colección,'id_common' ID del nombre común,'current' Estado actual de la verificaión]
-     * @return void
+     * @return array
      */
     public function verify($values)
     {
         return $this->collectionVerified($values);
     }
-    public function download()
+    public function download($val)
     {
-        $result = $this->getdownloadedCollections();
-        return $this->createViewData('collections/Downloadedlist', $result);
+        if (!empty($val)) {
+            if ($val == "proceed") {
+                return $this->getdownloadedCollections();
+            } else {
+                return $this->getCheckDownloads();
+            }
+        }
+        return $this->createViewData('collections/Downloadedlist');
     }
     public function fill($value)
     {
@@ -216,7 +222,9 @@ class CollectionsController extends ControllerClass
         }
         return $result;
     }
-
+    protected function getCheckDownloads () {
+        return $this->checkDownloadProgress();
+    }
 
 
 
@@ -335,7 +343,7 @@ class CollectionsController extends ControllerClass
             return $this->searchCollections();
         }
     }
-    protected function collectionVerified($values)
+    protected function collectionVerified($values) :array
     {
         $result = $this->setVerification($values);
         if (!empty($result['error'])) {
@@ -1287,6 +1295,17 @@ class CollectionsController extends ControllerClass
             } else {
                 return $cn;
             }
+        }
+    }
+    private function checkDownloadProgress () {
+        $result = $this->model->calcular('collections');
+        if (!empty($result['error'])) {
+            return $result;
+        } else {
+            return [
+                'data'=>$result['data'][0]['res'],
+                'erro'=>[]
+            ];
         }
     }
 }
