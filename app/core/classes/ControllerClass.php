@@ -251,35 +251,50 @@ class ControllerClass
     }
     protected function createBreadcrumbs(string|array $values): array
     {
+        $routes = array();
+        $mdl = 'home';
+        $ctr = 'home';
+        $mtd = 'index';
+        $prm = null;
         if (is_string($values)) {
             $name = explode("/", $values);
-            $mdl = $name[0];
-            $ctr = $name[0];
-            $mtd = $name[1];
+            if (sizeof($name) > 2) {
+                $mdl = $name[0];
+                $ctr = $name[0];
+                $mtd = $name[1];
+            } else {
+                $mdl = $name[0];
+                $ctr = $name[0];
+                $mtd = "index";
+            }
+            array_push($routes, [
+                'text' => $mdl,
+                'controller' => $ctr,
+                'method' => $mtd,
+                'param' => $prm
+            ]);
         } else {
-            $name = explode("/", $values['view']);
-            $mdl = $name[0];
-            $ctr = $name[0];
-            $prm = (isset($values['params']['id'])) ? $values['params']['id'] : $values['params'];
-            $mtd = $values['method'];
+            if (isset($values['view'])) $name = explode("/", $values['view']);
+            if (sizeof($name) > 1) {
+                $mdl = $name[0];
+                $ctr = $name[0];
+            }
+            foreach ($values['children'] as $child) {
+                $mdl = ($child['main']) ?? $child['module'];
+                $ctr = $child['module'];
+                $mtd = $child['method'];
+                if (isset($child['params'])) $prm = $child['params'];
+                array_push($routes, [
+                    'text' => $mdl,
+                    'controller' => $ctr,
+                    'method' => $mtd,
+                    'param' => $prm
+                ]);
+            }
         }
         return [
             'main' => $mdl,
-            'routes' => [
-                [
-                    'text' => $mdl,
-                    'controller' => $mdl,
-                    'method' => 'read',
-                    'param' => null
-                ],
-                [
-                    'text' => $mdl,
-                    'controller' => $ctr,
-                    'method' => $mtd ?? null,
-                    'param' => $prm ?? null
-                ]
-            ]
+            'routes' => $routes
         ];
-        /* ['text' => 'home', 'controller' => 'home', 'method' => 'index', 'param' => []] */
     }
 }
