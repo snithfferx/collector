@@ -154,7 +154,7 @@ class MessengerHelper
             $subtitle = (isset($data['subtitle'])) ? $data['subtitle'] : "";
             $image = (isset($data['image'])) ? $data['image'] : "";
             $image_alt = (isset($data['image_alt'])) ? $data['image_alt'] : "";
-            $icon = (isset($data['icon'])) ? "fas fa-$data[icon]" : "fas fa-info-circle";
+            $icon = (isset($data['icon'])) ? "fas $data[icon]" : "fa-info-circle";
             switch ($data['type']) {
                 case "error":
                     $tipo = "error";
@@ -226,8 +226,9 @@ class MessengerHelper
                         'color' => "text-info",
                         'name' => "Aviso de ejecuci&oacute;n",
                         'code' => (isset($values['code'])) ? $values['code'] : "100",
-                        'icon' => "fas fa-info-circle",
-                        'type' => "info"
+                        'icon' => "fa-info-circle",
+                        'type' => "information",
+                        'title'=> "¡Aviso!"
                     ];
                     break;
                 case 'warning':
@@ -235,8 +236,9 @@ class MessengerHelper
                         'color' => "text-warning",
                         'name' => "Alerta de ejecuci&oacute;n",
                         'code' => (isset($values['code'])) ? $values['code'] : "204",
-                        'icon' => "fas fa-exclamation-circle",
-                        'type' => "warning"
+                        'icon' => "fa-exclamation-circle",
+                        'type' => "warning",
+                        'title'=> "¡Alerta!"
                     ];
                     break;
                 case 'error':
@@ -244,8 +246,9 @@ class MessengerHelper
                         'color' => "text-danger",
                         'name' => "Alerta de ejecuci&oacute;n",
                         'code' => (isset($values['code'])) ? $values['code'] : "404",
-                        'icon' => "fas fa-exclamation-triangle",
-                        'type' => "error"
+                        'icon' => "fa-exclamation-triangle",
+                        'type' => "error",
+                        'title'=> "¡Error!"
                     ];
                     break;
                 default:
@@ -253,8 +256,9 @@ class MessengerHelper
                         'color' => "text-primary",
                         'name' => "Aviso",
                         'code' => (isset($values['code'])) ? $values['code'] : "409",
-                        'icon' => "fas fa-info",
-                        'type' => "success"
+                        'icon' => "fa-info",
+                        'type' => "success",
+                        'title'=> "¡Exito!"
                     ];
                     break;
             }
@@ -263,7 +267,7 @@ class MessengerHelper
                 'color' => "text-danger",
                 'name' => "Error de ejecuci&oacute;n",
                 'code' => "10-500",
-                'icon' => "fas fa-exclamation-triangle",
+                'icon' => "fa-exclamation-triangle",
                 'type' => "error"
             ];
             $extra = "El servidor a retornado un error en ejecución.<br>Verifique la información he intente nuevamente.";
@@ -275,7 +279,7 @@ class MessengerHelper
         } else {
             if (isset($values['values'])) $extra .= "<br>" . $values['values'];
         }
-        $response['mensaje'] = (isset($values['mensaje'])) ? $values['mensaje'] : "Ha ocurrido un error al realizar su consulta.";
+        $response['message'] = (isset($values['message'])) ? $values['message'] : "Ha ocurrido un error al realizar su consulta.";
         $response['extra']   = $extra;
         return $response;
     }
