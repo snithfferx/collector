@@ -352,6 +352,7 @@ class CollectionsController extends ControllerClass
             $msg = $this->messenger->build(
                 'message',
                 [
+                    'type'=>"success",
                     'code' => "00200",
                     'message' => "Petición realizada con éxito"
                 ]
@@ -797,13 +798,9 @@ class CollectionsController extends ControllerClass
             }
             $verify = '<div class="switch">
                         <label>                          
-                            <input type="checkbox" id="' . $item['id'] . '-verify_' . $item['collection_id'] . '"';
-            if (!is_null($item['id']) && !empty($item['id'])) {
-                $verify .= ' onclick="verifyCollection(' . $item['id'] . ',' . $item['collection_id'] . ',' . $state . ')"';
-            } else {
-                $verify .= ' onclick="verifyCollection(' . $item['id'] . ',null,' . $state . ')"';
-            }
-            $verify .= 'data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '/>
+                            <input type="checkbox" id="' . $item['collection_id'] . '-verify_' . $item['collection_id'] . '"
+                             onclick="verifyCollection(' . $item['collection_id'] . ',' . $state . ')" data-toggle="tooltip" 
+                             data-placement="top" title="' . $text . '" ' . $check . '/>
                             <span class="lever"></span> 
                         </label>
                     </div>';
@@ -1182,12 +1179,12 @@ class CollectionsController extends ControllerClass
         //$this->model->id_store = ($data['id_common']) ?? null;
         $state = ($data['current']) ?? false;
         $result = $this->model->setVerification('set_collection', $state);
-        if (!empty($result['error'])) return $result;
+        /* if (!empty($result['error'])) return $result;
         if (!is_null($data['id_common'])) {
             $this->model->id = ($data['id_common']) ?? null;
             $result = $this->model->setVerification('set_common', $state);
             if (!empty($result['error'])) return $result;
-        }
+        } */
         return $result;
     }
     private function syncData($values)

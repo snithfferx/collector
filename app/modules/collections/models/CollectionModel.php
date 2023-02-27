@@ -892,31 +892,44 @@ class CollectionModel extends ContextClass
     }
     private function setVerificationCollection($value = false)
     {
-        if ($value === false) {
+        if ($value === false || $value === 'false') {
             if (!is_null($this->id) && !empty($this->id)) {
                 $query = [
                     'fields' => ['verified'],
-                    'values' => [true],
+                    'values' => [1],
                     'params' => [
-                        'type' => "COMPARE",
-                        'table' => "temp_shopify_collector",
-                        'field' => "id",
-                        'value' => $this->id
+                        'condition' => [
+                            [
+                                'type' => "COMPARE",
+                                'table' => "temp_shopify_collector",
+                                'field' => "collection_id",
+                                'value' => $this->id
+                            ]
+                        ], 'separator' => array()
+                    ]
+                ];
+            } else {
+                return [
+                    'error' => [
+                        'code' => "00400",
+                        'message' => "La información está incompleta o es erronea"
                     ]
                 ];
             }
         } else {
             $query = [
-                'fields' => ['verified'
-                ],
-                'values' => [false],
+                'fields' => ['verified'],
+                'values' => [0],
                 'params' => [
-                    'condition' =>[
-                    ['type' => "COMPARE",
-                    'table' => "temp_shopify_collector",
-                    'field' => "id",
-                    'value' => $this->id]
-                    ],'separator' =>array()]
+                    'condition' => [
+                        [
+                            'type' => "COMPARE",
+                            'table' => "temp_shopify_collector",
+                            'field' => "collection_id",
+                            'value' => $this->id
+                        ]
+                    ], 'separator' => array()
+                ]
             ];
         }
         return $this->update("temp_shopify_collector", $query);
