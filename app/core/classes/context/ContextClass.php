@@ -5,8 +5,8 @@ namespace app\core\classes\context;
 /**
  * Clase para las transacciones entre los modelos y la base de datos.
  * @author Jorge Echeverria <jecheverria@bytes4run.com>
- * @version 1.2.3
- * 19/01/23
+ * @version 1.2.5
+ * 19/01/23 - 25/02/23
  */
 class ContextClass extends ConnectionClass
 {
