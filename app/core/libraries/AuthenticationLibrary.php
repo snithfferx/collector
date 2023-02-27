@@ -75,8 +75,8 @@
          */
         public function __destruct()
         {
-            $this->sessionUser = null;
-            $this->tokenator = null;
+            if (isset($this->sessionUser)) unset($this->sessionUser);
+            if (isset($this->tokenator)) unset($this->tokenator);
         }
         /**
          * Revisa sí el tiempo de la sesion se ha agotado

@@ -85,8 +85,12 @@ class LoaderClass
     }
     function terminate(): void
     {
-        $this->controller = null;
-        $this->userAlive = null;
+        if (isset($this->controller)) unset($this->controller);
+        if (isset($this->userAlive)) unset($this->userAlive);
+        if (isset($this->auth)) unset($this->auth);
+        if (isset($this->viewBuilder)) unset($this->viewBuilder);
+        if (isset($this->messenger)) unset($this->messenger);
+        if (isset($this->route)) unset($this->route);
     }
     private function renderView($values): string
     {
