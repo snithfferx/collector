@@ -5,8 +5,8 @@
  * @category Clase
  * @author JEcheverria <jecheverria@bytes4run.com>
  * @api SHOPINGUI
- * @version 1.2.0
- * 10-01-2023/25-02-2023
+ * @version 1.5.2
+ * 10-01-2023/27-02-2023
  */
 
 namespace app\core\classes\context;
@@ -16,7 +16,6 @@ use app\core\helpers\ConfigHelper;
 class ConnectionClass
 {
     private $globalConf;
-    private $ds_context;
     private $conexion;
     private $host;
     private $port;
@@ -29,14 +28,16 @@ class ConnectionClass
         try {
             $this->conexion = new \PDO($db_DNS, $this->user, $this->password);
             $this->conexion->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-            return $this->conexion;
         } catch (\PDOException $excepcion) {
-            return [
-                'error' => "Error: " . $excepcion->getMessage(),
-                'linea' => "Linea del error: " . $excepcion->getLine(),
-                'file' => "Componente: " . $excepcion->getFile()
+            $this->conexion = [
+                'code' => "00500",
+                'message' => "Error: " . $excepcion->getMessage() . "\nCode: " . $excepcion->getCode(),
+                'extra'=>[
+                    'linea' => "Linea del error: " . $excepcion->getLine(),
+                    'file' => "Componente: " . $excepcion->getFile()]
             ];
         }
+        return $this->conexion;
     }
     private function getDBResponse($query, $type, $base = null)
     {
@@ -46,33 +47,38 @@ class ConnectionClass
         $id = null;
         $rows = null;
         if ($this->getConfig($base)) {
-            //$this->ds_context = ($base != null) ? $this->stablish_connection($base) : $this->stablish_connection($this->dbName);
             $this->stablish_connection();
-            if (is_array($this->ds_context)) {
-                $errors = $this->ds_context;
+            if (is_array($this->conexion)) {
+                $errors = $this->conexion;
             } else {
                 if (!empty($type)) {
                     $pdo_Statement = $this->conexion->prepare($query['prepare_string']);
                     if ($type == 'insert' || $type == 'update' || $type == 'delete') {
                         try {
-                            $pdo_Statement->execute($query['params']);
-                            if ($type == 'insert') $id = $this->conexion->lastInsertId();
+                            if ($pdo_Statement->execute($query['params'])) {
+                                if ($type == 'insert') $id = $this->conexion->lastInsertId();
+                                if ($type == 'update') $affected = $pdo_Statement->rowCount();
+                            } else {
+                                throw new \Exception("Query not executed correctly, verify statement.", 1);
+                            }
                         } catch (\PDOException $th) {
                             $errors = [
                                 'code' => "00500",
                                 'message' => "Error:&nbsp;&nbsp;&nbsp;" . $th->getMessage()
+                                    . "\nCode: " . $th->getCode()
                             ];
                         }
-                        $id = null; //$this->ds_context->lastInsertId();
                     } elseif ($type == 'select') {
                         try {
                             $pdo_Statement->execute($query['params']);
                             $pdo_Statement->setFetchMode(\PDO::FETCH_ASSOC);
+                            //$raw = $pdo_Statement->fetch(\PDO::FETCH_ASSOC);
                             $rows = $pdo_Statement->fetchAll();
                         } catch (\PDOException $th) {
                             $errors = [
                                 'code' => "00500",
                                 'message' => "Error:&nbsp;&nbsp;&nbsp;" . $th->getMessage()
+                                    . "\nCode: " . $th->getCode()
                             ];
                         }
                     } else {
@@ -81,7 +87,8 @@ class ConnectionClass
                             'message' => "Falta un tipo de consulta.",
                         ];
                     }
-                    //$errors['extra'] = $this->ds_context->errorInfo();
+                    $errors['extra'] = $pdo_Statement->errorInfo();
+                    $pdo_Statement->closeCursor();
                 } else {
                     $errors = [
                         'code' => "00500",
@@ -97,8 +104,8 @@ class ConnectionClass
         }
         $retorna = [
             'error'  => $errors,
-            'row_aff' => $affected,
-            'id_row'  => $id,
+            'affected' => $affected,
+            'lastid'  => $id,
             'rows'    => $rows
         ];
         return $retorna;
