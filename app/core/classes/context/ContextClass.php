@@ -5,8 +5,8 @@ namespace app\core\classes\context;
 /**
  * Clase para las transacciones entre los modelos y la base de datos.
  * @author Jorge Echeverria <jecheverria@bytes4run.com>
- * @version 1.2.5
- * 19/01/23 - 25/02/23
+ * @version 1.2.6
+ * 19/01/23 - 27/02/23
  */
 class ContextClass extends ConnectionClass
 {
@@ -177,20 +177,6 @@ class ContextClass extends ConnectionClass
                     array_push($query_Values, $vals);
                 }
             }
-            /* $pspt = preg_split('/([,|;|~])/', $params, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-            foreach ($pspt as $ps) {
-                if ($ps == ",") {
-                    $query_request .= " AND ";
-                } elseif ($ps == ";") {
-                    $query_request .= " OR ";
-                } elseif ($ps == "~") {
-                    $query_request .= " LIKE ";
-                } else {
-                    $pair = explode(":", $ps);
-                    $query_request .= "$pair[0] ?";
-                    array_push($query_Values, $pair[1]);
-                }
-            } */
             $query_request .= " ;";
         } elseif ($type == 'delete') {
             $query_request = "DELETE FROM `$table`";
@@ -200,20 +186,6 @@ class ContextClass extends ConnectionClass
                 $query_request .= $conditions['cadena'];
                 $query_Values = $conditions['valores'];
             }
-            /* $pspt = preg_split('/([,|;|~])/', $params, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-            foreach ($pspt as $ps) {
-                if ($ps == ",") {
-                    $query_request .= " AND ";
-                } elseif ($ps == ";") {
-                    $query_request .= " OR ";
-                } elseif ($ps == "~") {
-                    $query_request .= " LIKE ";
-                } else {
-                    $pair = explode(":", $ps);
-                    $query_request .= "$pair[0] ?";
-                    array_push($query_Values, $pair[1]);
-                }
-            } */
             $query_request .= " ;";
         } else {
             return ['data'  => array(), 'error' => ['code' => 400, 'message' => "The statement is not admited"]];
@@ -274,65 +246,6 @@ class ContextClass extends ConnectionClass
             $conditions = $this->conditions($query['params']);
             $string .= $conditions['cadena'];
             $values = $conditions['valores'];
-            /* $condiciones = $query['params']['condition'];
-            //$condiciones = preg_split('/([,|;|~|#])/', $params, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-            $isLike = false;
-            foreach ($condiciones as $indice => $condicion) {
-                if ($indice > 0) {
-                    $separador = ($query['params']['separator'][($indice - 1)]) ?? null;
-                    if (isset($separador) && !is_null($separador)) {
-                        switch ($separador) {
-                            case "Y":
-                                $string .= " AND ";
-                                break;
-                            case "O":
-                                $string .= " OR ";
-                                break;
-                        }
-                    }
-                }
-                $string .= $condicion['table'] . '.' . $condicion['field'];
-                if ($condicion['type'] == 'COMPARE') {
-                    $string .= ' = ? ';
-                } elseif ($condicion['type'] == 'SIMILAR') {
-                    $string .= " LIKE CONCAT('%', ?, '%') ";
-                } elseif ($condicion['type'] == 'RANGO') {
-                    $string .= ' BETWEEN ? AND ? ';
-                }
-                array_push($values, $condicion['value']);
-                /* default:
-                        if ($isLike === true) {
-                            //$pair = explode(":", $cond);
-                            //if (count($pair) > 1) {
-                                $string .= "CONCAT('%', ?, '%')";
-                                array_push($values, $pair[1]);
-                            } else {
-                                $string .= "$pair[0]";
-                            }
-                        } else {
-                            $pairCond = explode(".", $cond);
-                            $string .= "`$pairCond[0]`.";
-                            $oprtCond = preg_split('/([\=<>])|(\'<=\')|(\'>=\')|(\'!=\')/', $pairCond[1], -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-                            if (count($oprtCond) > 1) {
-                                foreach ($oprtCond as $value) {
-                                    if ($value == "=" || $value == "<" || $value == ">" || $value == "<=" || $value == ">=" || $value == "!=") {
-                                        $string .= $value;
-                                    } else {
-                                        $pair = explode(":", $value);
-                                        if (count($pair) > 1) {
-                                            $string .= " ?";
-                                            array_push($values, $pair[1]);
-                                        } else {
-                                            $string .= "`$pair[0]`";
-                                        }
-                                    }
-                                }
-                            } else {
-                                $string .= "`$pairCond[1]`";
-                            }
-                        }
-                    } 
-            } */
         }
         if ($order != '' and $orderby != '') {
             if ($order != NULL and $orderby != NULL) {
@@ -397,84 +310,6 @@ class ContextClass extends ConnectionClass
             foreach ($conditions['valores'] as $item) {
                 array_push($values, $item);
             }
-            /* $pspt = preg_split('/([,|;|~|#])/', $condicion, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-            $isLike = false;
-            foreach ($pspt as $ps) {
-                switch ($ps) {
-                    case ",":
-                        $string .= " AND ";
-                        break;
-                    case ";":
-                        $string .= " OR ";
-                        break;
-                    case "~":
-                        $string .= " LIKE ";
-                        $isLike = true;
-                        break;
-                    case "#":
-                        $string .= " BETWEEN ";
-                        break;
-                    default:
-                        if ($isLike === true) {
-                            $pair = explode(":", $ps);
-                            if (count($pair) > 1) {
-                                $string .= "CONCAT('%', ?, '%')";
-                                array_push($values, $pair[1]);
-                            } else {
-                                $string .= "$pair[0]";
-                            }
-                        } else {
-                            $pairCond = explode(".", $ps);
-                            $string .= "`$pairCond[0]`.";
-                            $oprtCond = preg_split('/([\=<>])|(\'<=\')|(\'>=\')|(\'!=\')/', $pairCond[1], -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-                            if (count($oprtCond) > 1) {
-                                foreach ($oprtCond as $value) {
-                                    if ($value == "=" || $value == "<" || $value == ">" || $value == "<=" || $value == ">=" || $value == "!=") {
-                                        $string .= $value;
-                                    } else {
-                                        $pair = explode(":", $value);
-                                        if (count($pair) > 1) {
-                                            $string .= " ?";
-                                            array_push($values, $pair[1]);
-                                        } else {
-                                            $string .= "`$pair[0]`";
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                }
-            } */
-            /* foreach ($condicion['condition'] as $indice => $cond) {
-                if ($indice > 0) {
-                    $separador = ($condicion['separator'][($indice - 1)]) ?? null;
-                    if (isset($separador) && !is_null($separador)) {
-                        switch ($separador) {
-                            case "Y":
-                                $string .= " AND ";
-                                break;
-                            case "O":
-                                $string .= " OR ";
-                                break;
-                        }
-                    }
-                }
-                $string .= $cond['table'] . '.' . $cond['field'];
-                if ($cond['type'] == 'COMPARE') {
-                    $string .= ' = ? ';
-                } elseif ($cond['type'] == 'SIMILAR') {
-                    $string .= " LIKE CONCAT('%', ?, '%') ";
-                } elseif ($cond['type'] == 'RANGO') {
-                    $string .= ' BETWEEN ? AND ? ';
-                }
-                if ($cond['type'] != 'RANGO') {
-                    array_push($values, $condicion['value']);
-                } else {
-                    foreach ($condicion['value'] as $item) {
-                        array_push($values, $item);
-                    }
-                }
-            } */
         }
         $string .= ";";
         return $this->interpreter('select', $this->getResponse('select', ['prepare_string' => $string, 'params' => $values], $this->base));
@@ -487,16 +322,15 @@ class ContextClass extends ConnectionClass
      */
     private function interpreter(string $type, array $result): array
     {
-        if (isset($result['error'])) {
-            // && $result['error']['code'] != 0
+        if (isset($result['error']['code']) && !empty($result['error']['code'])) {
             return ['data' => [], 'error' => $result['error']];
         } else {
             if ($type == "select") {
                 return ['data' => $result['rows'], 'error' => []];
             } elseif ($type == "insert") {
-                return ['data' => $result['id_row'], 'error' => []];
+                return ['data' => $result['lastid'], 'error' => []];
             } else {
-                return ['data'  => $result['row_aff'], 'error' => $result['error']];
+                return ['data'  => $result['affedted'], 'error' => $result['error']];
             }
         }
     }
