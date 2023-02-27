@@ -21,11 +21,13 @@ function alertaPopUp(data,type = null) {
                 clase = "bg-primary";
             }
         } else if (data.class != null || data.class != "") {
+            type = data.type;
             clase = data.class;
         } else {
+            type = 'info'
             clase = "bg-alert";
         }
-        $(document).toast(`
+        /* $(document).Toasts(`
             <div role="alert" aria-live="assertive" aria-atomic="true" class="toast">
                 <div class="toast-header">
                     <img src="..." class="rounded mr-2" alt="...">
@@ -45,8 +47,33 @@ function alertaPopUp(data,type = null) {
             delay    : retraso,
             body     : cuerpo,
             icon     : icono,
-        });
-        
+        }); */
+        Command: toastr[type](`
+            <div role="alert" aria-live="assertive" aria-atomic="true" class="clase">
+                <div class="toast-header">
+                    <strong class="mr-auto">${titulo}</strong>
+                    <small>${subtitulo}</small>
+                </div>
+                <div class="toast-body">
+                    ${cuerpo}
+                </div>
+            </div>`)
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "showDuration": "300",
+            "hideDuration": retraso,
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "show",
+            "hideMethod": "fadeOut"
+        }
     } else {
         console.log(data);
     }

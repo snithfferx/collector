@@ -632,27 +632,21 @@
                     },
                     complete: function () {
                         $("#spinger").hide();
-                        toastr.success('Data acquiried..')
+                        alertaPopUp({title:"¡Exito!",body:'Data acquiried..'},'success');
                     }
                 });
             }
-            function verifyCollection (collection,common,state) {
+            function verifyCollection (collection,state) {
                 $.ajax({
                     url: '/collections/verify',
                     type: 'POST',
-                    data: {id_collection:collection,id_common:common,current:state},
+                    data: {id_collection:collection,current:state},
                     beforeSend : function () {
                         $("#spinger").show();
                     },
                     success: function(r) {
-                        //result = JSON.parse(r);
-                        //collections = result.collections;
-                        //hasPages(result.pagination);
-                        //collectionsTable.clear();
-                        //collectionsTable.rows.add(collections).draw();
-                        if (result.error != undefined) {
-                            alertaPopUp(result);
-                        }
+                        result = JSON.parse(r);
+                        alertaPopUp(result);
                     },
                     complete: function () {
                         $("#spinger").hide();
