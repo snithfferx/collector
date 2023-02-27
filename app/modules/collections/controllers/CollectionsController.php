@@ -159,6 +159,7 @@ class CollectionsController extends ControllerClass
      */
     public function delete($values)
     {
+        $result = $this->deleteElement($values);
         return $this->createViewData('collections/delete');
     }
     /**
@@ -222,10 +223,26 @@ class CollectionsController extends ControllerClass
         }
         return $result;
     }
-    protected function getCheckDownloads () {
+    protected function getCheckDownloads()
+    {
         return $this->checkDownloadProgress();
     }
-
+    protected function deleteElement(array $values): array
+    {
+        $this->model->id = $values['id'];
+        $result = $this->model->delete($values['where']);
+        if (!empty($result['error'])) {
+            return [
+                'data'=>$result['data'],
+                'error'=>$this->messenger->build('error',[]),
+            ];
+        } else {
+            return [
+                'data'=>$result['data'],
+                'message'=>$this->messenger->build('message',[]),
+                'error'=>[]];
+        }
+    }
 
 
 
@@ -343,22 +360,22 @@ class CollectionsController extends ControllerClass
             return $this->searchCollections();
         }
     }
-    protected function collectionVerified($values) :array
+    protected function collectionVerified($values): array
     {
         $result = $this->setVerification($values);
         if (!empty($result['error'])) {
-            $msg = $this->messenger->build('message',$result['error']);
+            $msg = $this->messenger->build('message', $result['error']);
         } else {
             $msg = $this->messenger->build(
                 'message',
                 [
-                    'type'=>"success",
+                    'type' => "success",
                     'code' => "00200",
                     'message' => "Petición realizada con éxito"
                 ]
             );
         }
-        return $this->messenger->messageBuilder('alert',$msg);
+        return $this->messenger->messageBuilder('alert', $msg);
     }
     protected function syncronizeCollection($values)
     {
@@ -1294,14 +1311,15 @@ class CollectionsController extends ControllerClass
             }
         }
     }
-    private function checkDownloadProgress () {
+    private function checkDownloadProgress()
+    {
         $result = $this->model->calcular('collections');
         if (!empty($result['error'])) {
             return $result;
         } else {
             return [
-                'data'=>$result['data'][0]['res'],
-                'erro'=>[]
+                'data' => $result['data'][0]['res'],
+                'erro' => []
             ];
         }
     }
