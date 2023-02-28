@@ -125,6 +125,18 @@ class CollectionsController extends ControllerClass
         $this->model->title = $value['term'];
         return $this->getDataFill();
     }
+    /**
+     * Summary of delete
+     * @param mixed $values
+     * @return array<array>
+     */
+    public function delete($values)
+    {
+        return $this->deleteElement($values);
+    }
+    public function confirmDeletation ($values) {
+        return $this->confirmation('delete',$values);
+    }
 
 
 
@@ -151,16 +163,6 @@ class CollectionsController extends ControllerClass
     public function update($values)
     {
         return $this->createViewData('collections/update');
-    }
-    /**
-     * Summary of delete
-     * @param mixed $values
-     * @return array<array>
-     */
-    public function delete($values)
-    {
-        $result = $this->deleteElement($values);
-        return $this->createViewData('collections/delete');
     }
     /**
      * Función que devuelve la lista de colecciones en comparativa
@@ -236,17 +238,27 @@ class CollectionsController extends ControllerClass
     protected function deleteElement(array $values): array
     {
         $this->model->id = $values['id'];
-        $result = $this->model->delete($values['where']);
+        $result = $this->model->deleteFrom($values['where']);
         if (!empty($result['error'])) {
             return [
                 'data'=>$result['data'],
                 'error'=>$this->messenger->build('error',[]),
             ];
         } else {
-            return [
-                'data'=>$result['data'],
-                'message'=>$this->messenger->build('message',[]),
-                'error'=>[]];
+            return $this->createViewData('collections/delete', $result,
+                $this->createBreadcrumbs([
+                'view'=> 'collections/delete',
+                'children'=>[
+                    ['main'=>"collections", 'module'=>"collections", 'method'=>"index"],
+                    ['module'=>"collections", 'method'=>"delete", 'params'=>$values]
+                ]]));;
+        }
+    }
+    protected function confirmation ($type,$values) {
+        if ($type == 'delete') {
+            foreach ($values as $checked) {
+                $this->model->confirmChange($checked);
+            }
         }
     }
 

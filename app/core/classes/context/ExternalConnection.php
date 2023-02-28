@@ -228,4 +228,12 @@ class ExternalConnection
         }
         return $response;
     }
+    /* DELETE
+    $variables = [
+    "input" => [
+            "id" => "gid://shopify/Collection/1009501285",
+        ],
+    ];
+    $response = $client->query(["query" => $query, "variables" => $variables]);
+    */
 }

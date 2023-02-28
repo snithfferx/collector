@@ -76,38 +76,6 @@ class ExternalContext extends ExternalConnection
         $fields = ($values['query']['fields']) ?? null;
         $element = $values['element'];
         $pluralized = $element . 's';
-        /*collections(first: 10) {
-            nodes {
-                handle
-                id
-                title
-                sortOrder
-                productsCount
-                ruleSet {
-                    rules {
-                        condition
-                        column
-                        relation
-                    }
-                }
-                metafields(first: 10) {
-                    nodes {
-                        id
-                        type
-                        createdAt
-                    }
-                }
-                seo {
-                    title
-                }
-            }
-            pageInfo {
-                startCursor
-                hasPreviousPage
-                hasNextPage
-                endCursor
-            }
-        } */
         $rules = implode("\n", ['relation', 'column', 'condition']);
         $meta_nodes = implode("\n", ['id', 'type', 'createdAt']);
         if (!is_null($fields) && !empty($fields)) {
@@ -149,4 +117,26 @@ class ExternalContext extends ExternalConnection
         $request .= '} } }';
         return $this->graphQLRequest($request);
     }
+    /* DELETE
+    $input = {
+    "input": {
+        "id": "gid://shopify/Collection/1009501285"
+        }
+    }
+    <<<QUERY
+        mutation collectionDelete($input: CollectionDeleteInput!) {
+            collectionDelete(input: $input) {
+            deletedCollectionId
+            shop {
+                id
+                name
+            }
+            userErrors {
+                field
+                message
+            }
+            }
+        }
+        QUERY;
+    */
 }
