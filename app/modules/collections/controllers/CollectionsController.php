@@ -197,7 +197,13 @@ class CollectionsController extends ControllerClass
                 $result = (strlen($value) > 4) ? $this->collectionById($value) : $this->commonNameById($value);
             }
             $viewName = 'collections/' . $result['view'];
-            $result = $this->createViewData($viewName, $result['collections']);
+            $result = $this->createViewData($viewName, $result,
+                $this->createBreadcrumbs([
+                'view'=>$viewName,
+                'children'=>[
+                    ['main'=>"collections", 'module'=>"collections", 'method'=>"index"],
+                    ['module'=>"collections", 'method'=>"read", 'params'=>$value]
+                ]]));
         } else {
             $result = $this->messenger->messageBuilder('alert', $this->messenger->build('error', ['code' => "00400", 'message' => $value]));
         }
@@ -481,7 +487,11 @@ class CollectionsController extends ControllerClass
     private function commonNameById(int|string $value): array
     {
         if (is_string($value)) {
-            $this->model->title = $value;
+            if (is_numeric($value)) {
+                $this->model->id = $value;    
+            } else {
+                $this->model->title = $value;
+            }
         } else {
             $this->model->id = $value;
         }
@@ -494,20 +504,11 @@ class CollectionsController extends ControllerClass
                 $collection = $this->model->get('collection', 'all');
                 if (empty($collection['error']) && !empty($collection['data'])) {
                     foreach ($collection['data'] as $i => $col) {
-                        if (isset($data[$col['id']])) {
-                            $data[$col['id']]['common'][] = $nombre;
+                        if (isset($data[$col['collection_id']])) {
+                            $data[$col['collection_id']]['common'][] = $nombre;
                         } else {
-                            $data[$col['id']] = [
-                                'store_id' => $col['id'],
-                                'store_seo' => ($col['seo']) ?? null,
-                                'sort_order' => ($col['sort']) ?? null,
-                                'store_meta' => ($col['meta']) ?? null,
-                                'store_title' => ($col['title']) ?? null,
-                                'store_handle' => ($col['handle']) ?? null,
-                                'product_count' => ($col['products']) ?? null,
-                                'collection_type' => (!empty($col['rules'])) ? 'Smart' : 'Custom',
-                                'common' => $nombre
-                            ];
+                            $data[$col['collection_id']] = $col;
+                            $data[$col['collection_id']]['common'][] = $nombre;
                         }
                     }
                 } else {
@@ -515,27 +516,33 @@ class CollectionsController extends ControllerClass
                         $data['No asignado']['common'][] = $nombre;
                     } else {
                         $data['No asignado'] = [
-                            'store_id' => null,
-                            'store_seo' => null,
-                            'sort_order' => null,
+                            'id' => null,
+                            'seo' => null,
+                            'sortr' => null,
                             'store_meta' => null,
-                            'store_title' => null,
-                            'store_handle' => null,
-                            'product_count' => null,
-                            'collection_type' => null,
+                            'title' => null,
+                            'handle' => null,
+                            'products' => null,
+                            'rules' => null,
                             'common' => $nombre
                         ];
                     }
                 }
-                $response[] = $data;
             }
+            $response = [
+                'view' => "detail",
+                'collections' => $data,
+                'error' => []
+            ];
             $this->unsetVars(['k', 'collection', 'nombre', 'i', 'col']);
         } else {
             $response = [
+                'view'=>"detail",
+                'collections'=>[],
                 'error' => $this->messenger->build('error', ['code' => '00404'])
             ];
         }
-        return $response;
+        return  $response;
     }
     private function collectionByParams($values = null)
     {
