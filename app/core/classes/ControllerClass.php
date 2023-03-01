@@ -283,7 +283,13 @@ class ControllerClass
                 $mdl = ($child['main']) ?? $child['module'];
                 $ctr = $child['module'];
                 $mtd = $child['method'];
-                if (isset($child['params'])) $prm = $child['params'];
+                if (isset($child['params'])) {
+                    if (is_array($child['params'])) {
+                        $prm = implode("|", $child['params']);
+                    } else {
+                        $prm = $child['params'];
+                    }
+                }
                 array_push($routes, [
                     'text' => $mdl,
                     'controller' => $ctr,
