@@ -105,7 +105,7 @@ class CollectionModel extends ContextClass
             $result = $this->deleteAll();
         } elseif ($ubicacion == 'store') {
             $result = $this->deleteInStore();
-        } elseif ($ubicacion == 'store') {
+        } elseif ($ubicacion == 'local') {
             $result = $this->deleteInLocal();
         } else {
             return ['error' => ['code' => "00400", 'message' => "Ubicación no reconocida"], 'data' => array()];
@@ -239,98 +239,35 @@ class CollectionModel extends ContextClass
     }
     protected function deleteInStore()
     {
-        $oldCollection = $this->select(
-            "temp_shopify_collector",
-            [
-                'fields' => [
-                    'temp_shopify_collector' => [
-                        'collection_id',
-                        'id',
-                        'title',
-                        'handle',
-                        'productsCount=products',
-                        'sortOrder=sort',
-                        'ruleSet=rules',
-                        'metafields=meta',
-                        'seo',
-                        'gqid',
-                        'verified'
-                    ]
-                ],
-                'params' => [
-                    'condition' => [
-                        [
-                            'type' => "COMPARE",
-                            'table' => "temp_shopify_collector",
-                            'field' => "id",
-                            'value' => $this->id
-                        ]
-                    ],
-                    'separator' => array()
-                ]
-            ]
-        );
-        $oldCommon = $this->select(
-            'nombre_comun',
-            [
-                'fields' => [
-                    'nombre_comun' => [
-                        'id_nombre_comun=id',
-                        'nombre_comun=name',
-                        'posicion=possition',
-                        'fecha_creacion=date',
-                        'activo=active',
-                        'id_tienda=store_id',
-                        'handle',
-                        'terminos_de_busqueda=keywords'
-                    ],
-                    'tipo_producto' => ['id_tipo_producto=tp_id', 'tipo_producto=sub_category'],
-                    'tipo_categoria' => ['id_tipo_categoria=tc_id', 'tipo_categoria=category']
-                ],
-                'joins' => [
-                    [
-                        'type' => "INNER",
-                        'table' => "tipo_producto",
-                        'filter' => "id_tipo_producto",
-                        'compare_table' => "nombre_comun",
-                        'compare_filter' => "id_tipo_producto"
-                    ],
-                    [
-                        'type' => "INNER",
-                        'table' => "tipo_categoria",
-                        'filter' => "id_tipo_categoria",
-                        'compare_table' => "tipo_producto",
-                        'compare_filter' => "id_tipo_categoria"
-                    ]
-                ],
-                'params' => [
-                    'condition' => [
-                        [
-                            'type' => "COMPARE",
-                            'table' => "nombre_comun",
-                            'field' => "id_tienda",
-                            'value' => $this->id
-                        ]
-                    ],
-                    'separator' => array()
-                ]
-            ]
-        );
+        $oldCollection = $this->getLocalCollections('all');
+        $this->id_store = $this->id;
+        $this->id = null;
+        $oldCommon = $this->getCommonNames('all');
         $changes = array();
         $errores = array();
-        foreach ($oldCollection['data'] as $collection) {
-            $query = [
-                'fields' => ['change', 'field', 'ubication', 'collection', 'syncronized', 'executed'],
-                'values' => ["delete", "all", "store", $collection['collection_id'], 0, 0]
-            ];
-            $res = $this->insert("changes", $query);
-            if (!empty($res['error'])) {
-                $changes[] = $res['data'];
-            } else {
-                $errores[] = $res['error'];
+        $this->base = "shopify";
+        if (sizeof($oldCollection['data']) > 1) {
+            foreach ($oldCollection['data'] as $collection) {
+                $query = [
+                    'fields' => ['change', 'field', 'ubication', 'collection', 'syncronized', 'executed'],
+                    'values' => ["delete", "all", "local", $collection['collection_id'], 0, 0]
+                ];
+            }
+        } else {
+            foreach ($oldCollection['data'] as $collection) {
+                $query = [
+                    'fields' => ['change', 'field', 'ubication', 'collection', 'syncronized', 'executed'],
+                    'values' => ["delete", "all", "store", $collection['collection_id'], 0, 0]
+                ];
+                $res = $this->insert("changes", $query);
+                if (empty($res['error'])) {
+                    $changes[] = $res['data'];
+                } else {
+                    $errores[] = $res['error'];
+                }
             }
         }
-        return ['collections' => $oldCollection, 'commonNames' => $oldCommon, 'chamges' => $changes, 'errors' => $errores];
+        return ['collections' => $oldCollection['data'], 'commonNames' => $oldCommon['data'], 'chamges' => $changes, 'errors' => $errores];
     }
     protected function deleteInLocal()
     {

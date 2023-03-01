@@ -8,7 +8,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h5 class="m-0">
-                            Nombre Común
+                            Colleción a borrarse
                             <span id="spinger">
                                 <i class="fas fa-sync-alt fa-spin text-info"></i>
                             </span>
@@ -38,7 +38,8 @@
                                                             <td> : </td>
                                                             <td>
                                                                 {{assign var="gid" value=explode("/",$item.gqid)}}
-                                                                <a href="https://piensads.myshopify.com/admin/{{$gid[3]}}/{{$gid[4]}}">
+                                                                <a
+                                                                    href="https://piensads.myshopify.com/admin/{{$gid[3]}}/{{$gid[4]}}">
                                                                     {{$item.id}}
                                                                 </a>
                                                             </td>
@@ -91,72 +92,72 @@
                                                     </table>
                                                 </div>
                                             </div>
-                                            {{assign var="commonName" value=$item.common}}
-                                            <div class="row">
-                                                {{foreach $commonName as $key => $cnItem}}
-                                                    <div class="col-6">
-                                                        <table class="table table-striped">
-                                                            <tr>
-                                                                <td>Nombre</td>
-                                                                <td> : </td>
-                                                                <td>{{$cnItem.name}}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Fecha de creacion</td>
-                                                                <td> : </td>
-                                                                <td>{{date("d/m/Y",strtotime($cnItem.date))}}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>ID Tienda</td>
-                                                                <td> : </td>
-                                                                <td>{{$cnItem.store_id}}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Handle</td>
-                                                                <td> : </td>
-                                                                <td>{{$cnItem.handle}}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Palabras clave</td>
-                                                                <td> : </td>
-                                                                <td>{{$cnItem.keywords}}</td>
-                                                            </tr>
-                                                        </table>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <table class="table table-striped">
-                                                            <tr>
-                                                                <td>Posicion</td>
-                                                                <td> : </td>
-                                                                <td>{{$cnItem.possition}}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Estado</td>
-                                                                <td> : </td>
-                                                                <td>{{$cnItem.active}}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Categoria</td>
-                                                                <td> : </td>
-                                                                <td><a href="/categories/read?id={{$cnItem.tp_id}}">
-                                                                        {{$cnItem.sub_category}}
-                                                                    </a></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Sub-ategoria</td>
-                                                                <td> : </td>
-                                                                <td><a href="/categories/subcategory?id={{$cnItem.tc_id}}">
-                                                                        {{$cnItem.category}}
-                                                                    </a></td>
-                                                            </tr>
-                                                        </table>
-                                                    </div>
-                                                {{/foreach}}
-                                            </div>
                                         </div>
                                     {{/foreach}}
                                 </div>
                             </div>
+                        </div>
+                        {{assign var="commonName" value=$data.content.datos.commonNames}}
+                        <div class="row">
+                            {{foreach $commonName as $key => $cnItem}}
+                                <div class="col-5 offset-1">
+                                    <table class="table table-striped">
+                                        <tr>
+                                            <td>Nombre</td>
+                                            <td> : </td>
+                                            <td>{{$cnItem.name}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Fecha de creacion</td>
+                                            <td> : </td>
+                                            <td>{{date("d/m/Y",strtotime($cnItem.date))}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>ID Tienda</td>
+                                            <td> : </td>
+                                            <td>{{$cnItem.store_id}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Handle</td>
+                                            <td> : </td>
+                                            <td>{{$cnItem.handle}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Palabras clave</td>
+                                            <td> : </td>
+                                            <td>{{$cnItem.keywords}}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-5">
+                                    <table class="table table-striped">
+                                        <tr>
+                                            <td>Posicion</td>
+                                            <td> : </td>
+                                            <td>{{$cnItem.possition}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Estado</td>
+                                            <td> : </td>
+                                            <td>{{$cnItem.active}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Categoria</td>
+                                            <td> : </td>
+                                            <td><a href="/categories/read?id={{$cnItem.tp_id}}">
+                                                    {{$cnItem.sub_category}}
+                                                </a></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Sub-ategoria</td>
+                                            <td> : </td>
+                                            <td><a href="/categories/subcategory?id={{$cnItem.tc_id}}">
+                                                    {{$cnItem.category}}
+                                                </a></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            {{/foreach}}
                         </div>
                     </div>
                 </div>
@@ -166,10 +167,4 @@
     <pre>
         {{* var_dump($data.content.datos) *}}
     </pre>
-{{/block}}
-{{block name="scripts"}}
-    <script>
-        $('[data-toggle="tooltip"]').tooltip()
-        $("#spinger").hide();
-    </script>
 {{/block}}
