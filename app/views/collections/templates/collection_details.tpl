@@ -1,7 +1,7 @@
 {{extends file=_VIEW_|cat:"_shared/_layout.tpl"}}
 {{block name="breadcrumb"}}{{/block}}
 {{block name="mainContent"}}
-    {{assign var="collection" value=$data.content.datos}}
+    {{assign var="collection" value=$data.content.datos.collections}}
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-12">
@@ -28,7 +28,8 @@
                                                         <td> : </td>
                                                         <td>
                                                             {{assign var="gid" value=explode("/",$item.gqid)}}
-                                                            <a href="https://piensads.myshopify.com/admin/{{$gid[3]}}/{{$gid[4]}}">
+                                                            <a
+                                                                href="https://piensads.myshopify.com/admin/{{$gid[3]}}/{{$gid[4]}}">
                                                                 {{$item.id}}
                                                             </a>
                                                         </td>
@@ -91,16 +92,19 @@
                                                     <ul class="nav nav-tabs" id="Tab_{{$key}}_{{$item.id}}" role="tablist">
                                                         {{foreach $item.common as $index => $common}}
                                                             <li class="nav-item">
-                                                                <a class="nav-link {{if $index == 0}}active{{/if}}" id="{{$common.name}}-tab"
-                                                                    data-toggle="tab" href="#{{$common.name}}" role="tab"
-                                                                    aria-controls="{{$common.name}}" aria-selected="true">{{$common.name}}</a>
+                                                                <a class="nav-link {{if $index == 0}}active{{/if}}"
+                                                                    id="{{$common.name}}-tab" data-toggle="tab"
+                                                                    href="#{{$common.name}}" role="tab"
+                                                                    aria-controls="{{$common.name}}"
+                                                                    aria-selected="true">{{$common.name}}</a>
                                                             </li>
                                                         {{/foreach}}
                                                     </ul>
                                                     <div class="tab-content mt-3 pt-3" id="TabContent_{{$key}}_{{$item.id}}">
                                                         {{foreach $item.common as $indice => $common}}
                                                             <div class="tab-pane fade show {{if $indice == 0}}active{{/if}}"
-                                                                id="{{$common.name}}" role="tabpanel" aria-labelledby="{{$common.name}}-tab">
+                                                                id="{{$common.name}}" role="tabpanel"
+                                                                aria-labelledby="{{$common.name}}-tab">
                                                                 <table class="table table-sm table-borderless table-hover">
                                                                     <tr>
                                                                         <td>ID</td>
@@ -161,15 +165,47 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="card-footer">
+                                            <div class="btn-group" role="group" aria-label="Action buttons">
+                                                <a class="btn btn-warning"
+                                                    href="/collections/update/{{$item.collection_id}}">Editar</a>
+                                                <a class="btn btn-danger"
+                                                    href="/collections/delete?id={{$item.collection_id}}&where=local">Borrar</a>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             {{/foreach}}
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="btn-group" role="group" aria-label="Action buttons">
+                            <a class="btn btn-warning"
+                                href="/collections/update/{{$data.content.datos.id}}">Editar</a>
+                            <div class="btn-group" role="group">
+                                <button id="deleteCollections" type="button" class="btn btn-danger dropdown-toggle"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Borrar
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="deleteCollections">
+                                    <a class="dropdown-item"
+                                        href="/collections/delete?id={{$data.content.datos.id}}&where=global">Global</a>
+                                    <a class="dropdown-item"
+                                        href="/collections/delete?id={{$data.content.datos.id}}&where=store">Tienda</a>
+                                    <a class="dropdown-item"
+                                        href="/collections/delete?id={{$data.content.datos.id}}&where=local">Local</a>
+                                </div>
+                            </div>
+                            <a class="btn btn-primary" href="/collections/index">Regresar</a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <pre>
+                        {{* var_dump($data.content.datos) *}}
+                    </pre>
 {{/block}}
 {{block name="scripts"}}
     <script>

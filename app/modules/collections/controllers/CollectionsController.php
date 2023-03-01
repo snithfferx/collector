@@ -481,7 +481,7 @@ class CollectionsController extends ControllerClass
                     }
                 }
                 $this->unsetVars(['k', 'collection', 'nombre', 'i']);
-                $response = ['collections' => $data, 'view' => "collection_details"];
+                $response = ['collections' => $data, 'view' => "collection_details",'id'=>$id];
             } else {
                 $response = [
                     'error' => $this->messenger->build('error', ['code' => '00404'])
