@@ -112,10 +112,15 @@ class CollectionsController extends ControllerClass
     public function download($val)
     {
         if (!empty($val)) {
-            if ($val == "proceed") {
-                return $this->getdownloadedCollections();
-            } else {
+            echo "<pre>";
+            var_dump($val);
+            echo "</pre>";
+            if ($val == "checking") {
                 return $this->getCheckDownloads();
+            } elseif ($val == "list") {
+                return $this->getCollectionsByParams();
+            } elseif ($val == "proceed") {
+                return $this->getdownloadedCollections();
             }
         }
         return $this->createViewData('collections/Downloadedlist');
@@ -1341,5 +1346,8 @@ class CollectionsController extends ControllerClass
                 'erro' => []
             ];
         }
+    }
+    private function getDownloaded () {
+        $collections = $this->model->get('collection', 'all');
     }
 }

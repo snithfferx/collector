@@ -89,6 +89,14 @@
                                                             <td> : </td>
                                                             <td>{{$item.seo}}</td>
                                                         </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="btn-group" role="group" aria-label="Action buttons">
+                                                                    <a class="btn btn-warning" href="/collections/confirmDeletation/">Confirmar</a>
+                                                                    <a class="btn btn-primary" href="/collections/index">Regresar</a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
                                                     </table>
                                                 </div>
                                             </div>
@@ -160,11 +168,17 @@
                             {{/foreach}}
                         </div>
                     </div>
+                    <div class="card-footer">
+                        <div class="btn-group" role="group" aria-label="Action buttons">
+                            <a class="btn btn-danger" href="/collections/confirmDeletation/">Confirmar todo</a>
+                            <a class="btn btn-primary" href="/collections/index">Regresar</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <pre>
-        {{* var_dump($data.content.datos) *}}
+        {{var_dump($data.content.datos)}}
     </pre>
 {{/block}}

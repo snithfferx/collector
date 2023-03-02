@@ -113,7 +113,7 @@ class CollectionModel extends ContextClass
         return $result;
     }
     public function confirmChange ($change) {
-
+        return $this->setChange($change);
     }
 
 
@@ -261,13 +261,13 @@ class CollectionModel extends ContextClass
                 ];
                 $res = $this->insert("changes", $query);
                 if (empty($res['error'])) {
-                    $changes[] = $res['data'];
+                    $changes[$collection['collection_id']] = $res['data'][0];
                 } else {
-                    $errores[] = $res['error'];
+                    $errores[$collection['collection_id']] = $res['error'];
                 }
             }
         }
-        return ['collections' => $oldCollection['data'], 'commonNames' => $oldCommon['data'], 'chamges' => $changes, 'errors' => $errores];
+        return ['collections' => $oldCollection['data'], 'commonNames' => $oldCommon['data'], 'changes' => $changes, 'errors' => $errores];
     }
     protected function deleteInLocal()
     {
@@ -357,12 +357,12 @@ class CollectionModel extends ContextClass
             ];
             $res = $this->insert("changes", $query);
             if (!empty($res['error'])) {
-                $changes[] = $res['data'];
+                $changes[$commonName['id']] = $res['data'];
             } else {
-                $errores[] = $res['error'];
+                $errores[$commonName['id']] = $res['error'];
             }
         }
-        return ['collections' => $oldCollection['data'], 'commonNames' => $oldCommon['data'], 'chamges' => $changes, 'errors' => $errores];
+        return ['collections' => $oldCollection['data'], 'commonNames' => $oldCommon['data'], 'changes' => $changes, 'errors' => $errores];
     }
 
 
@@ -1212,16 +1212,16 @@ class CollectionModel extends ContextClass
                             $this->external->delete([
                                 'params' => [
                                     'condition' => [
-                                        ['type' => "COMPARE", 'table' => "collection", 'field' => "id", 'value' => $com]
+                                        ['type' => "COMPARE", 'element' => "collection", 'field' => "id", 'value' => $col]
                                     ],
                                     'separator' => array()
                                 ]
                             ]);
                         } elseif ($ubi == 'store') {
-                            $this->external->delete('nombre_comun', [
+                            $this->external->delete([
                                 'params' => [
                                     'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
+                                        ['type' => "COMPARE", 'element' => "collection", 'field' => "id", 'value' => $col]
                                     ],
                                     'separator' => array()
                                 ]
@@ -1354,6 +1354,12 @@ class CollectionModel extends ContextClass
                 }
             }
         }
+        return [
+            'error'=>[
+
+            ],
+            'data'=>array()
+        ];
     }
     /* private function getGuz()
     {
