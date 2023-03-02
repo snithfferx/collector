@@ -48,6 +48,10 @@ class ExternalContext extends ExternalConnection
     {
         return $this->_graphQLRequest($values);
     }
+    public function delete($values)
+    {
+        # code...
+    }
 
     private function getHttpResponse(array $values): array
     {
