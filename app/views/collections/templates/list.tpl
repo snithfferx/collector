@@ -46,8 +46,10 @@
                                     <div class="form-group">
                                         <label for="collection_name"></label>
                                         <input type="text" class="form-control" id="collection_name"
-                                            aria-describedby="collection_name_help" placeholder="Digite un nombre a filtrar">
-                                        <small id="collection_name_help" class="form-text text-muted">Puede ser un nombre común o colección</small>
+                                            aria-describedby="collection_name_help"
+                                            placeholder="Digite un nombre a filtrar">
+                                        <small id="collection_name_help" class="form-text text-muted">Puede ser un nombre
+                                            común o colección</small>
                                     </div>
                                 </div>
                                 <div class="col-2">
@@ -61,11 +63,13 @@
                                     <button type="submit" class="btn btn-primary" onclick="buscar()">Buscar</button>
                                 </div>
                                 <div class="col-10 offset-1">
-                                    <div class="btn-toolbar justify-content-between" role="toolbar" aria-label="Toolbar with button groups">
+                                    <div class="btn-toolbar justify-content-between" role="toolbar"
+                                        aria-label="Toolbar with button groups">
                                         {{assign var="letras" value=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','Ñ']}}
                                         {{foreach $letras as $key => $letra}}
                                             <div class="btn-group mr-2" role="group" aria-label="Group-{{$key}}">
-                                                <button type="button" class="btn btn-secondary" onclick="buscar('{{$letra}}')" id="letter_Filter_{{$letra}}">{{$letra}}</button>
+                                                <button type="button" class="btn btn-secondary" onclick="buscar('{{$letra}}')"
+                                                    id="letter_Filter_{{$letra}}">{{$letra}}</button>
                                             </div>
                                         {{/foreach}}
                                     </div>
@@ -233,35 +237,37 @@
 {{/block}}
 {{block name='css'}}
     <link rel="stylesheet" type="text/css" href="/assets/css/switchmtrlz/switchmtrlz.css">
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
-    {{* <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.bootstrap4.min.css">
-    <link rel="stylesheet" type="text/css" href="/assets/css/datatables-buttons/buttons.bootstrap4.min.css"> *}}
-    {{* <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" type="text/css" href="/assets/css/datatables-responsive/responsive.bootstrap4.min.css">
+    {{* <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+     <link
+         href="https://cdn.datatables.net/v/bs4/dt-1.13.2/b-2.3.4/b-colvis-2.3.4/b-html5-2.3.4/b-print-2.3.4/r-2.4.0/datatables.min.css" />
      *}}
-     <link href="https://cdn.datatables.net/v/bs4/dt-1.13.2/b-2.3.4/b-colvis-2.3.4/b-html5-2.3.4/b-print-2.3.4/r-2.4.0/datatables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="/assets/css/datatables-buttons/buttons.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="/assets/css/datatables-responsive/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="/assets/css/datatables-scroller/scroller.bootstrap4.min.css">
 {{/block}}
 {{block name="jslibs"}}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+    {{* <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
     <script src="https://cdn.datatables.net/v/bs4/dt-1.13.2/b-2.3.4/b-colvis-2.3.4/b-html5-2.3.4/b-print-2.3.4/r-2.4.0/datatables.min.js"></script>
- 
-    {{* <script type="text/javascript" src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.13.2/js/dataTables.bootstrap4.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.0/js/responsive.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js">
+    </script> *}}
+    <script type="text/javascript" src="/assets/js/datatables/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="/assets/js/datatables-bs4/dataTables.bootstrap4.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/dataTables.buttons.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.colVis.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.flash.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.html5.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/assets/js/datatables-responsive/dataTables.responsive.min.js"></script>
+    <script type="text/javascript" src="/assets/js/datatables-responsive/responsive.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="/assets/js/datatables-scroller/dataTables.scroller.min.js"></script>
+    <script type="text/javascript" src="/assets/js/datatables-scroller/scroller.bootstrap4.min.js"></script>
     <script type="text/javascript" src="/assets/js/jszip/jszip.min.js"></script>
     <script type="text/javascript" src="/assets/js/pdfmake/pdfmake.min.js"></script>
     <script type="text/javascript" src="/assets/js/pdfmake/vfs_fonts.js"></script>
     <script type="text/javascript" src="/assets/js/moment/moment-with-locales.min.js"></script>
-    <script type="text/javascript" src="/assets/js/datatables-buttons/buttons.colVis.min.js"></script> *}}
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script type="text/javascript" src="/assets/js/global/tabler.js"></script>
 {{/block}}
 {{block name="scripts"}}
@@ -284,12 +290,13 @@
                 { data: 'verified', className: 'text-center' },
                 { data: 'actions' }
             ];
-            let collections = {}, result, urlNext, urlPrev;
+            let collections = {},
+                result, urlNext, urlPrev;
             let collectionsTable = $("#collectionsList").DataTable({
                 "data": collections,
                 "columns": columnas,
                 "columnDefs": [
-                    { width: '120px', "targets": [ 2,3,4,7 ] }
+                    { width: '120px', "targets": [2, 3, 4, 7] }
                 ],
                 "paging": true,
                 "scrollY": '600px',
@@ -300,7 +307,7 @@
                     [2, 'asc']
                 ],
                 "responsive": true,
-                "processing" : true,
+                "processing": true,
                 "language": {
                     "emptyTable": "No hay registros en la tabla",
                     "info": "Mostrando _START_ a _END_ de _TOTAL_ líneas",
@@ -329,17 +336,18 @@
             //$.fn.dataTable.Buttons(collectionsTable, { buttons: botones() });
             //collectionsTable.buttons().container().appendTo('#collectionsList_wrapper .col-sm-12:eq(0)');
             collectionsTable.buttons()
-                            .container()
-                            .appendTo( $('.col-sm-6:eq(0)', collectionsTable.table().container() ) );
+                .container()
+                .appendTo($('.col-sm-6:eq(0)', collectionsTable.table().container()));
             $(document).ready(function() {
                 getTableData('/collections/lista');
                 getCategories();
                 getSubCategories();
                 $("#collection_name").autocomplete({
-                    source : "/collections/fill",
-                    limit : 10,
-                    select : function (e,u) {
-                        var id = u.item.id, activo;
+                    source: "/collections/fill",
+                    limit: 10,
+                    select: function(e, u) {
+                        var id = u.item.id,
+                            activo;
                         if ($('#deshabiliatdo').is(':checked')) {
                             activo = true;
                         } else {
@@ -379,7 +387,7 @@
                     modal.find('.modal-title').text('New message to ' + recipient)
                     modal.find('.modal-body input').val(recipient)
                 });
-                $("#categories").change(function () {
+                $("#categories").change(function() {
                     var cat = $("#categories").val();
                     getSubCategories(cat);
                 });
@@ -397,100 +405,104 @@
                     pages += `
                     <li class="page-item collections_pagination_prev">
                         <a class="page-link" title="Lleva a la página anterior" type="text" target="_self" 
-                            href="#" onclick="getNewPage(${paginacion.prev},'prev',${paginacion.limit})">
-                            <span aria-hidden="true">&laquo;</span>
-                            <span class="sr-only">Anterior</span>
-                        </a>
-                    </li>`;
-                }
-                //console.log(paginacion.prev);
-                for (var i = 0; i < maxStepPages; i++) {
-                    if (max > lim) {
-                        max = max - lim;
-                        pageStep += lim;
-                        stepo = (i + 1);
-                        pages += `<li class="page-item">
-                            <a class="page-link active"
-                            href="#" onclick="getNewPage(${pageStep},'page',${paginacion.limit})">${stepo}</a>
-                        </li>`;
-                    } else {
-                        pages += `<li class="page-item">
-                            <a class="page-link"
-                            href="#" onclick="getNewPage(${max},'page',${paginacion.limit})">${stepo}</a>
-                        </li>`;
-                    }
-                }
-                if (paginacion.next != undefined && paginacion.next > 1) {
-                    pages += `
-                        <li class="page-item collections_pagination_next">
-                            <a class="page-link" title="Lleva a la página siguiente" type="text" target="_self"
-                                href="#" onclick="getNewPage(${paginacion.prev},'next',${paginacion.limit})">
-                                <span aria-hidden="true">&raquo;</span>
-                                <span class="sr-only">Siguiente</span>
-                            </a>
-                        </li>`;
-                }
-                //console.log(paginacion.next);
-                document.getElementById("collections_pagination_top").innerHTML = pages;
-                document.getElementById("collections_pagination_bottom").innerHTML = pages;
-                if (paginacion.next != paginacion.max) {
-                    $("#nextPage").val(urlNext);
-                    $(".collections_pagination_next").show();
-                } else {
-                    $(".collections_pagination_next").hide();
-                }
-                if (paginacion.prev > 1) {
-                    $("#previousPage").val(urlPrev);
-                    $(".collections_pagination_prev").show();
-                }
+href="#" onclick="getNewPage(${paginacion.prev},'prev',${paginacion.limit})">
+            <
+            span aria - hidden = "true" > & laquo; < /span> <
+            span class = "sr-only" > Anterior < /span> < /
+                a > <
+                /li>`;
+    }
+    //console.log(paginacion.prev);
+    for (var i = 0; i < maxStepPages; i++) {
+        if (max > lim) {
+            max = max - lim;
+            pageStep += lim;
+            stepo = (i + 1);
+            pages += `<li class="page-item">
+                                            <a class="page-link active"
+        href="#" onclick="getNewPage(${pageStep},'page',${paginacion.limit})">${stepo}</a>
+                                        </li>`;
+        } else {
+            pages += `<li class="page-item">
+                                            <a class="page-link"
+        href="#" onclick="getNewPage(${max},'page',${paginacion.limit})">${stepo}</a>
+                                        </li>`;
+        }
+    }
+    if (paginacion.next != undefined && paginacion.next > 1) {
+        pages += `
+                                        <li class="page-item collections_pagination_next">
+                                            <a class="page-link" title="Lleva a la página siguiente" type="text" target="_self"
+        href="#" onclick="getNewPage(${paginacion.prev},'next',${paginacion.limit})">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Siguiente</span>
+                                            </a>
+                                        </li>`;
+            }
+            //console.log(paginacion.next);
+            document.getElementById("collections_pagination_top").innerHTML = pages;
+            document.getElementById("collections_pagination_bottom").innerHTML = pages;
+            if (paginacion.next != paginacion.max) {
+                $("#nextPage").val(urlNext);
+                $(".collections_pagination_next").show();
+            } else {
+                $(".collections_pagination_next").hide();
+            }
+            if (paginacion.prev > 1) {
+                $("#previousPage").val(urlPrev);
+                $(".collections_pagination_prev").show();
+            }
 
-                //$(".collections_pagination").show();
-            } */
+            //$(".collections_pagination").show();
+            }*/
+
             function syncCollection(id) {
                 $.post('collections/sync',{"id":id},function (r) {
-                    result = JSON.parse(r);
-                    alertaPopUp(result);
-                });
+                result = JSON.parse(r);
+                alertaPopUp(result);
+            });
             }
 
             function deleteCollection(id) {
                 $.post('collections/delete',{"id":id},function (r) {
-                    result = JSON.parse(r);
-                    alertaPopUp(result);
-                });
+                result = JSON.parse(r);
+                alertaPopUp(result);
+            });
             }
 
             function changeState(id, currentState) {
                 $.post('collections/state',{"id":id,"current":currentState},function (r) {
-                    result = JSON.parse(r);
-                    alertaPopUp(result);
-                });
+                result = JSON.parse(r);
+                alertaPopUp(result);
+            });
             }
             /* function getNewPage (last,cursor,limit) {
-                $.ajax({
-                    url: '/collections/lista',
-                    type: 'POST',
-                    data: {
-                        page:last,cursor:cursor,limit:limit
-                    },
-                    beforeSend:function () {
-                        $("#spinger").show();
-                    },
-                    success: function(r) {
-                        result = JSON.parse(r);
-                        collections = result.collections;
-                        hasPages(result.pagination);
-                    },
-                    complete: function () {
-                        collectionsTable.ajax.reload();
-                        $("#spinger").hide();
-                    }
-                });
-            } */
+        $.ajax({
+            url: '/collections/lista',
+            type: 'POST',
+            data: {
+                page:last,cursor:cursor,limit:limit
+            },
+            beforeSend:function () {
+                $("#spinger").show();
+            },
+            success: function(r) {
+                result = JSON.parse(r);
+                collections = result.collections;
+                hasPages(result.pagination);
+            },
+            complete: function () {
+                collectionsTable.ajax.reload();
+                $("#spinger").hide();
+            }
+        });
+    } */
             // Busca reigstros
-            function buscar (parametro) {
+            function buscar(parametro) {
                 event.preventDefault();
-                var searched,activo,cats = $("#categories").val(), sucat = $("#subcategories").val(),coleccion = $("#collection_name").val();
+                var searched, activo, cats = $("#categories").val(),
+                    sucat = $("#subcategories").val(),
+                    coleccion = $("#collection_name").val();
                 if ($('#deshabilitado').is(':checked')) {
                     activo = true;
                 } else {
@@ -498,7 +510,7 @@
                 }
                 if (parametro != undefined) {
                     searched = new Array;
-                    $.each(collections,function (index,value) {
+                    $.each(collections, function(index, value) {
                         if (value.title != null) {
                             if (value.title.startsWith(parametro)) {
                                 if (activo == true) {
@@ -512,41 +524,41 @@
                         }
                     });
                     if (searched.length == 0) {
-                        alertaPopUp('error',{
-                            class : "bg-info",
-                            title : "¡AVISO!",
-                            subtitle : "No data parsed..",
-                            autohide : true,
-                            delay : 7500,
-                            body : "Sorry no data found!",
-                            icon : "fas fa-info-circle",
+                        alertaPopUp('error', {
+                            class: "bg-info",
+                            title: "¡AVISO!",
+                            subtitle: "No data parsed..",
+                            autohide: true,
+                            delay: 7500,
+                            body: "Sorry no data found!",
+                            icon: "fas fa-info-circle",
                         });
                     } else {
                         collectionsTable.clear();
                         collectionsTable.rows.add(searched).draw();
                     }
                     /* $.ajax({
-                        url: '/collections/search',
-                        type: 'POST',
-                        data: {
-                            letter:parametro, active:activo
-                        },
-                        beforeSend : function () {
-                            $("#spinger").show();
-                        },
-                        success: function(r) {
-                            result = JSON.parse(r);
-                            collections = result.collections;
-                            collectionsTable.clear();
-                            collectionsTable.rows.add(collections).draw();
-                            if (result.error != undefined) {
-                                alertaPopUp(result.error);
-                            }
-                        },
-                        complete: function () {
-                            $("#spinger").hide();
-                        }
-                    }); */
+                url: '/collections/search',
+                type: 'POST',
+                data: {
+                    letter:parametro, active:activo
+                },
+                beforeSend : function () {
+                    $("#spinger").show();
+                },
+                success: function(r) {
+                    result = JSON.parse(r);
+                    collections = result.collections;
+                    collectionsTable.clear();
+                    collectionsTable.rows.add(collections).draw();
+                    if (result.error != undefined) {
+                        alertaPopUp(result.error);
+                    }
+                },
+                complete: function () {
+                    $("#spinger").hide();
+                }
+            }); */
                 } else {
                     $.ajax({
                         url: '/collections/search',
@@ -554,10 +566,10 @@
                         data: {
                             cat: cats,
                             scat: sucat,
-                            active:activo,
-                            name:coleccion
+                            active: activo,
+                            name: coleccion
                         },
-                        beforeSend : function () {
+                        beforeSend: function() {
                             $("#spinger").show();
                         },
                         success: function(r) {
@@ -569,54 +581,55 @@
                                 alertaPopUp(result.error);
                             }
                         },
-                        complete: function () {
+                        complete: function() {
                             $("#spinger").hide();
                         }
                     });
                 }
             }
             // Trae las categorias
-            function getCategories () {
+            function getCategories() {
                 $.ajax({
                     url: '/categories/categorieslist',
-                    type:'POST',
-                    success: function (r) {
+                    type: 'POST',
+                    success: function(r) {
                         var result = JSON.parse(r);
                         var fopcion;
-                        $.each(result,function (index,val) {
-                            fopcion = new Option(val.name,val.id,false,false);
+                        $.each(result, function(index, val) {
+                            fopcion = new Option(val.name, val.id, false, false);
                             $("#categories").append(fopcion);
                         });
                     }
                 });
             }
             // Trae las sub categorias
-            function getSubCategories (id) {
+            function getSubCategories(id) {
                 $.ajax({
                     url: '/categories/subcategorieslist',
-                    type:'POST',
+                    type: 'POST',
                     data: {
-                        cid : id
+                        cid: id
                     },
-                    success: function (r) {
+                    success: function(r) {
                         $("#subcategories").empty();
-                        let opcion = new Option('Elija una subcategoria',0,true,true);
+                        let opcion = new Option('Elija una subcategoria', 0, true, true);
                         $("#subcategories").append(opcion).trigger('change');
                         var result = JSON.parse(r);
                         var fopcion;
-                        $.each(result,function (index,val) {
-                            fopcion = new Option(val.name,val.id,false,false); 
+                        $.each(result, function(index, val) {
+                            fopcion = new Option(val.name, val.id, false, false);
                             $("#subcategories").append(fopcion);
                         });
-                    } 
+                    }
                 });
             }
-            function getTableData (direccion,args=null) {
+
+            function getTableData(direccion, args = null) {
                 $.ajax({
                     url: direccion,
                     type: 'POST',
                     data: args,
-                    beforeSend : function () {
+                    beforeSend: function() {
                         $("#spinger").show();
                         toastr.info('Acquiring data..')
                     },
@@ -630,25 +643,26 @@
                             alertaPopUp(result.error);
                         }
                     },
-                    complete: function () {
+                    complete: function() {
                         $("#spinger").hide();
                         alertaPopUp({title:"¡Exito!",body:'Data acquiried..'},'success');
                     }
                 });
             }
-            function verifyCollection (collection,state) {
+
+            function verifyCollection(collection, state) {
                 $.ajax({
                     url: '/collections/verify',
                     type: 'POST',
                     data: {id_collection:collection,current:state},
-                    beforeSend : function () {
+                    beforeSend: function() {
                         $("#spinger").show();
                     },
                     success: function(r) {
                         result = JSON.parse(r);
                         alertaPopUp(result);
                     },
-                    complete: function () {
+                    complete: function() {
                         $("#spinger").hide();
                     }
                 });

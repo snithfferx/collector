@@ -44,17 +44,17 @@ class CollectionModel extends ContextClass
         $response = $this->grafkuel();
         return $response;
     }
-    public function get(string $list = 'collections', array|string $fields = []): array
+    public function get(string $element = 'collections', array|string $fields = []): array
     {
-        if ($list == "collections") {
-            return $this->getLocalCollections($fields);
-        } elseif ($list == "common_names") {
+        if ($element == "colecciones") {
+            return $this->getAllColecciones($fields);
+        } elseif ($element == "common_names") {
             return $this->getCommonNames($fields);
-        } elseif ($list == "common_name") {
+        } elseif ($element == "common_name") {
             return $this->getCommonNames($fields);
-        } elseif ($list == "collection") {
+        } elseif ($element == "collection") {
             return $this->getLocalCollections($fields);
-        } elseif ($list == "isCategory") {
+        } elseif ($element == "isCategory") {
             return $this->isCategory();
         } else {
             return ['error' => ['code' => 404, 'message' => "Element Not Found"], 'data' => []];
@@ -302,6 +302,7 @@ class CollectionModel extends ContextClass
                 ]
             ]
         );
+        $this->base = "default";
         $oldCommon = $this->select(
             'nombre_comun',
             [
@@ -350,6 +351,7 @@ class CollectionModel extends ContextClass
         );
         $changes = array();
         $errores = array();
+        $this->base = "shopify";
         foreach ($oldCommon['data'] as $commonName) {
             $query = [
                 'fields' => ['change', 'field', 'ubication', 'common', 'syncronized', 'executed'],
@@ -700,7 +702,7 @@ class CollectionModel extends ContextClass
             }
         }
         $this->base = "shopify";
-        $args = ['id', 'handle', 'categoria', 'tipo', 'title'];
+        $args = ['id', 'handle', 'title'];
         $conditions = array();
         $separators = array();
         foreach ($args as $k => $arg) {
@@ -716,28 +718,6 @@ class CollectionModel extends ContextClass
                             'table' => "temp_shopify_collector",
                             'field' => "title",
                             'value' => $this->title
-                        ]);
-                    }
-                    break;
-                case 'categoria':
-                    /* Pedir Nombre común por Categoría */
-                    if (!is_null($this->categoria)) {
-                        array_push($conditions, [
-                            'type' => "COMPARE",
-                            'table' => "tipo_categoria",
-                            'field' => "id_tipo_categoria",
-                            'value' => $this->categoria
-                        ]);
-                    }
-                    break;
-                case 'tipo':
-                    /* Pedir Nombre común por Tipo */
-                    if (!is_null($this->tipo)) {
-                        array_push($conditions, [
-                            'type' => "NEGATIVA",
-                            'table' => "temp_shopify_collector",
-                            'field' => "ruleSet",
-                            'value' => ''
                         ]);
                     }
                     break;
@@ -1360,6 +1340,81 @@ class CollectionModel extends ContextClass
             ],
             'data'=>array()
         ];
+    }
+    private function getAllColecciones($campos) : array
+    {
+        if (empty($campos) || $campos == "all") {
+            $query = [
+                'fields' => [
+                    'temp_shopify_collector' => [
+                        'collection_id',
+                        'id',
+                        'title',
+                        'handle',
+                        'productsCount=products',
+                        'sortOrder=sort',
+                        'ruleSet=rules',
+                        'metafields=meta',
+                        'seo',
+                        'gqid',
+                        'verified'
+                    ]
+                ]
+            ];
+        } else {
+            $query = [
+                'fields' => [
+                    'temp_shopify_collector' => $campos
+                ]
+            ];
+        }
+        $this->base = "shopify";
+        $args = ['id', 'handle', 'title'];
+        $conditions = array();
+        $separators = array();
+        foreach ($args as $k => $arg) {
+            if ($k != 0 && !is_null($this->$arg)) {
+                if (!empty($conditions)) array_push($separators, 'Y');
+            }
+            switch ($arg) {
+                case 'title':
+                    /* Pedir Nombre común por Nombre */
+                    if (!is_null($this->title)) {
+                        array_push($conditions, [
+                            'type' => "COMPARE",
+                            'table' => "temp_shopify_collector",
+                            'field' => "title",
+                            'value' => $this->title
+                        ]);
+                    }
+                    break;
+                case 'handle':
+                    /* Pedir Nombre común por handler */
+                    if (!is_null($this->handle)) {
+                        array_push($conditions, [
+                            'type' => "COMPARE",
+                            'table' => "nombre_comun",
+                            'field' => "handle",
+                            'value' => $this->handle
+                        ]);
+                    }
+                    break;
+                default:
+                    /* Pedir nombre común por ID */
+                    if (!is_null($this->id)) {
+                        array_push($conditions, [
+                            'type' => "COMPARE",
+                            'table' => "temp_shopify_collector",
+                            'field' => "id",
+                            'value' => $this->id
+                        ]);
+                    }
+                    break;
+            }
+        }
+        $query['params'] = (!empty($conditions)) ? ['condition' => $conditions, 'separator' => $separators] : null;
+        $response = $this->select("temp_shopify_collector", $query, $this->limit);
+        return $response;
     }
     /* private function getGuz()
     {

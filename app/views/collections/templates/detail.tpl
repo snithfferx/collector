@@ -159,6 +159,12 @@
                             </div>
                         </div>
                     </div>
+                    <div class="card-footer">
+                        <div class="btn-group" role="group" aria-label="Action buttons">
+                            <a class="btn btn-warning" href="/commonnames/edit/{{$data.content.datos.id}}">Confirmar todo</a>
+                            <a class="btn btn-primary" href="/collections/index">Regresar</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
