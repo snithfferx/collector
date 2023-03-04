@@ -52,6 +52,14 @@ class ExternalContext extends ExternalConnection
     {
         # code...
     }
+    public function update($values)
+    {
+        # code...
+    }
+    public function create($values)
+    {
+        # code...
+    }
 
     private function getHttpResponse(array $values): array
     {

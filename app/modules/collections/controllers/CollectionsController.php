@@ -112,9 +112,6 @@ class CollectionsController extends ControllerClass
     public function download($val)
     {
         if (!empty($val)) {
-            /* echo "<pre>";
-            var_dump($val);
-            echo "</pre>"; */
             if ($val == "checking") {
                 return $this->getCheckDownloads();
             } elseif ($val == "list") {
@@ -146,9 +143,15 @@ class CollectionsController extends ControllerClass
     public function associate($value)
     {
     }
-
-
-
+    public function edit($values)
+    {
+        if (!is_array($values)) {
+            $collection = $this->getCollectionsById($values);
+            return $this->createViewData('collections/update',$collection);
+        } else {
+            return $this->setUpdateCollection($values);
+        }
+    }
     /**
      * Función que crea una colección en la base de datos y en la tienda
      * 
@@ -157,21 +160,12 @@ class CollectionsController extends ControllerClass
      * @param mixed $values Contiene la información a ser enviada a la base de datos
      * @return array
      */
-    /* public function create($values)
+    public function create($values)
     {
         if (!empty($values)) {
             return $this->createCollection($values);
         }
         return $this->createViewData('collections/create');
-    } */
-    /**
-     * Función que edita la información de una colección.
-     * @param mixed $values
-     * @return array
-     */
-    public function update($values)
-    {
-        return $this->createViewData('collections/update');
     }
     /**
      * Función que devuelve la lista de colecciones en comparativa
@@ -182,13 +176,13 @@ class CollectionsController extends ControllerClass
      * @version 1.0.0
      * 18/01/23
      */
-    /* public function compare($value)
+    public function compare($value)
     {
         return (!is_null($value)) ? $this->getCompareData($value) : $this->getCompareData();
-    } */
-    /* public function sync($value)
+    }
+    public function sync($value)
     {
-    } */
+    }
 
 
     /* #################### Protecteds #################### */
@@ -457,10 +451,10 @@ class CollectionsController extends ControllerClass
         }
         return $result;
     }
-    /* protected function syncronizeCommonName($values)
+    protected function syncronizeCommonName($values)
     {
         if (isset($values['id']) && !empty($values['id'])) {
-            $result = $this->createCollection($values);
+            $result = $this->sincronizarNombreComun($values);
             if ($result['type'] == "view") {
                 return $this->createViewData('collections/edit', ['error' => ['message' => "Existen mas de un nombre comun"]], [], 'template', 400);
             }
@@ -468,7 +462,39 @@ class CollectionsController extends ControllerClass
             $result = $this->createViewData('_shared/error', ['error' => ['messenge' => "Something when worng!!"]], [], 'template', 500);
         }
         return $result;
-    } */
+    }
+    protected function setUpdateCollection ($values) {
+        $this->model->activo = $values['active'];
+        $this->model->handle = $values['handle'];
+        $this->model->title = $values['title'];
+        $this->model->categoria = $values['category'];
+        $this->model->tipo = $values['sudcat'];
+        $result = $this->model->updateCollection($values['id']);
+        if (!empty($result['error'])) {
+            $data = $this->messenger->messageBuilder(
+                'alert',
+                $this->messenger->build(
+                    'error',
+                    [
+                        'code' => "00500",
+                        'message' => "Ha ocurrido un problema actualizando la colección",
+                        'data' => $result['data']
+                    ]
+                ),
+                "json"
+            );
+        } else {
+            $data = $this->messenger->messageBuilder(
+                'alert',
+                $this->messenger->build(
+                    'message',
+                    [
+                        'code'=>"00200",
+                        'message'=>"Colección actualizada exitosamente"
+                    ]),"json");
+        }
+        return $data;
+    }
 
     /* ############# Private ############## */
     /**
@@ -1090,32 +1116,6 @@ class CollectionsController extends ControllerClass
                         </button>';
                     }
                     $response[$index]['metadatos'] = $metadatos;
-                    /* } else {
-                                $response[$index]['keywords'] = null;
-                                $response[$index]['name'] = null;
-                                $response[$index]['active'] = null;
-                                $response[$index]['category'] = null;
-                                $response[$index]['sub_category'] = null;
-                                $response[$index]['possition'] = null;
-                                $response[$index]['id_tienda'] = null;
-                                $response[$index]['handle'] = null;
-                                $response[$index]['subcategoria'] = ['id' => null, 'name' => null];
-                                $response[$index]['categoria'] = ['id' => null, 'name' => null];
-                                
-                            }
-                        } else {
-                            $response[$index]['keywords'] = null;
-                            $response[$index]['name'] = null;
-                            $response[$index]['active'] = null;
-                            $response[$index]['category'] = null;
-                            $response[$index]['sub_category'] = null;
-                            $response[$index]['possition'] = null;
-                            $response[$index]['id_tienda'] = null;
-                            $response[$index]['handle'] = null;
-                            $response[$index]['subcategoria'] = ['id' => null, 'name' => null];
-                            $response[$index]['categoria'] = ['id' => null, 'name' => null];
-                            
-                        } */
                     foreach ($acciones as $action) {
                         switch ($action) {
                             case "create":
@@ -1487,5 +1487,8 @@ class CollectionsController extends ControllerClass
     private function getDownloaded()
     {
         return $this->model->get('collection', 'all');
+    }
+    private function sincronizarNombreComun () {
+        
     }
 }

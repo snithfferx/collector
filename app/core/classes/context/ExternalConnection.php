@@ -49,24 +49,11 @@ class ExternalConnection
         $campos = $values['fields'];
         try {
             if (!is_null($valores)) {
-                if (is_null($campos)) {
-                    $result = $this->shop->$elemento($valores)->get();
-                } else {
-                    $result = $this->shop->$elemento($valores)->get($campos);
-                }
+                $result = (is_null($campos)) ? $this->client->$elemento($valores)->get() : $this->client->$elemento($valores)->get($campos);
             } else {
-                if (is_null($campos)) {
-                    $result = $this->shop->$elemento->get();
-                } else {
-                    $result = $this->shop->$elemento->get($campos);
-                }
+                $result = (is_null($campos)) ? $this->client->$elemento->get() : $this->client->$elemento->get($campos);
             }
-            $response = [
-                'error' =>
-                [],
-                'data' =>
-                $result
-            ];
+            $response = ['error' =>[],'data' =>$result];
         } catch (\Exception $e) {
             $response = [
                 'error' => [
@@ -87,10 +74,21 @@ class ExternalConnection
         $valores = $values['value'];
         try {
             if (!empty($valores)) {
-                $response = $this->shop->$elemento($valores)->post();
+                $response = $this->client->$elemento($valores)->post();
             } else {
-                $response = $this->shop->$elemento->post();
+                $response = $this->client->$elemento->post();
             }
+        } catch (\Exception $e) {
+            $response = $e;
+        }
+        return ['data' => $response];
+    }
+    protected function _put ($values) {
+        $elemento =  $values['element'];
+        $valores = $values['value'];
+        $campos = $values['fields'];
+        try {
+            $result = $this->client->$elemento->put($valores);
         } catch (\Exception $e) {
             $response = $e;
         }
