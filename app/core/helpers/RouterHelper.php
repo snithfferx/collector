@@ -43,7 +43,7 @@ class RouterHelper
             $pathArray = explode('/', $path);
             if ($method == "post") {
                 array_shift($pathArray);
-                $prms = $_POST;
+                $prms = (!empty($_POST)) ? $_POST : null;
             } else {
                 if ($this->qmPos != false) {
                     $params = substr($this->url, ($this->qmPos + 1));
@@ -92,8 +92,10 @@ class RouterHelper
         $uriParameters = array();
         foreach ($uriArray as $param) {
             $parameter = explode("=", $param);
-            $uriParameters[$parameter[0]] = $parameter[1];
+            if ($parameter[0] != "_") {
+                $uriParameters[$parameter[0]] = $parameter[1];
+            }
         }
-        return $uriParameters;
+        return (!empty($uriParameters)) ? $uriParameters : null;
     }
 }
