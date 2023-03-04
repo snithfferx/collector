@@ -19,6 +19,9 @@
                             </span>
                             <span class="text-primary" id="counter"></span>
                         </h5>
+                        <div class="justified-content-end">
+                            <buttton type="button" class="btn btn-primary" id="populateDB">Descargar</buttton>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -53,14 +56,15 @@
 {{/block}}
 {{block name='css'}}
     <link rel="stylesheet" type="text/css" href="/assets/css/switchmtrlz/switchmtrlz.css">
-    {{* <link rel="stylesheet" type="text/css" href="/assets/css/toastr/toastr.min.css"> *}}
+    <link rel="stylesheet" type="text/css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-buttons/buttons.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-responsive/responsive.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-scroller/scroller.bootstrap4.min.css">
 {{/block}}
 {{block name="jslibs"}}
-    {{* <script type="text/javascript" src="/assets/js/toastr/toastr.min.css"></script> *}}
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-bs4/dataTables.bootstrap4.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/dataTables.buttons.min.js"></script>
@@ -85,14 +89,14 @@
             $('[data-toggle="tooltip"]').tooltip()
             $("#spinger").hide();
             const columnas = [
-                { data: "collection_id" }, 
-                { data: "id" }, 
-                { data: "title" }, 
-                { data: "handle" }, 
-                { data: "products" }, 
-                { data: "sort" }, 
-                { data: "rules" }, 
-                { data: "seo" }, 
+                { data: "collection_id" },
+                { data: "id" },
+                { data: "title" },
+                { data: "handle" },
+                { data: "products" },
+                { data: "sort" },
+                { data: "rules" },
+                { data: "seo" },
                 { data: "verified" }
             ];
             let collections = {},
@@ -100,12 +104,12 @@
             let collectionsTable = $("#collectionsList").DataTable({
                 ajax: {
                     url: '/collections/download/list',
-                    dataSrc: function (r) {
-                        result = JSON.parse(r);
-                        if (result.error != undefined) {
-                            alertaPopUp(result.error);
+                    dataSrc: function(r) {
+                        console.log(r)
+                        if (r.error != undefined) {
+                            alertaPopUp(r.error);
                         } else {
-                            return result.collections;
+                            return r.collections;
                         }
                     }
                 },
@@ -152,40 +156,46 @@
                 collectionsTable.buttons()
                     .container()
                     .appendTo($('.col-sm-6:eq(0)', collectionsTable.table().container()));
-                //populateDatabase();
+                $("#populateDB").click(function() {
+                    populateDatabase();
+                    setInterval(() => {
+                        contarLineas();
+                    }, 36500);
+                });
                 contarLineas();
             });
+
             function populateDatabase() {
                 $.ajax({
                     url: '/collections/download/proceed',
                     type: 'POST',
-                    beforeSend : function () {
+                    beforeSend: function() {
                         $("#spinger").show();
                     },
-                    success: function(r) {
-                        result = JSON.parse(r);
-                        collections = result.collections;
-                        collectionsTable.clear();
-                        collectionsTable.rows.add(collections).draw();
-                        if (result.error != undefined) {
-                            alertaPopUp(result.error);
-                        }
-                    },
-                    complete: function () {
-                        $("#spinger").hide();
-                    }
-                });
-            }    
-            function contarLineas () {
-                $.ajax({
-                    url: '/collections/download/checking',
-                    type: 'POST',
                     success: function(r) {
                         result = JSON.parse(r);
                         if (result.error != undefined) {
                             alertaPopUp(result.error);
                         } else {
-                            $("#counter").text(result.data);
+                            collectionsTable.ajax.reload();
+                        }
+                    },
+                    complete: function() {
+                        $("#spinger").hide();
+                    }
+                });
+            }
+
+            function contarLineas() {
+                $.ajax({
+                    url: '/collections/download/checking',
+                    type: 'POST',
+                    success: function(r) {
+                        result = JSON.parse(r);
+                        console.log(result)
+                        $("#counter").text(result.data);
+                        if (result.error != []) {
+                            alertaPopUp(result.error);
                         }
                     }
                 });

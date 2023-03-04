@@ -112,13 +112,13 @@ class CollectionsController extends ControllerClass
     public function download($val)
     {
         if (!empty($val)) {
-            echo "<pre>";
+            /* echo "<pre>";
             var_dump($val);
-            echo "</pre>";
+            echo "</pre>"; */
             if ($val == "checking") {
                 return $this->getCheckDownloads();
             } elseif ($val == "list") {
-                return $this->getCollectionsByParams();
+                return $this->getdownloadedCollectionsList();
             } elseif ($val == "proceed") {
                 return $this->getdownloadedCollections();
             }
@@ -233,6 +233,11 @@ class CollectionsController extends ControllerClass
     {
         if (isset($vars)) unset($vars);
     }
+    /**
+     * Obtiene las colecciones a aprtir de los parametros dados, sí no hay parametros devuelve la lista entera de colecciones
+     * @param array|string $values
+     * @return array
+     */
     protected function getCollectionsByParams(array|string $values = []): array
     {
         if (empty($value)) {
@@ -244,10 +249,19 @@ class CollectionsController extends ControllerClass
         }
         return $result;
     }
+    /**
+     * Revisa el número de colecciones descargadas.
+     * @return array
+     */
     protected function getCheckDownloads()
     {
         return $this->checkDownloadProgress();
     }
+    /**
+     * realiza el ingreso de acción para borrar un elemento en la tabla.
+     * @param array $values
+     * @return array
+     */
     protected function deleteElement(array $values): array
     {
         $this->model->id = $values['id'];
@@ -255,7 +269,7 @@ class CollectionsController extends ControllerClass
         if (!empty($result['error'])) {
             return [
                 'data' => $result['data'],
-                'error' => $this->messenger->build('error', []),
+                'error' => $this->messenger->build('error', $result['error']),
             ];
         } else {
             return $this->createViewData(
@@ -271,12 +285,30 @@ class CollectionsController extends ControllerClass
             );;
         }
     }
+    /**
+     * A partir de la confirmación del usuario se realizan una acción sobre los registros seleccionados.
+     * @param mixed $type
+     * @param mixed $values
+     * @return void
+     */
     protected function confirmation($type, $values)
     {
         if ($type == 'delete') {
+            $data = array();
             foreach ($values as $checked) {
-                $this->model->confirmChange($checked);
+                $data[] = $this->model->confirmChange($checked);
             }
+            return $data;
+        } elseif ($type == "sync") {
+            $data = array();
+            foreach ($values as $checked) {
+                $data[] = $this->model->confirmChange($checked);
+            }
+            return $data;
+        } else {
+            return [
+                'error'=>$this->messenger->build('error',['code'=>"00400",'message'=>"El procedimiento no está contemplado"])
+            ];
         }
     }
 
@@ -312,7 +344,7 @@ class CollectionsController extends ControllerClass
             } */
     /* $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $values]);
             $datos = (!empty($result['error'])) ? $result['error'] : $result['data'];
-            $datos['current_page'] = ($page < $result['data']['max_page']) ? $page + 1 : $page;
+            $datos['current_page'] = ($page <ul $result['data']['max_page']) ? $page + 1 : $page;
         } else {
             $datos = ['message' => "Request Type not supported"];
             $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'read', 'params' => $values]);
@@ -685,6 +717,59 @@ class CollectionsController extends ControllerClass
             $response = $this->messenger->messageBuilder('alert', $msg, 'json');
         }
         return $response;
+    }
+    protected function getDownloadedCollectionsList()
+    {
+        $list = $this->getDownloaded();
+        if (!empty($list['error'])) {
+            return [
+                'error' => $this->messenger->build('error', $list['error']),
+                'collections' => []
+            ];
+        } else {
+            foreach ($list['data'] as $k => $v) {
+                $state = 'false';
+                $text = 'No Verificado';
+                $check = '';
+                if (isset($v['verified']) && $v['verified'] != 0) {
+                    $state = 'true';
+                    $text = 'Verificado';
+                    $check = 'checked="checked"';
+                }
+                $verify = '
+                <div class="switch">
+                    <label>                          
+                        <input type="checkbox" id="' . $v['collection_id'] . '-verify_' . $v['collection_id'] . '"
+                            onclick="verifyCollection(' . $v['collection_id'] . ',' . $state . ')" data-toggle="tooltip" 
+                            data-placement="top" title="' . $text . '" ' . $check . '/>
+                        <span class="lever"></span> 
+                    </label>
+                </div>';
+                $collectionType = "Custom";
+                $collectionTypeColor = "dark";
+                $list['data'][$k]['verified'] = $verify;
+                if (!empty($v['rules'])) {
+                    $rules = json_decode($v['rules'], true);
+                    if (is_array($rules)) {
+                        if (sizeof($rules['rules']) > 1) {
+                            $collectionType = "Smart";
+                            $collectionTypeColor = "primary";
+                        }
+                        $rulesList = '<div><h6 class="text-' . $collectionTypeColor . '">' . $collectionType . '</h6><ul>';
+                        foreach ($rules['rules'] as $rule) {
+                            if (!empty($rule)) {
+                                $rulesList .= '<li><strong>' . $rule['relation'] . '</strong>:<em>' . $rule['column'] . '</em>="' . $rule['condition'] . '"</li>';
+                            }
+                        }
+                        $rulesList .= '</ul></div>';
+                        $list['data'][$k]['rules'] = $rulesList;
+                    }
+                }
+            }
+            return [
+                'collections' => $list['data']
+            ];
+        }
     }
 
     /* private function compareCollections($value = 100)
@@ -1395,12 +1480,12 @@ class CollectionsController extends ControllerClass
         } else {
             return [
                 'data' => $result['data'][0]['res'],
-                'erro' => []
+                'error' => []
             ];
         }
     }
     private function getDownloaded()
     {
-        $collections = $this->model->get('collection', 'all');
+        return $this->model->get('collection', 'all');
     }
 }
