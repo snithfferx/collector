@@ -13,17 +13,17 @@ use PHPShopify\Exception\ApiException;
  */
 class ExternalConnection
 {
-    private $scopes;
-    private $url;
-    private $session;
+    //private $scopes;
+    //private $url;
+    //private $session;
     private $shop;
     private $client;
     private $version;
     public function __construct()
     {
         $shopify = new ShopifyHelper;
-        $this->scopes = "read_products,write_products,read_script_tags,write_script_tags";
-        $this->url = "";
+        //$this->scopes = "read_products,write_products,read_script_tags,write_script_tags";
+        //$this->url = "";
         $this->client = $shopify->getAccess();
         $this->version = $shopify->version;
     }
@@ -54,7 +54,7 @@ class ExternalConnection
                 $result = (is_null($campos)) ? $this->client->$elemento->get() : $this->client->$elemento->get($campos);
             }
             $response = ['error' =>[],'data' =>$result];
-        } catch (\Exception $e) {
+        } catch (ApiException $e) {
             $response = [
                 'error' => [
                     'message' => $e->getMessage(),
@@ -68,31 +68,78 @@ class ExternalConnection
         }
         return $response;
     }
-    protected function post($values): array
+    protected function _post($values): array
     {
         $elemento = $values['element'];
         $valores = $values['value'];
+        $campos = $values['fields'];
         try {
-            if (!empty($valores)) {
-                $response = $this->client->$elemento($valores)->post();
-            } else {
-                $response = $this->client->$elemento->post();
+            for ($a = 0; $a < 2;$a++) {
+                $exists = $this->_find($elemento,$campos[$a],$valores[$a]);
+                if (!empty($exists['data'])) {
+                    return [
+                        'error'=>[
+                            'code'=>"00405",
+                            'message'=>"$elemento, ya existe. Elija un nombre diferente.",
+                            'extra'=>$exists['data']
+                        ]
+                    ];
+                }
             }
-        } catch (\Exception $e) {
-            $response = $e;
+            $params = array();
+            foreach ($campos as $i=>$v) {
+                $params[$v]=$values[$i];
+            }
+            $result = $this->client->$elemento->post($params);
+            if ($result->getStatusCode() == 200) {
+                $datos = $result->getDecodedBody();
+                return ['data' => $datos, 'error' => []];
+            } else {
+                return ['data' => [], 'error' => ['code' => $result->getStatusCode(), 'message' => $result->getHeaders()]];
+            }
+        } catch (ApiException $e) {
+            $response = [
+                'error' => [
+                    'message' => $e->getMessage(), 'code' => $e->getCode()
+                ],
+                'data' => $values
+            ];
         }
-        return ['data' => $response];
+        return $response;
     }
     protected function _put ($values) {
         $elemento =  $values['element'];
-        $valores = $values['value'];
-        $campos = $values['fields'];
-        try {
-            $result = $this->client->$elemento->put($valores);
-        } catch (\Exception $e) {
-            $response = $e;
+        $id = $values['params'];
+        $changes = array();
+        foreach ($values['fields'] as $i=>$campo) {
+            $changes[$campo] = $values['values'][$i];
         }
-        return ['data' => $response];
+        try {
+            $result = $this->client->$elemento($id)->put($changes);
+            $response = ['error' => [], 'data' => $result];
+        } catch (ApiException $e) {
+            $response = [
+                'error' => [
+                    'message' => $e->getMessage(), 'code' => $e->getCode()
+                ],
+                'data' => $values
+            ];
+        }
+        return $response;
+    }
+    protected function _delete ($request) {
+        $elemento = $request['element'];
+        $valores = $request['value'];
+        $campos = $request['field'];
+        try {
+            $result = $this->client->$elemento->delete($campos . "=" . $valores);
+        } catch (ApiException $apex) {
+            $result = [
+                'code'=>$apex->getCode(),
+                'message'=>$apex->getMessage()
+            ];
+        }
+        return (isset($result['code'])) ? $result : ['code'=>"00200", 'message'=>"$elemento #$valores, eliminado exitosamente."];
     }
     protected function getHttp($values)
     {
@@ -171,7 +218,8 @@ class ExternalConnection
         }
         $result = $this->client->get($url, [], $values['query']);
         if ($result->getStatusCode() == 200) {
-            $serializedPageInfo = serialize($result->getPageInfo());
+            $pageInfo = $result->getPageInfo();
+            $serializedPageInfo = (!is_null($pageInfo)) ? serialize($pageInfo) : $pageInfo;
             $datos = $result->getDecodedBody();
             return ['data' => $datos, 'pagination' => $serializedPageInfo, 'error' => []];
         }
@@ -201,7 +249,7 @@ class ExternalConnection
                     $c = $result->getStatusCode();
                     throw new \Exception("Request error.", $c);
                 }
-            } catch (\Exception $e) {
+            } catch (ApiException $e) {
                 $response = [
                     'error' => [
                         'message' => $e->getMessage(),
@@ -225,6 +273,15 @@ class ExternalConnection
                 'data' => $values];
         }
         return $response;
+    }
+    private function _find (string $element,string $field,$value) {
+        $params = array($field => $value);
+        $result = $this->client->$element->get($params);
+        if ($result->getStatusCode() == 200) {
+            $datos = $result->getDecodedBody();
+            return ['data' => $datos, 'error' => []];
+        }
+        return ['data' => [], 'error' => ['code'=>$result->getStatusCode(),'message'=> $result->getHeaders()]];
     }
     /* DELETE
     $variables = [

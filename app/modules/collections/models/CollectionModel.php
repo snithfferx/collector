@@ -32,6 +32,7 @@ class CollectionModel extends ContextClass
     public $graphQL_id;
     private $element;
     public $letra;
+    public $keywords;
     public function __construct()
     {
         $this->external = new ExternalContext;
@@ -114,6 +115,9 @@ class CollectionModel extends ContextClass
     }
     public function confirmChange ($change) {
         return $this->setChange($change);
+    }
+    public function newStoreCollection() {
+        return $this->createStoreCollection();
     }
 
 
@@ -246,18 +250,11 @@ class CollectionModel extends ContextClass
         $changes = array();
         $errores = array();
         $this->base = "shopify";
-        if (sizeof($oldCollection['data']) > 1) {
+        if (sizeof($oldCollection['data']) > 0) {
             foreach ($oldCollection['data'] as $collection) {
                 $query = [
                     'fields' => ['change', 'field', 'ubication', 'collection', 'syncronized', 'executed'],
-                    'values' => ["delete", "all", "local", $collection['collection_id'], 0, 0]
-                ];
-            }
-        } else {
-            foreach ($oldCollection['data'] as $collection) {
-                $query = [
-                    'fields' => ['change', 'field', 'ubication', 'collection', 'syncronized', 'executed'],
-                    'values' => ["delete", "all", "store", $collection['collection_id'], 0, 0]
+                    'values' => ["delete", "all", "store", $collection['collection_id'], $collection['verified'], 0]
                 ];
                 $res = $this->insert("changes", $query);
                 if (empty($res['error'])) {
@@ -266,6 +263,11 @@ class CollectionModel extends ContextClass
                     $errores[$collection['collection_id']] = $res['error'];
                 }
             }
+        } else {
+            return ['collections' => $oldCollection['data'],
+                'commonNames' => $oldCommon['data'],
+                'changes' => [], 
+                'errors' => ['code'=>"00404"]];
         }
         return ['collections' => $oldCollection['data'], 'commonNames' => $oldCommon['data'], 'changes' => $changes, 'errors' => $errores];
     }
@@ -359,14 +361,46 @@ class CollectionModel extends ContextClass
             ];
             $res = $this->insert("changes", $query);
             if (!empty($res['error'])) {
-                $changes[$commonName['id']] = $res['data'];
+                $changes[$commonName['id']] = $res['data'][0];
             } else {
                 $errores[$commonName['id']] = $res['error'];
             }
         }
         return ['collections' => $oldCollection['data'], 'commonNames' => $oldCommon['data'], 'changes' => $changes, 'errors' => $errores];
     }
-
+    protected function createStoreCollection()
+    {
+        $result = $this->external->create([
+            'type' => "post",
+            'request' => [
+                'element' => $this->element,
+                'values' => [$this->title, $this->handle, $this->activo],
+                'fields' => ['title', 'handle', 'published']
+            ]
+        ]);
+        $this->id_store = $result['data'][0]['id'];
+        $this->order = $result['data'][0]['sort_order'];
+        $cmps = array();
+        $vlrs = array();
+        foreach ($args as $item => $campo) {
+            if (!is_null($this->$item) && !empty($this->$item)) {
+                array_push($cmps, $campo);
+                array_push($vlrs, $this->$item);
+            }
+        }
+        $commonName = $this->insert('nombre_comun', [
+            'fields' => $cmps,
+            'values' => $vlrs,
+            'params' => [
+                'condition' => [
+                    ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
+                ],
+                'separator' => array()
+            ]
+        ]);
+        return $commonName;
+    }
+    
 
 
     private function getCommonNames($fields): array
@@ -1171,174 +1205,215 @@ class CollectionModel extends ContextClass
                 'separator' => array()
             ]
         ]);
-
         if (!empty($change['data'])) {
             $col = $change['data'][0]['collection'];
             $com = $change['data'][0]['common'];
             $ubi = $change['data'][0]['ubicacion'];
             $typ = $change['data'][0]['change'];
-            if ($typ == "delete") {
-                switch ($typ) {
-                    case "delete":
-                        if ($ubi == "global") {
-                            $this->delete('nombre_comun', [
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]   
-                            ]);
-                            $this->external->delete([
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'element' => "collection", 'field' => "id", 'value' => $col]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
-                        } elseif ($ubi == 'store') {
-                            $this->external->delete([
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'element' => "collection", 'field' => "id", 'value' => $col]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
-                        } else if ($ubi == "local") {
-                            $this->delete('nombre_comun', [
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
+            $args = [
+                'id'=>'id_tipo_producto', 'title'=>'nombre_comun', 'handle'=> 'handle',
+                'keywords'=>'terminos_de_busqueda', 'id_store'=>'id_tienda', 'activo'=> 'activo'
+            ];
+            switch ($typ) {
+                case "delete":
+                    if ($ubi == "global") {
+                        $this->delete('temp_shopify_collector',[
+                            'params'=>[
+                                'condition'=>[
+                                    ['type'=>"COMPARE",'table'=> "temp_shopify_collector",'field'=>"id",'value'=>$col]
+                                ],
+                                'separator'=>array()
+                            ]
+                        ]);
+                        $this->base = "default";
+                        $this->delete('nombre_comun', [
+                            'params' => [
+                                'condition' => [
+                                    ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
+                                ],
+                                'separator' => array()
+                            ]   
+                        ]);
+                        $result = $this->external->delete([
+                            'type'=>"delete",
+                            'request'=>[
+                                'element' => $this->element, 
+                                'field' => "id", 
+                                'value' => $col
+                            ]
+                        ]);
+                    } elseif ($ubi == 'store') {
+                        $result = $this->external->delete([
+                            'type' => "delete",
+                            'request' => [
+                                'element' => "collection",
+                                'field' => "id",
+                                'value' => $col
+                            ]
+                        ]);
+                    } else if ($ubi == "local") {
+                        $this->base = "default";
+                        $result = $this->delete('nombre_comun', [
+                            'params' => [
+                                'condition' => [
+                                    ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
+                                ],
+                                'separator' => array()
+                            ]
+                        ]);
+                    }
+                    break;
+                case "edit":
+                    $cmps = array();
+                    $vlrs = array();
+                    foreach ($args as $item => $campo) {
+                        if (!is_null($this->$item) && !empty($this->$item)) {
+                            array_push($cmps, $campo);
+                            array_push($vlrs, $this->$item);
                         }
-                        break;
-                    case "edit":
-                        if ($ubi == "global") {
-                            $this->update('nombre_comun', [
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
+                    }
+                    if ($ubi == "global") {
+                        $this->external->update([
+                            'type'=>"put",
+                            'request'=>[
+                                'element'=>$this->element,
+                                'fields' => $cmps,
+                                'values' => $vlrs,
+                                'params' => $col
                                 ]
                             ]);
-                            $this->external->update([
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "collection", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
-                        } elseif ($ubi == 'store') {
-                            $this->external->update('nombre_comun', [
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
-                        } else if ($ubi == "local") {
-                            $this->update('nombre_comun', [
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
+                        $this->base = "default";
+                        $this->update('nombre_comun', [
+                            'fields'=>$cmps,
+                            'values'=>$vlrs,
+                            'params' => [
+                                'condition' => [
+                                    ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
+                                ],
+                                'separator' => array()
+                            ]
+                        ]);
+                    } elseif ($ubi == 'store') {
+                        $result = $this->external->update([
+                            'type'=>"put",
+                            'request' => [
+                                'element'=> $this->element,
+                                'params'=>$col,
+                                'fields' => $cmps,
+                                'values' => $vlrs
+                            ]
+                        ]);
+                    } else if ($ubi == "local") {
+                        $this->base = "default";
+                        $result = $this->update('nombre_comun', [
+                            'fields' => $cmps,
+                            'values' => $vlrs,
+                            'params' => [
+                                'condition' => [
+                                    ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
+                                ],
+                                'separator' => array()
+                            ]
+                        ]);
+                    }
+                    unset($cmps,$vlrs);
+                    break;
+                case "sync":
+                    $cmps = array();
+                    $vlrs = array();
+                    foreach ($args as $item => $campo) {
+                        if (!is_null($this->$item) && !empty($this->$item)) {
+                            array_push($cmps, $campo);
+                            array_push($vlrs, $this->$item);
                         }
-                        break;
-                    case "sync":
-                        if ($ubi == "global") {
-                            $this->update('nombre_comun', [
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
+                    }
+                    if ($ubi == "global") {
+                        $this->external->update([
+                            'type'=>"put",
+                            'request' => [
+                                'element' => $this->element,
+                                'fields' => $cmps,
+                                'values' => $vlrs,
+                                'params' => $col
                                 ]
-                            ]);
-                            $this->external->update([
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "collection", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
-                        } elseif ($ubi == 'store') {
-                            $this->external->update('nombre_comun', [
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
-                        } else if ($ubi == "local") {
-                            $this->update('nombre_comun', [
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
+                        ]);
+                        $this->base = "default";
+                        $this->update('nombre_comun', [
+                            'fields' => $cmps,
+                            'values' => $vlrs,
+                            'params' => [
+                                'condition' => [
+                                    ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
+                                ],
+                                'separator' => array()
+                            ]
+                        ]);
+                    } elseif ($ubi == 'store') {
+                        $this->external->update([
+                            'type' => "put",
+                            'request' => [
+                                'element' => $this->element,
+                                'fields' => $cmps,
+                                'values' => $vlrs,
+                                'params' => $col
+                            ]
+                        ]);
+                    } else if ($ubi == "local") {
+                        $this->update('nombre_comun', [
+                            'fields' => $cmps,
+                            'values' => $vlrs,
+                            'params' => [
+                                'condition' => [
+                                    ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
+                                ],
+                                'separator' => array()
+                            ]
+                        ]);
+                        unset($cmps);
+                        unset($vlrs);
+                    }
+                    unset($cmps, $vlrs);
+                    break;
+                case "create":
+                    if ($ubi == "global" || $ubi == "store") {
+                        $result = $this->external->create([
+                            'type' => "post",
+                            'request' => [
+                                'element' => $this->element,
+                                'values' => [$this->title,$this->handle,$this->activo],
+                                'fields' => ['title','handle', 'published']
+                            ]
+                        ]);
+                    }
+                    $this->id_store = $result['data'][0]['id'];
+                    $this->order = $result['data'][0]['sort_order'];
+                    $cmps = array();
+                    $vlrs = array();
+                    foreach ($args as $item => $campo) {
+                        if (!is_null($this->$item) && !empty($this->$item)) {
+                            array_push($cmps, $campo);
+                            array_push($vlrs, $this->$item);
                         }
-                        break;
-                    case "create":
-                        if ($ubi == "global") {
-                            $this->insert('nombre_comun', [
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
-                            $this->external->create([
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "collection", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
-                        } elseif ($ubi == 'store') {
-                            $this->external->create('nombre_comun', [
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
-                        } else if ($ubi == "local") {
-                            $this->insert('nombre_comun', [
-                                'params' => [
-                                    'condition' => [
-                                        ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
-                                    ],
-                                    'separator' => array()
-                                ]
-                            ]);
-                        }
-                        break;
-                }
+                    }
+                    if ($ubi == "global" || $ubi == "local") {
+                        $this->insert('nombre_comun', [
+                            'fields'=>$cmps,
+                            'values'=>$vlrs,
+                            'params' => [
+                                'condition' => [
+                                    ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
+                                ],
+                                'separator' => array()
+                            ]
+                        ]);
+                    }
+                    unset($cmps, $vlrs);
+                    break;
             }
         }
         return [
-            'error'=>[
-
-            ],
-            'data'=>array()
+            'error'=>(!empty($change['error'])) ? $change['error'] : [],
+            'data'=>(!empty($result['data'])) ? $result['data'] : []
         ];
     }
     private function getAllColecciones($campos) : array

@@ -31,10 +31,6 @@ class ExternalContext extends ExternalConnection
     }
     public function getShopifyResponse($values)
     {
-        /* echo "<pre>";
-        var_dump();
-        echo "</pre>";
-        exit; */
         return $this->getResponse($values);
     }
     public function getShopifyGuzResponse($values)
@@ -50,25 +46,26 @@ class ExternalContext extends ExternalConnection
     }
     public function delete($values)
     {
-        # code...
+        return $this->getHttpResponse($values);
     }
     public function update($values)
     {
-        # code...
+        return $this->getHttpResponse($values);
     }
     public function create($values)
     {
-        # code...
+        return $this->getHttpResponse($values);
     }
-
     private function getHttpResponse(array $values): array
     {
         if ($values['type'] == "get") {
             $response = $this->_get($values['request']);
         } elseif ($values['type'] == "post") {
-            $response = $this->_get($values);
+            $response = $this->_post($values['request']);
         } elseif ($values['type'] == "put") {
-            $response = $this->_get($values);
+            $response = $this->_put($values['request']);
+        } elseif ($values['type'] == "delete") {
+            $response = $this->_delete($values['request']);
         } else {
             $response = ['type' => "error", 'data' => ['message' => "Method not supported"]];
         }

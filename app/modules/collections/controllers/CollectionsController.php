@@ -300,9 +300,16 @@ class CollectionsController extends ControllerClass
             }
             return $data;
         } else {
-            return [
-                'error'=>$this->messenger->build('error',['code'=>"00400",'message'=>"El procedimiento no está contemplado"])
-            ];
+            return $this->messenger->messageBuilder('error',$this->messenger->build(
+                'error',[
+                    'code'=>"00400",
+                    'message'=>"El procedimiento no está contemplado"]));
+        }
+    }
+    protected function createCollection ($values) {
+        $result = $this->createStoreCollection($values);
+        if (!empty($result['error'])) {
+
         }
     }
 
@@ -1488,7 +1495,21 @@ class CollectionsController extends ControllerClass
     {
         return $this->model->get('collection', 'all');
     }
-    private function sincronizarNombreComun () {
-        
+    private function createStoreCollection ($values) {
+        $this->model->title = $values['title'];
+        $this->model->handle = $values['handle'];
+        //$this->model->rules = json_encode($values['ruleSet']);
+        //$this->model->fields = json_encode($values['metafields']);
+        //$this->model->seo = json_encode($values['seo']);
+        $existe = $this->model->find([
+            'title',
+            'handle'
+        ]);
+        if (empty($existe['data'])) {
+            return $this->model->newStoreCollection();
+        }
+        $this->cleanVars();
+        return false;
     }
+
 }
