@@ -1118,11 +1118,14 @@ class CollectionsController extends ControllerClass
                                 break;
                             case "edit":
                                 $response[$index]['actions'] .= '
-                                <a href="/collections/update/' . $commonName['id'] . '"
-                                    title="Editar Nombre común" target="_self"
-                                    type="text" class="btn btn-dark btn-block btn-sm">
-                                    <i class="fas fa-pen mr-3"></i>Editar Nombre Común
-                                </a>';
+                                    <button type="button" class="btn btn-dark btn-block btn-sm" 
+                                        data-editType="common_name" 
+                                        data-elementId="' . $commonName['id'] . '" 
+                                        title="Editar Nombre común" 
+                                        id="' . $commonName['id'] . '" 
+                                        onclick="editElementById(' . $commonName['id'] . ')">
+                                        <i class="fas fa-pen mr-3"></i>Editar Nombre Común
+                                    </button>';
                                 break;
                             case "del_global":
                                 $response[$index]['actions'] .= '

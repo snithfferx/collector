@@ -249,6 +249,23 @@ class ControllerClass
             ]
         ];
     }
+    /**
+     * Función que genera un arreglo de breadcrums.
+     * @param string|array $values puede recibir una cade de caracteres con el nombre de la vista, ej.: "home/index"
+     * o puede recibir un arreglo con los hijos de una vista, ej.:
+     * ```php 
+     * $arreglo = [
+     *  'view'=>"home/index",
+     *  'children'=>[
+     *    'main'=>"zapatos",
+     *    'module'=>"accesorios",
+     *    'method'=>"list",
+     *    'params'=>null
+     *   ]
+     * ]
+     * ```
+     * @return array
+     */
     protected function createBreadcrumbs(string|array $values): array
     {
         $routes = array();

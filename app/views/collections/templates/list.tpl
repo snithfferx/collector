@@ -157,11 +157,16 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="editCommon_modal">
+    <div class="modal fade" id="editation_modal">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Edición de nombre común</h4>
+                    <h4 class="modal-title">
+                        Edición de nombre común
+                        <div class="spinner-grow" role="status" id="spinfus">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -201,6 +206,7 @@
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="searching_modal">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -652,6 +658,53 @@
                     }
                 });
             }
+            function editElementById (elemento) {
+                $('#editation_modal').modal('show');
+                var typus = $(this).data('editType');
+                var urlAddress = '/commonnames/get';
+                if (typus == "collection") {
+                    urlAddress = '/collections/get';
+                }
+                $.ajax({
+                    url: urlAddress,
+                    type: 'POST',
+                    data: {
+                        list:'single',
+                        id:elemento,
+                        type:typus
+                    },
+                    beforeSend: function() {
+                        $("#spinfus").show();
+                    },
+                    success: function (r) {
+                        console.log(r)
+                        /* <br />
+                        <b>Warning</b>: Undefined property: app\modules\commonnames\models\CommonNameModel::$title in
+                        <b>C:\wamp64\www\collector\app\modules\commonnames\models\CommonNameModel.php</b> on line
+                        <b>74</b><br />
+                        {"data":[
+                            {"id_nombre_comun":2,
+                            "nombre_comun":"Equipo de escritorio",
+                            "posicion":1,
+                            "fecha_creacion":"2018-09-26 17:43:15",
+                            "activo":1,
+                            "id_tienda":"42732355620",
+                            "handle":"equipo-de-escritorio",
+                            "terminos_de_busqueda":"Escritorio,
+                            Desktop,Computadora de escritorio",
+                            "ids":119,
+                            "subcategoria":"Desktop PC",
+                            "idc":12,
+                            "categoria":"Computadoras"}]
+                        ,"error":[]} */
+                    },
+                    complete:function(){
+                        $("#spinfus").hide();
+                }});
+            }
+            $('#editation_modal').on('hidden.bs.modal', function (e) {
+                console.log(e);
+            })
         </script>
     {{/literal}}
 {{/block}}
