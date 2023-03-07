@@ -35,22 +35,21 @@ class RouterHelper
             $response = [
                 'sv_method' => $method,
                 'app_module' => "home",
-                'app_class' => "home",
                 'app_method' => "index",
-                'app_params' => null
+                'app_params' => array()
             ];
         } else {
             $pathArray = explode('/', $path);
             if ($method == "post") {
                 array_shift($pathArray);
-                $prms = (!empty($_POST)) ? $_POST : null;
+                $prms = (!empty($_POST)) ? $_POST : array();
             } else {
                 if ($this->qmPos != false) {
                     $params = substr($this->url, ($this->qmPos + 1));
                     $prms = $this->createParams($params);
                 } else {
                     array_shift($pathArray);
-                    $prms = null;
+                    $prms = array();
                 }
             }
             $mtd = "index";
@@ -59,18 +58,22 @@ class RouterHelper
             $ctr = $pathArray[0];
             $response = [];
             switch ($pathArraySize) {
-                case 5:
-                    $ctr = $pathArray[1];
-                    $mtd = $pathArray[3];
-                    if (is_null($prms)) $prms = $pathArray[4];
-                    break;
-                case 4:
-                    $mtd = $pathArray[2];
-                    if (is_null($prms)) $prms = $pathArray[3];
-                    break;
                 case 3:
                     $mtd = $pathArray[1];
-                    if (is_null($prms)) $prms = $pathArray[2];
+                    if (is_null($prms) || empty($prms)) $prms = $pathArray[2];
+                    break;
+                case 4:
+                    $ctr = $pathArray[1];
+                    $mtd = $pathArray[2];
+                    if (is_null($prms) || empty($prms)) $prms = $pathArray[3];
+                    break;
+                case $pathArraySize > 4:
+                    $ctr = $pathArray[1];
+                    $mtd = $pathArray[2];
+                    for ($i = 0; $i < 3; $i++) {
+                        array_shift($pathArray);
+                    }
+                    $prms = $pathArray;
                     break;
                 default:
                     $mtd = ($pathArray[1]) ?? 'index';
@@ -96,6 +99,6 @@ class RouterHelper
                 $uriParameters[$parameter[0]] = $parameter[1];
             }
         }
-        return (!empty($uriParameters)) ? $uriParameters : null;
+        return (!empty($uriParameters)) ? $uriParameters : array();
     }
 }
