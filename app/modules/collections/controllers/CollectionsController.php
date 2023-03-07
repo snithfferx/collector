@@ -111,6 +111,9 @@ class CollectionsController extends ControllerClass
     }
     public function download($val)
     {
+        /* echo "<pre>";
+        var_dump($val);
+        echo "</pre>"; */
         if (!empty($val)) {
             if ($val == "checking") {
                 return $this->getCheckDownloads();
@@ -167,21 +170,9 @@ class CollectionsController extends ControllerClass
         }
         return $this->createViewData('collections/create');
     }
-    /**
-     * Función que devuelve la lista de colecciones en comparativa
-     * Puede recibir un nombre de colección o nombre común, limite de datos a representar [max:250 | default:100]
-     * 
-     * @param string $value
-     * @return array
-     * @version 1.0.0
-     * 18/01/23
-     */
-    public function compare($value)
-    {
-        return (!is_null($value)) ? $this->getCompareData($value) : $this->getCompareData();
-    }
     public function sync($value)
     {
+        return $this->syncronize($value);
     }
 
 
@@ -283,7 +274,7 @@ class CollectionsController extends ControllerClass
      * A partir de la confirmación del usuario se realizan una acción sobre los registros seleccionados.
      * @param mixed $type
      * @param mixed $values
-     * @return void
+     * @return array
      */
     protected function confirmation($type, $values)
     {
@@ -309,27 +300,20 @@ class CollectionsController extends ControllerClass
     protected function createCollection ($values) {
         $result = $this->createStoreCollection($values);
         if (!empty($result['error'])) {
-
+            return $this->messenger->messageBuilder('error',
+            $this->messenger->build('error',[
+                'error'=>[
+                    'code'=>$result['error']['code'],
+                    'message'=>$result['error']['message']
+                ]
+            ]));
+        } else {
+            return $result;
         }
     }
 
 
 
-    /* protected function getCompareData($value = "all"): array
-    {
-        $viewData = [];
-        $viewtype = "view";
-        $viewCode = null;
-        $viewName = "collections/compareList";
-        $collections = $this->compareCollections($value);
-        if (!empty($collections['error'])) {
-            $viewtype = "error_view";
-            $viewCode = $collections['error']['code'];
-        }
-        $breadcrumbs = $this->createBreadcrumbs(['view' => $viewName, 'method' => 'compare', 'params' => $value]);
-        $response = $this->createViewData($viewName, $collections, $breadcrumbs, $viewtype, $viewCode, $viewData);
-        return $response;
-    } */
     //protected function getNextPage($values)
     //{
     /* $page = $values['page'];
@@ -501,6 +485,59 @@ class CollectionsController extends ControllerClass
                     ]),"json");
         }
         return $data;
+    }
+    protected function getDownloadedCollectionsList()
+    {
+        $list = $this->getDownloaded();
+        if (!empty($list['error'])) {
+            return [
+                'error' => $this->messenger->build('error', $list['error']),
+                'collections' => []
+            ];
+        } else {
+            foreach ($list['data'] as $k => $v) {
+                $state = 'false';
+                $text = 'No Verificado';
+                $check = '';
+                if (isset($v['verified']) && $v['verified'] != 0) {
+                    $state = 'true';
+                    $text = 'Verificado';
+                    $check = 'checked="checked"';
+                }
+                $verify = '
+                <div class="switch">
+                    <label>                          
+                        <input type="checkbox" id="' . $v['collection_id'] . '-verify_' . $v['collection_id'] . '"
+                            onclick="verifyCollection(' . $v['collection_id'] . ',' . $state . ')" data-toggle="tooltip" 
+                            data-placement="top" title="' . $text . '" ' . $check . '/>
+                        <span class="lever"></span> 
+                    </label>
+                </div>';
+                $collectionType = "Custom";
+                $collectionTypeColor = "success";
+                $list['data'][$k]['verified'] = $verify;
+                if (!empty($v['rules'])) {
+                    $rules = json_decode($v['rules'], true);
+                    if (is_array($rules)) {
+                        if (sizeof($rules['rules']) > 1) {
+                            $collectionType = "Smart";
+                            $collectionTypeColor = "primary";
+                        }
+                        $rulesList = '<div><h5 class="text-center text-dark">Tipo: <span class="badge badge-' . $collectionTypeColor . '">' . $collectionType . '</span></h5><ul>';
+                        foreach ($rules['rules'] as $rule) {
+                            if (!empty($rule)) {
+                                $rulesList .= '<li><strong>' . $rule['relation'] . '</strong>:<em>' . $rule['column'] . '</em>="' . $rule['condition'] . '"</li>';
+                            }
+                        }
+                        $rulesList .= '</ul></div>';
+                        $list['data'][$k]['rules'] = $rulesList;
+                    }
+                }
+            }
+            return [
+                'collections' => $list['data']
+            ];
+        }
     }
 
     /* ############# Private ############## */
@@ -751,60 +788,6 @@ class CollectionsController extends ControllerClass
         }
         return $response;
     }
-    protected function getDownloadedCollectionsList()
-    {
-        $list = $this->getDownloaded();
-        if (!empty($list['error'])) {
-            return [
-                'error' => $this->messenger->build('error', $list['error']),
-                'collections' => []
-            ];
-        } else {
-            foreach ($list['data'] as $k => $v) {
-                $state = 'false';
-                $text = 'No Verificado';
-                $check = '';
-                if (isset($v['verified']) && $v['verified'] != 0) {
-                    $state = 'true';
-                    $text = 'Verificado';
-                    $check = 'checked="checked"';
-                }
-                $verify = '
-                <div class="switch">
-                    <label>                          
-                        <input type="checkbox" id="' . $v['collection_id'] . '-verify_' . $v['collection_id'] . '"
-                            onclick="verifyCollection(' . $v['collection_id'] . ',' . $state . ')" data-toggle="tooltip" 
-                            data-placement="top" title="' . $text . '" ' . $check . '/>
-                        <span class="lever"></span> 
-                    </label>
-                </div>';
-                $collectionType = "Custom";
-                $collectionTypeColor = "dark";
-                $list['data'][$k]['verified'] = $verify;
-                if (!empty($v['rules'])) {
-                    $rules = json_decode($v['rules'], true);
-                    if (is_array($rules)) {
-                        if (sizeof($rules['rules']) > 1) {
-                            $collectionType = "Smart";
-                            $collectionTypeColor = "primary";
-                        }
-                        $rulesList = '<div><h6 class="text-' . $collectionTypeColor . '">' . $collectionType . '</h6><ul>';
-                        foreach ($rules['rules'] as $rule) {
-                            if (!empty($rule)) {
-                                $rulesList .= '<li><strong>' . $rule['relation'] . '</strong>:<em>' . $rule['column'] . '</em>="' . $rule['condition'] . '"</li>';
-                            }
-                        }
-                        $rulesList .= '</ul></div>';
-                        $list['data'][$k]['rules'] = $rulesList;
-                    }
-                }
-            }
-            return [
-                'collections' => $list['data']
-            ];
-        }
-    }
-
     /* private function compareCollections($value = 100)
     {
         if (is_numeric($value)) {
@@ -1062,9 +1045,9 @@ class CollectionsController extends ControllerClass
                                 <input type="checkbox" id="' . $commonName['store_id'] . '-Switch" 
                                     onclick="changeState(' . $commonName['id'] . ',\'' . $state . '\')" 
                                     data-toggle="tooltip" data-placement="top" title="' . $text . '" ' . $check . '/>
-                                <span class="lever"></span> 
+                                <span class="lever"></span> ' . $text . '
                             </label>
-                        </div><span class="badge badge-pill badge-primary">' . $text . '</span>';
+                        </div>';
                     $response[$index]['name'] = '
                         <a href="/collections/read?id=' . $commonName['id'] . '" 
                             class="btn btn-block btn-outline-info btn-sm" target="_self" 
@@ -1137,7 +1120,7 @@ class CollectionsController extends ControllerClass
                                 $response[$index]['actions'] .= '
                                 <a href="/collections/update/' . $commonName['id'] . '"
                                     title="Editar Nombre común" target="_self"
-                                    type="text" class="btn btn-info btn-block btn-sm">
+                                    type="text" class="btn btn-dark btn-block btn-sm">
                                     <i class="fas fa-pen mr-3"></i>Editar Nombre Común
                                 </a>';
                                 break;
@@ -1185,7 +1168,7 @@ class CollectionsController extends ControllerClass
                                 $response[$index]['actions'] .= '
                                 <a href="/collections/sync?id=' . $commonName['id'] . '"
                                     title="Sincroniza nombre común hacia tienda" target="_self"
-                                    type="text" class="btn btn-dark btn-block btn-sm">
+                                    type="text" class="btn btn-success btn-block btn-sm">
                                     <i class="fas fa-sync mr-3"></i>Sincronizar
                                 </a>';
                                 break;
@@ -1388,7 +1371,7 @@ class CollectionsController extends ControllerClass
                 } else {
                     $collectionData = $collection['data'][0];
                     $commonData = $common['data'][0];
-                    if ($collectionData['title'] == $commonData['name']) $this->model->title = $collectionData['title'];
+                    if ($collectionData['title'] != $commonData['name']) $this->model->title = $values['title'];
                     if ($collectionData['handle'] == $commonData['handle']) $this->model->handle = $collectionData['handle'];
                     return $this->messenger->messageBuilder('alert', [
                         'type' => "success",
