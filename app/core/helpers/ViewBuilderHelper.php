@@ -133,9 +133,7 @@ class ViewBuilderHelper {
                         'version' => $config['shortversion'],
                         'app_url' => $config['app_url']
                     ],
-                    'css' => '
-                    <link rel="stylesheet" type="text/css" href="\assets\css\style.css">
-                    '
+                    'css' => ''
                 ],
                 'body' => ['layout' => '', 'darkmode' => ''],
                 'footer' => [
@@ -222,7 +220,7 @@ class ViewBuilderHelper {
                         'version' => $config['shortversion'],
                         'app_url' => $config['app_url']
                     ],
-                    'css' => '<link rel="stylesheet" type="text/css" href="\assets\css\style.css">'
+                    'css' => ''
                 ],
                 'body'=> ['layout'=>'', 'darkmode'=>null],
                 'footer' => [
