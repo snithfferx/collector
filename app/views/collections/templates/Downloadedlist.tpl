@@ -26,6 +26,31 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-12">
+                                <form role="form">
+                                    <div class="row">
+                                        <div class="col-10 offset-1 mb-3">
+                                            <div class="btn-toolbar justify-content-between" role="toolbar"
+                                                aria-label="Toolbar with button groups">
+                                                {{assign var="letras" value=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','Ñ']}}
+                                                {{foreach $letras as $key => $letra}}
+                                                    <div class="btn-group mr-2" role="group" aria-label="Group-{{$key}}">
+                                                        <button type="button" class="btn btn-secondary"
+                                                            onclick="buscar('{{$letra}}')"
+                                                            id="letter_Filter_{{$letra}}">{{$letra}}</button>
+                                                    </div>
+                                                {{/foreach}}
+                                            </div>
+                                        </div>
+                                        {{* <div class="col-1">
+                                            <button type="button" class="btn btn-primary btn-block btn-sm" data-toggle="modal"
+                                                data-target="#searching_modal">
+                                                Buscar
+                                            </button>
+                                        </div> *}}
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="col-12">
                                 <table class="table table-striped table-bordered" style="width:100%" id="collectionsList">
                                     <thead class="thead-dark">
                                         <tr>
@@ -51,20 +76,19 @@
             </div>
         </div>
     </div>
-    </div>
-    {{var_dump($data.content)}}
+    {{* var_dump($data.content) *}}
 {{/block}}
 {{block name='css'}}
     <link rel="stylesheet" type="text/css" href="/assets/css/switchmtrlz/switchmtrlz.css">
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    {{* <link rel="stylesheet" type="text/css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css"> *}}
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-bs4/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-buttons/buttons.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-responsive/responsive.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/datatables-scroller/scroller.bootstrap4.min.css">
 {{/block}}
 {{block name="jslibs"}}
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    {{* <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script> *}}
     <script type="text/javascript" src="/assets/js/datatables/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-bs4/dataTables.bootstrap4.min.js"></script>
     <script type="text/javascript" src="/assets/js/datatables-buttons/dataTables.buttons.min.js"></script>
@@ -109,6 +133,7 @@
                         if (r.error != undefined) {
                             alertaPopUp(r.error);
                         } else {
+                            collections = r.collections;
                             return r.collections;
                         }
                     }
@@ -126,7 +151,7 @@
                     [2, 'asc']
                 ],
                 "responsive": true,
-                "processing": true,
+                "processing": false,
                 "language": {
                     "emptyTable": "No hay registros en la tabla",
                     "info": "Mostrando _START_ a _END_ de _TOTAL_ líneas",
@@ -153,9 +178,7 @@
                 "buttons": botones()
             });
             $(document).ready(function() {
-                collectionsTable.buttons()
-                    .container()
-                    .appendTo($('.col-sm-6:eq(0)', collectionsTable.table().container()));
+                collectionsTable.buttons().container().appendTo($('.col-sm-6:eq(0)', collectionsTable.table().container()));
                 $("#populateDB").click(function() {
                     populateDatabase();
                     setInterval(() => {
@@ -199,6 +222,62 @@
                         }
                     }
                 });
+            }
+
+            function buscar(parametro) {
+                event.preventDefault();
+                var searched;
+                if (parametro != undefined) {
+                    searched = new Array;
+                    $.each(collections, function(index, value) {
+                        if (value.title != null) {
+                            if (value.title.startsWith(parametro)) {
+                                searched.push(value);
+                            }
+                        }
+                    });
+                    if (searched.length == 0) {
+                        alertaPopUp({
+                            class: "bg-info",
+                            title: "¡AVISO!",
+                            subtitle: "No data parsed..",
+                            autohide: true,
+                            delay: 7500,
+                            body: "Sorry no data found!",
+                            icon: "fas fa-info-circle",
+                        },'error');
+                    } else {
+                        collectionsTable.clear();
+                        collectionsTable.rows.add(searched).draw();
+                    }
+                } else {
+                    /* $.ajax({
+                        url: '/collections/search',
+                        type: 'POST',
+                        data: {
+                            cat: cats,
+                            scat: sucat,
+                            active: activo,
+                            name: coleccion
+                        },
+                        beforeSend: function() {
+                            $("#spinger").show();
+                        },
+                        success: function(r) {
+                            result = JSON.parse(r);
+                            collections = result.collections;
+                            collectionsTable.clear();
+                            collectionsTable.rows.add(collections).draw();
+                            if (result.error != undefined) {
+                                alertaPopUp(result.error);
+                            }
+                        },
+                        complete: function() {
+                            $("#spinger").hide();
+                        }
+                    }); */
+                    alert("Función aún no disponible");
+                }
             }
         </script>
     {{/literal}}
