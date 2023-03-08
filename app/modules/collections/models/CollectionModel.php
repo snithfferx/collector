@@ -167,6 +167,7 @@ class CollectionModel extends ContextClass
                 ]
             ]
         );
+        $this->base = "default";
         $oldCommon = $this->select(
             'nombre_comun',
             [
@@ -215,13 +216,14 @@ class CollectionModel extends ContextClass
         );
         $changes = array();
         $errores = array();
+        $this->base = "shopify";
         foreach ($oldCollection['data'] as $collection) {
             $query = [
                 'fields' => ['change','field','ubication','collection','syncronized','executed'],
                 'values' => ["delete","all","global", $collection['collection_id'],0,0]
             ];
             $res = $this->insert("changes", $query);
-            if (!empty($res['error'])) {
+            if (empty($res['error'])) {
                 $changes[] = $res['data'];
             } else {
                 $errores[] = $res['error'];
@@ -233,13 +235,13 @@ class CollectionModel extends ContextClass
                 'values' => ["delete", "all", "global", $commonName['id'], 0, 0]
             ];
             $res = $this->insert("changes", $query);
-            if (!empty($res['error'])) {
+            if (empty($res['error'])) {
                 $changes[] = $res['data'];
             } else {
                 $errores[] = $res['error'];
             }
         }
-        return ['collections'=>$oldCollection,'commonNames'=>$oldCommon,'chamges'=>$changes,'errors'=>$errores];
+        return ['collections'=>$oldCollection['data'],'commonNames'=>$oldCommon['data'],'changes'=>$changes,'errors'=>$errores];
     }
     protected function deleteInStore()
     {
@@ -296,7 +298,7 @@ class CollectionModel extends ContextClass
                         [
                             'type' => "COMPARE",
                             'table' => "temp_shopify_collector",
-                            'field' => "id",
+                            'field' => "collection_id",
                             'value' => $this->id
                         ]
                     ],
@@ -304,69 +306,29 @@ class CollectionModel extends ContextClass
                 ]
             ]
         );
-        $this->base = "default";
-        $oldCommon = $this->select(
-            'nombre_comun',
-            [
-                'fields' => [
-                    'nombre_comun' => [
-                        'id_nombre_comun=id',
-                        'nombre_comun=name',
-                        'posicion=possition',
-                        'fecha_creacion=date',
-                        'activo=active',
-                        'id_tienda=store_id',
-                        'handle',
-                        'terminos_de_busqueda=keywords'
-                    ],
-                    'tipo_producto' => ['id_tipo_producto=tp_id', 'tipo_producto=sub_category'],
-                    'tipo_categoria' => ['id_tipo_categoria=tc_id', 'tipo_categoria=category']
-                ],
-                'joins' => [
-                    [
-                        'type' => "INNER",
-                        'table' => "tipo_producto",
-                        'filter' => "id_tipo_producto",
-                        'compare_table' => "nombre_comun",
-                        'compare_filter' => "id_tipo_producto"
-                    ],
-                    [
-                        'type' => "INNER",
-                        'table' => "tipo_categoria",
-                        'filter' => "id_tipo_categoria",
-                        'compare_table' => "tipo_producto",
-                        'compare_filter' => "id_tipo_categoria"
-                    ]
-                ],
-                'params' => [
-                    'condition' => [
-                        [
-                            'type' => "COMPARE",
-                            'table' => "nombre_comun",
-                            'field' => "id_tienda",
-                            'value' => $this->id
-                        ]
-                    ],
-                    'separator' => array()
-                ]
-            ]
-        );
+        $data = array();
         $changes = array();
         $errores = array();
-        $this->base = "shopify";
-        foreach ($oldCommon['data'] as $commonName) {
+        foreach ($oldCollection['data'] as $collection) {
             $query = [
-                'fields' => ['change', 'field', 'ubication', 'common', 'syncronized', 'executed'],
-                'values' => ["delete", "all", "local", $commonName['id'], 0, 0]
+                'fields' => ['change', 'field', 'ubication', 'collection', 'syncronized', 'executed'],
+                'values' => ["delete", "all", "local", $collection['collection_id'], 0, 0]
             ];
             $res = $this->insert("changes", $query);
-            if (!empty($res['error'])) {
-                $changes[$commonName['id']] = $res['data'][0];
+            if (empty($res['error'])) {
+                $changes[] = $res['data'];
             } else {
-                $errores[$commonName['id']] = $res['error'];
+                $errores[] = $res['error'];
             }
+            $this->id_store = $collection['id'];
+            $this->id = null;
+            $oc = $this->getCommonNames('all');
+            foreach ($oc['data'] as $oldCommon) {
+                $data[] = $oldCommon;
+            }
+            $this->base = "shopify";
         }
-        return ['collections' => $oldCollection['data'], 'commonNames' => $oldCommon['data'], 'changes' => $changes, 'errors' => $errores];
+        return ['collections' => $oldCollection['data'], 'commonNames' => $data, 'changes' => $changes, 'errors' => $errores];
     }
     protected function createStoreCollection()
     {
@@ -382,6 +344,7 @@ class CollectionModel extends ContextClass
         $this->order = $result['data'][0]['sort_order'];
         $cmps = array();
         $vlrs = array();
+        $args = ['id', 'tipo', 'handle', 'categoria', 'title', 'id_store'];
         foreach ($args as $item => $campo) {
             if (!is_null($this->$item) && !empty($this->$item)) {
                 array_push($cmps, $campo);
@@ -393,7 +356,7 @@ class CollectionModel extends ContextClass
             'values' => $vlrs,
             'params' => [
                 'condition' => [
-                    ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $com]
+                    ['type' => "COMPARE", 'table' => "nombre_comun", 'field' => "id", 'value' => $cmps]
                 ],
                 'separator' => array()
             ]

@@ -80,9 +80,8 @@
     </div>
     {{* <pre>{{var_dump($data.content)}}</pre> *}}
     <!-- Modal -->
-    <div class="modal fade" id="type-Changer" tabindex="-1" role="dialog" aria-labelledby="type-Changer-Label"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal fade" id="type-Changer" tabindex="-1" role="dialog" aria-labelledby="type-Changer-Label" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="type-Changer-Label">Asociar Nombre Común</h5>
@@ -112,13 +111,34 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary">Guardar</button>
+                    {{* <button type="button" class="btn btn-primary">Guardar</button> *}}
                 </div>
             </div>
         </div>
     </div>
-    <div class="modal fade" id="deleteCollection_modal">
-        <div class="modal-dialog">
+    <div class="modal fade" id="deleteCollection_modal" tabindex="-1" role="dialog" aria-labelledby="Delete Collection" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Confirmación de eliminación</h4>
+                    <div class="spinner-grow" role="status" id="spinfus">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="deleteCollection_modal_content">
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                    {{* <button type="button" class="btn btn-primary">Confirmar</button> *}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="deleteCommon_modal" tabindex="-1" role="dialog" aria-labelledby="Delete Common Name" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Confirmación de eliminación</h4>
@@ -126,39 +146,17 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <p>Se eliminará <b><span id="idCollection"></span></b></p>
-                    <p>Favor confirme que desea eliminar la colección</p>
+                <div class="modal-body" id="deleteCommon_modal">
                 </div>
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary">Confirmar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="deleteCommon_modal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Confirmación de eliminación</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Se eliminará <b><span id="idCommon"></span></b></p>
-                    <p>Favor confirme que desea eliminar el nombre común</p>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary">Confirmar</button>
+                    {{* <button type="button" class="btn btn-primary">Confirmar</button> *}}
                 </div>
             </div>
         </div>
     </div>
     <div class="modal fade" id="editation_modal">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">
@@ -173,29 +171,64 @@
                 </div>
                 <div class="modal-body">
                     <form>
-                        <div class="form-group">
-                            <label for="exampleInputEmail1">Email address</label>
-                            <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
-                        </div>
-                        <div class="form-group">
-                            <label for="exampleInputPassword1">Password</label>
-                            <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Password">
-                        </div>
-                        <div class="form-group">
-                            <label for="exampleInputFile">File input</label>
-                            <div class="input-group">
-                                <div class="custom-file">
-                                    <input type="file" class="custom-file-input" id="exampleInputFile">
-                                    <label class="custom-file-label" for="exampleInputFile">Choose file</label>
-                                </div>
-                                <div class="input-group-append">
-                                    <span class="input-group-text">Upload</span>
-                                </div>
+                        <input type="hidden" id="common_id"/>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="common_date">Fecha de creación</label>
+                                <input type="text" class="form-control disabled" id="common_date" placeholder="Fecha de creación" disabled>
                             </div>
+                            <div class="form-group">
+                                <label for="common_common">Titulo</label>
+                                <input type="text" class="form-control" id="common_common" placeholder="titulo">
+                            </div>
+                            <div class="form-group">
+                                <label for="common_handle">Titulo url</label>
+                                <input type="text" class="form-control disabled" id="common_handle"
+                                    placeholder="User friendly URL">
+                            </div>
+                            <div class="form-group">
+                                <label for="common_store_id">ID de tienda</label>
+                                <input type="text" class="form-control disabled" id="common_store_id"
+                                placeholder="Identificador de tienda">
+                            </div>
+                            {{* <div class="form-group">
+                                    <label for="exampleInputFile">File input</label>
+                                    <div class="input-group">
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" id="exampleInputFile">
+                                            <label class="custom-file-label" for="exampleInputFile">Choose file</label>
+                                        </div>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">Upload</span>
+                                        </div>
+                                    </div>
+                            </div> *}}
                         </div>
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                            <label class="form-check-label" for="exampleCheck1">Check me out</label>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="common_possition">Posición</label>
+                                <input type="text" class="form-control" id="common_possition" placeholder="Posición">
+                            </div>
+                            <div class="form-group">
+                                <label for="common_terms">Terminos de Busqueda</label>
+                                <input type="text" class="form-control disabled" id="common_terms" placeholder="Keywords">
+                            </div>
+                            <div class="form-group">
+                                <label>Categoría</label>
+                                <select class="form-control select2" style="width: 100%;" id="common_category">
+                                    <option value="0" selected="selected">Elija una categoría</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Sub-Categoría</label>
+                                <select class="form-control select2" style="width: 100%;" id="common_subcategory">
+                                    <option value="0" selected="selected">Elija una subcategoría</option>
+                                </select>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="common_active">
+                                <label class="form-check-label" for="common_active">Activo</label>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -455,10 +488,23 @@
                     alertaPopUp(result);
                 });
             }
-            function deleteCollection(id) {
-                $.post('collections/delete',{"id":id},function (r) {
-                    result = JSON.parse(r);
-                    alertaPopUp(result);
+            function deleteCollection(id,ubi) {
+                $.ajax({
+                    url: '/collections/delete',
+                    type: "POST",
+                    data: {
+                        id:id,where:ubi
+                    },
+                    beforeSend: function() {
+                        $("#spinfus").show();
+                    },
+                    success: function (r) {
+                        $("#deleteCollection_modal_content").html(r);
+                        $('#deleteCollection_modal').modal('show');
+                    },
+                    complete:function() {
+                        $("#spinfus").hide();
+                    }
                 });
             }
             function changeState(id, currentState) {
@@ -579,7 +625,7 @@
                 }
             }
             // Trae las categorias
-            function getCategories() {
+            function getCategories(elemento = "categories") {
                 $.ajax({
                     url: '/categories/categorieslist',
                     type: 'POST',
@@ -588,13 +634,13 @@
                         var fopcion;
                         $.each(result, function(index, val) {
                             fopcion = new Option(val.name, val.id, false, false);
-                            $("#categories").append(fopcion);
+                            $("#"+elemento).append(fopcion);
                         });
                     }
                 });
             }
             // Trae las sub categorias
-            function getSubCategories(id) {
+            function getSubCategories(id, element="subcategories") {
                 $.ajax({
                     url: '/categories/subcategorieslist',
                     type: 'POST',
@@ -602,14 +648,14 @@
                         cid: id
                     },
                     success: function(r) {
-                        $("#subcategories").empty();
+                        $("#"+element).empty();
                         let opcion = new Option('Elija una subcategoria', 0, true, true);
-                        $("#subcategories").append(opcion).trigger('change');
+                        $("#"+element).append(opcion).trigger('change');
                         var result = JSON.parse(r);
                         var fopcion;
                         $.each(result, function(index, val) {
                             fopcion = new Option(val.name, val.id, false, false);
-                            $("#subcategories").append(fopcion);
+                            $("#"+element).append(fopcion);
                         });
                     }
                 });
@@ -665,6 +711,8 @@
                 if (typus == "collection") {
                     urlAddress = '/collections/get';
                 }
+                $("#common_url").val(urlAddress);
+                getCategories("common_category");
                 $.ajax({
                     url: urlAddress,
                     type: 'POST',
@@ -677,29 +725,65 @@
                         $("#spinfus").show();
                     },
                     success: function (r) {
-                        console.log(r)
-                        /* <br />
-                        <b>Warning</b>: Undefined property: app\modules\commonnames\models\CommonNameModel::$title in
-                        <b>C:\wamp64\www\collector\app\modules\commonnames\models\CommonNameModel.php</b> on line
-                        <b>74</b><br />
-                        {"data":[
-                            {"id_nombre_comun":2,
-                            "nombre_comun":"Equipo de escritorio",
-                            "posicion":1,
-                            "fecha_creacion":"2018-09-26 17:43:15",
-                            "activo":1,
-                            "id_tienda":"42732355620",
-                            "handle":"equipo-de-escritorio",
-                            "terminos_de_busqueda":"Escritorio,
-                            Desktop,Computadora de escritorio",
-                            "ids":119,
-                            "subcategoria":"Desktop PC",
-                            "idc":12,
-                            "categoria":"Computadoras"}]
-                        ,"error":[]} */
+                        result = JSON.parse(r);
+                        $("#common_id").val(result.data[0].id);
+                        $("#common_common").val(result.data[0].common);
+                        $("#common_possition").val(result.data[0].posicion);
+                        $("#common_date").val(result.data[0].date);
+                        if (result.data[0].activo > 0) {
+                            $("#common_active").attr('checked',true);
+                        }
+                        $("#common_store_id").val(result.data[0].id_tienda);
+                        $("#common_handle").val(result.data[0].handle);
+                        $("#common_terms").val(result.data[0].terminos);
+                        document.getElementById("common_category").selectedIndex = result.data[0].idc;
+                        $("#common_category").val(result.data[0].categoria).trigger('change');
+                        getSubCategories(result.data[0].idc,"common_subcategory");
+                        setTimeout(function(){
+                            document.getElementById("common_subcategory").selectedIndex = result.data[0].ids;
+                            $("#common_subcategory").val(result.data[0].subcategoria).trigger('change');
+                        },1000);
                     },
                     complete:function(){
                         $("#spinfus").hide();
+                }});
+            }
+            function saveEditation () {
+                var id = $("#common_id").val();
+                var name = $("#common_common").val();
+                var poss = $("#common_possition").val();
+                var date = $("#common_date").val();
+                var activ = $("#common_active").is('checked');
+                var store = $("#common_store_id").val();
+                var handle = $("#common_handle").val();
+                var keyw = $("#common_terms").val();
+                var cat = $("#category option:selected").val();
+                var scat = $("#subcategory option:selected").val();
+                var curl = $("#common_url").val();
+                $.ajax({
+                    url: curl,
+                    type: 'POST',
+                    data: {
+                        list:'single',
+                        registre:id,
+                        title:name,
+                        possition:poss,
+                        active:activ,
+                        store_id:store,
+                        handle:handle,
+                        keywords:keyw,
+                        category:cat,
+                        subcategory:scat
+                    },
+                    beforeSend: function() {
+                        $("#spinfus").show();
+                    },
+                    success: function (r) {
+                        result = JSON.parse(r);
+                        alertaPopUp(result.error,'error');
+                    },
+                    complete:function(){
+                    $("#spinfus").hide();
                 }});
             }
             $('#editation_modal').on('hidden.bs.modal', function (e) {

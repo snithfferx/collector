@@ -251,24 +251,21 @@ class CollectionsController extends ControllerClass
     {
         $this->model->id = $values['id'];
         $result = $this->model->deleteFrom($values['where']);
-        if (!empty($result['error'])) {
+        /* ['collections'=>$oldCollection,'commonNames'=>$oldCommon,'changes'=>$changes,'errors'=>$errores] */
+        /* if (!empty($result['errors'])) {
             return [
-                'data' => $result['data'],
-                'error' => $this->messenger->build('error', $result['error']),
+                'data' => [
+                    'collection'=>$result['collections'],
+                    'common_name'=>$result['commonNames'],
+                    'changes'=>$result['changes']],
+                'error' => $this->messenger->build('error', $result['errors']),
             ];
         } else {
-            return $this->createViewData(
-                'collections/delete',
-                $result,
-                $this->createBreadcrumbs([
-                    'view' => 'collections/delete',
-                    'children' => [
-                        ['main' => "collections", 'module' => "collections", 'method' => "index"],
-                        ['module' => "collections", 'method' => "delete", 'params' => $values]
-                    ]
-                ])
-            );;
-        }
+        } */
+        return $this->createViewData(
+            'collections/delete',
+            $result
+        );
     }
     /**
      * A partir de la confirmación del usuario se realizan una acción sobre los registros seleccionados.
@@ -1129,27 +1126,27 @@ class CollectionsController extends ControllerClass
                                 break;
                             case "del_global":
                                 $response[$index]['actions'] .= '
-                                <a href="/collections/delete?id=' . $item['id'] . '&where=global"
+                                <button type="button" onclick="deleteCollection(\'' . $item['id'] . '\',\'global\')"
                                     title="Borrar colección en tienda y local" target="_self"
                                     type="text" class="btn btn-danger btn-block btn-sm">
                                     <i class="fas fa-globe mr-3"></i>Borrar
-                                </a>';
+                                </button>';
                                 break;
                             case "del_store":
                                 $response[$index]['actions'] .= '
-                                <a href="/collections/delete?id=' . $item['id'] . '&where=store"
+                                <button type="button" onclick="deleteCollection(\'' . $item['id'] . '\',\'store\')"
                                     title="Borrar colección en tienda a partir de su ID de tienda" target="_self"
                                     type="text" class="btn btn-warning btn-block btn-sm">
                                     <i class="fas fa-cloud mr-3"></i>Borrar en tienda
-                                </a>';
+                                </button>';
                                 break;
                             case "del_base":
                                 $response[$index]['actions'] .= '
-                                <a href="/collections/delete?id=' . $commonName['id'] . '&where=local"
+                                <button type="button" onclick="deleteCollection(\'' . $commonName['id'] . '\',\'local\')"
                                     title="Borrar colección en local a partir de registro" target="_self"
                                     type="text" class="btn btn-secondary btn-block btn-sm">
                                     <i class="fas fa-database mr-3"></i>Borrar en local
-                                </a>';
+                                </button>';
                                 break;
                             case "name":
                                 $response[$index]['actions'] .= '
