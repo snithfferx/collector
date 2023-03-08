@@ -1,7 +1,10 @@
-{{extends file=_VIEW_|cat:"_shared/_layout.tpl"}}
-{{block name="breadcrumb"}}{{/block}}
-{{block name="mainContent"}}
+{{* extends file=_VIEW_|cat:"_shared/_layout.tpl" *}}
+{{* block name="breadcrumb"}}{{/block *}}
+{{* block name="mainContent" *}}
     {{assign var="collection" value=$data.content.datos.collections}}
+    {{assign var="common" value=$data.content.datos.commonNames}}
+    {{assign var="change" value=$data.content.datos.changes}}
+    {{assign var="error" value=$data.content.datos.errors}}
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-12">
@@ -22,7 +25,9 @@
                                         <li class="nav-item">
                                             <a class="nav-link {{if $item@first}}active{{/if}}" id="{{$item.title}}-tab"
                                                 data-toggle="tab" href="#{{$item.title}}" role="tab"
-                                                aria-controls="{{$item.title}}" aria-selected="true">{{$item.title}}</a>
+                                                aria-controls="{{$item.title}}" aria-selected="true">
+                                                {{$item.title}}
+                                            </a>
                                         </li>
                                     {{/foreach}}
                                 </ul>
@@ -105,9 +110,8 @@
                                 </div>
                             </div>
                         </div>
-                        {{assign var="commonName" value=$data.content.datos.commonNames}}
                         <div class="row">
-                            {{foreach $commonName as $key => $cnItem}}
+                            {{foreach $common as $key => $cnItem}}
                                 <div class="col-5 offset-1">
                                     <table class="table table-striped">
                                         <tr>
@@ -179,6 +183,9 @@
         </div>
     </div>
     <pre>
-        {{var_dump($data.content.datos)}}
+        {{* var_dump($data.content.datos) *}}
     </pre>
-{{/block}}
+    <script>
+        $("#spinger").hide();
+    </script>
+{{* /block *}}
