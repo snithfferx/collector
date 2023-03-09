@@ -27,7 +27,7 @@ class MessengerHelper
     /**
      * Crea vista de mensaje
      * @param string $type
-     * @param array $data ['message','title','subtitle','image','image_alt','icon','type','data']
+     * @param array $data ['message','title','subtitle','image','image_alt','icon','type','extra']
      * @param string $driver
      * 
      * @return array
@@ -91,8 +91,8 @@ class MessengerHelper
                     break;
             }
             $extra = "";
-            if (isset($data['data']) && is_array($data['data'])) {
-                foreach ($data['data'] as $i => $v) {
+            if (isset($data['extra']) && is_array($data['extra'])) {
+                foreach ($data['extra'] as $i => $v) {
                     if (!is_array($v)) {
                         $extra .= "<em>$i : </em> $v<br>";
                     } else {
@@ -108,7 +108,7 @@ class MessengerHelper
                     }
                 }
             } else {
-                if (isset($data['data']) && !is_null($data['data']) && !empty($data['data'])) $extra .= $data['data'];
+                if (isset($data['extra']) && !is_null($data['extra']) && !empty($data['extra'])) $extra .= $data['extra'];
             }
             if ($driver == "view") {
                 $response = [

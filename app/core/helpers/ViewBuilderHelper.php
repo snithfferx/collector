@@ -216,7 +216,7 @@ class ViewBuilderHelper {
                         'lang' => $config['language'],
                         'app_name' => $config['app_name'],
                         'app_logo' => $config['app_logo'],
-                        'title' => $title,
+                        'title' => (isset($title)) ?? "",
                         'version' => $config['shortversion'],
                         'app_url' => $config['app_url']
                     ],
