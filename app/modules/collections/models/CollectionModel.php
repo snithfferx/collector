@@ -642,30 +642,16 @@ class CollectionModel extends ContextClass
     }
     private function create($element)
     {
-        if ($element == "collection") {
-            $response = $this->insert('temp_shopify_collector', [
-                'fields' => [
-                    'id', 'title', 'handle', 'productsCount', 'sortOrder',
-                    'ruleSet', 'metafields', 'seo', 'gqid', 'verified'
-                ],
-                'values' => [
-                    $this->id, $this->title, $this->handle, $this->products, $this->order,
-                    $this->rules, $this->fields, $this->seo, $this->graphQL_id
-                ]
-            ]);
-        } else {
-            $this->base = "default";
-            $response = $this->insert('nombre_comun', [
-                'fields' => [
-                    'id_nombre_comun', 'nombre_comun', 'handle', 'posicion', 'fecha_creacion',
-                    'terminos_de_busqueda', 'metafields', 'seo'
-                ],
-                'values' => [
-                    $this->id, $this->title, $this->handle, $this->products, $this->order,
-                    $this->rules, $this->fields, $this->seo
-                ]
-            ]);
-        }
+        $response = $this->insert('temp_shopify_collector', [
+            'fields' => [
+                'id', 'title', 'handle', 'productsCount', 'sortOrder',
+                'ruleSet', 'metafields', 'seo', 'gqid', 'verified'
+            ],
+            'values' => [
+                $this->id, $this->title, $this->handle, $this->products, $this->order,
+                $this->rules, $this->fields, $this->seo, $this->graphQL_id,false
+            ]
+        ]);
         return $response;
     }
 
@@ -723,7 +709,7 @@ class CollectionModel extends ContextClass
                     if (!is_null($this->handle)) {
                         array_push($conditions, [
                             'type' => "COMPARE",
-                            'table' => "nombre_comun",
+                            'table' => "temp_shopify_collector",
                             'field' => "handle",
                             'value' => $this->handle
                         ]);
@@ -746,7 +732,7 @@ class CollectionModel extends ContextClass
         $response = $this->select("temp_shopify_collector", $query, $this->limit);
         if (!empty($response['data'])) {
             $number = abs($this->limit - 1);
-            $last = $response['data'][$number]['collection_id'];
+            $last = ($response['data'][$number]['collection_id']) ?? 1;
             $next = $this->limit;
             $prev = $last - ($this->limit - 1);
             $response['pagination'] = [

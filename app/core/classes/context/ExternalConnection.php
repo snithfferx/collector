@@ -240,11 +240,19 @@ class ExternalConnection
                 $result = $shopify->grphQlClient->query(['query' => $query]);
                 if ($result->getStatusCode() == 200) {
                     $datos = $result->getDecodedBody();
-                    $collections = $datos['data']['collections'];
-                    return [
-                        'data' => ($collections['nodes']) ?? $collections['edges'], 
-                        'pagination' => $datos['data']['collections']['pageInfo'], 
-                        'error' => []];
+                    if (isset($datos['data'])) {
+                        $collections = $datos['data']['collections'];
+                        return [
+                            'data' => ($collections['nodes']) ?? $collections['edges'], 
+                            'pagination' => $datos['data']['collections']['pageInfo'], 
+                            'error' => []];
+                    } else {
+                        return [
+                            'data' => [],
+                            'pagination' => [],
+                            'error' => $datos['errors']
+                        ];
+                    }
                 } else {
                     $c = $result->getStatusCode();
                     throw new \Exception("Request error.", $c);

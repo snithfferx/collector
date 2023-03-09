@@ -381,6 +381,30 @@ class CollectionsController extends ControllerClass
         $result = [];
         do {
             $collections = $this->downloadCollections($page);
+            if (isset($collections['error']) && !empty($collections['error'])) {
+                $data = $this->messenger->build(
+                    'error',
+                    [
+                        'message' => "Hay errores al crear collecciones",
+                        'code' => "00500"
+                    ]
+                );
+                $data['extra'] = $collections['error'];
+                $viewData = $this->messenger->messageBuilder(
+                    'message',
+                    $data,
+                    'band'
+                );
+                $viewData['viewType'] = "template";
+                $response = $this->createViewData('errors/500',
+                    $viewData,[
+                        'view'=>"errors/templates/500",
+                        'children' => [
+                            ['main' => "collections", 'module' => "collections", 'method' => "index"],
+                            ['module' => "collections", 'method' => "download", 'params' => null]
+                        ]]);
+                break;
+            }
             $page = $collections['data']['pagination'];
             foreach ($collections['data']['collections'] as $collection) {
                 $result[] = [
@@ -548,7 +572,7 @@ class CollectionsController extends ControllerClass
     {
         $this->cleanVars();
         if (empty($values)) {
-            $limit = 80;
+            $limit = 50;
             $this->model->limit = $limit;
             $list = $this->model->storeGet();
         } else {
