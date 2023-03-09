@@ -183,7 +183,8 @@
                     populateDatabase();
                     setInterval(() => {
                         contarLineas();
-                    }, 36500);
+                        collectionsTable.ajax.reload();
+                    }, 300000);
                 });
                 contarLineas();
             });
