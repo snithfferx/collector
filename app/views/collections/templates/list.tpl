@@ -81,7 +81,7 @@
     </div>
     {{* <pre>{{var_dump($data.content)}}</pre> *}}
     <!-- Modal -->
-    <div class="modal fade" id="type-Changer" tabindex="-1" role="dialog" aria-labelledby="type-Changer-Label"
+    {{* <div class="modal fade" id="type-Changer" tabindex="-1" role="dialog" aria-labelledby="type-Changer-Label"
         aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
@@ -113,11 +113,11 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    {{* <button type="button" class="btn btn-primary">Guardar</button> *}}
+                    <button type="button" class="btn btn-primary">Guardar</button>
                 </div>
             </div>
         </div>
-    </div>
+    </div> *}}
     <div class="modal fade" id="deleteCollection_modal" tabindex="-1" role="dialog" aria-labelledby="Delete Collection"
         aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -217,18 +217,17 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="common_terms">Terminos de Busqueda</label>
-                                    <input type="text" class="form-control disabled" id="common_terms" placeholder="Keywords">
+                                    <input type="text" class="form-control disabled" id="common_terms"
+                                        placeholder="Keywords">
                                 </div>
                                 <div class="form-group">
                                     <label>Categoría</label>
                                     <select class="form-control select2" style="width: 100%;" id="common_category">
-                                        <option value="0" selected="selected">Elija una categoría</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
                                     <label>Sub-Categoría</label>
                                     <select class="form-control select2" style="width: 100%;" id="common_subcategory">
-                                        <option value="0" selected="selected">Elija una subcategoría</option>
                                     </select>
                                 </div>
                                 <div class="form-check">
@@ -261,17 +260,13 @@
                         <div class="col-12">
                             <div class="form-group">
                                 <label for="categories">Categoría</label>
-                                <select class="form-control" id="categories">
-                                    <option value="0" selected="selected">Elija una categoría</option>
-                                </select>
+                                <select class="form-control" id="categories"></select>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="form-group">
                                 <label for="subcategories">Sub-Categoría</label>
-                                <select class="form-control" id="subcategories">
-                                    <option value="0" selected="selected">Elija una subcategoría</option>
-                                </select>
+                                <select class="form-control" id="subcategories"></select>
                             </div>
                         </div>
                         <div class="col-12">
@@ -346,9 +341,9 @@
                     { data: 'actions' }
                 ];
                 let collections = {},
-                    result, urlNext, urlPrev;
+                    result, urlNext, urlPrev, collectionsTable;
                 $(document).ready(function() {
-                    let collectionsTable = $("#collectionsList").DataTable({
+                    collectionsTable = $("#collectionsList").DataTable({
                         ajax: {
                             url: '/collections/lista',
                             dataSrc: function(r) {
@@ -452,25 +447,25 @@ href="#" onclick="getNewPage(${paginacion.prev},'prev',${paginacion.limit})">
                 pageStep += lim;
                 stepo = (i + 1);
                 pages += `<li class="page-item">
-                                                            <a class="page-link active"
+                                                                            <a class="page-link active"
         href="#" onclick="getNewPage(${pageStep},'page',${paginacion.limit})">${stepo}</a>
-                                                        </li>`;
+                                                                        </li>`;
             } else {
                 pages += `<li class="page-item">
-                                                            <a class="page-link"
+                                                                            <a class="page-link"
         href="#" onclick="getNewPage(${max},'page',${paginacion.limit})">${stepo}</a>
-                                                        </li>`;
+                                                                        </li>`;
             }
         }
         if (paginacion.next != undefined && paginacion.next > 1) {
             pages += `
-                                                        <li class="page-item collections_pagination_next">
-                                                            <a class="page-link" title="Lleva a la página siguiente" type="text" target="_self"
+                                                                        <li class="page-item collections_pagination_next">
+                                                                            <a class="page-link" title="Lleva a la página siguiente" type="text" target="_self"
         href="#" onclick="getNewPage(${paginacion.prev},'next',${paginacion.limit})">
-                                                                <span aria-hidden="true">&raquo;</span>
-                                                                <span class="sr-only">Siguiente</span>
-                                                            </a>
-                                                        </li>`;
+                                                                                <span aria-hidden="true">&raquo;</span>
+                                                                                <span class="sr-only">Siguiente</span>
+                                                                            </a>
+                                                                        </li>`;
                 }
                 //console.log(paginacion.next);
                 document.getElementById("collections_pagination_top").innerHTML = pages;
@@ -642,7 +637,8 @@ href="#" onclick="getNewPage(${paginacion.prev},'prev',${paginacion.limit})">
                         success: function(r) {
                             var result = JSON.parse(r);
                             var fopcion;
-                            fopcion = new Option('Elija de Categorías', 0, true, true);
+                            fopcion = new Option('Elija una Categoría', 0, true, true);
+                            $("#" + elemento).append(fopcion);
                             $.each(result, function(index, val) {
                                 fopcion = new Option(val.name, val.id, false, false);
                                 $("#" + elemento).append(fopcion);
@@ -651,7 +647,7 @@ href="#" onclick="getNewPage(${paginacion.prev},'prev',${paginacion.limit})">
                     });
                 }
                 // Trae las sub categorias
-                function getSubCategories(id, element = "subcategories") {
+                function getSubCategories(id = null, element = "subcategories") {
                     $.ajax({
                         url: '/categories/subcategorieslist',
                         type: 'POST',
@@ -684,8 +680,6 @@ href="#" onclick="getNewPage(${paginacion.prev},'prev',${paginacion.limit})">
                         success: function(r) {
                             result = JSON.parse(r);
                             collections = result.collections;
-                            //collectionsTable.clear();
-                            //collectionsTable.rows.add(collections).draw();
                             collectionsTable.ajax.reload();
                             if (result.error != undefined) {
                                 console.log(result)
