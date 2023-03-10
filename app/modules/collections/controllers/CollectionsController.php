@@ -111,16 +111,13 @@ class CollectionsController extends ControllerClass
     }
     public function download($val)
     {
-        /* echo "<pre>";
-        var_dump($val);
-        echo "</pre>"; */
         if (!empty($val)) {
-            if ($val == "checking") {
+            if ($val['action'] == "checking") {
                 return $this->getCheckDownloads();
-            } elseif ($val == "list") {
+            } elseif ($val['action'] == "list") {
                 return $this->getdownloadedCollectionsList();
-            } elseif ($val == "proceed") {
-                return $this->getdownloadedCollections();
+            } elseif ($val['action'] == "proceed") {
+                return (isset($val['page'])) ? $this->getdownloadedCollections($val['page']) : $this->getdownloadedCollections();
             }
         }
         return $this->createViewData('collections/Downloadedlist');
@@ -143,14 +140,11 @@ class CollectionsController extends ControllerClass
     {
         return $this->confirmation('delete', $values);
     }
-    public function associate($value)
-    {
-    }
     public function edit($values)
     {
         if (!is_array($values)) {
             $collection = $this->getCollectionsById($values);
-            return $this->createViewData('collections/update',$collection);
+            return $this->createViewData('collections/update', $collection);
         } else {
             return $this->setUpdateCollection($values);
         }
@@ -169,10 +163,6 @@ class CollectionsController extends ControllerClass
             return $this->createCollection($values);
         }
         return $this->createViewData('collections/create');
-    }
-    public function sync($value)
-    {
-        return $this->syncronize($value);
     }
 
 
@@ -251,17 +241,6 @@ class CollectionsController extends ControllerClass
     {
         $this->model->id = $values['id'];
         $result = $this->model->deleteFrom($values['where']);
-        /* ['collections'=>$oldCollection,'commonNames'=>$oldCommon,'changes'=>$changes,'errors'=>$errores] */
-        /* if (!empty($result['errors'])) {
-            return [
-                'data' => [
-                    'collection'=>$result['collections'],
-                    'common_name'=>$result['commonNames'],
-                    'changes'=>$result['changes']],
-                'error' => $this->messenger->build('error', $result['errors']),
-            ];
-        } else {
-        } */
         return $this->createViewData(
             'collections/delete',
             $result
@@ -288,22 +267,28 @@ class CollectionsController extends ControllerClass
             }
             return $data;
         } else {
-            return $this->messenger->messageBuilder('error',$this->messenger->build(
-                'error',[
-                    'code'=>"00400",
-                    'message'=>"El procedimiento no está contemplado"]));
+            return $this->messenger->messageBuilder('error', $this->messenger->build(
+                'error',
+                [
+                    'code' => "00400",
+                    'message' => "El procedimiento no está contemplado"
+                ]
+            ));
         }
     }
-    protected function createCollection ($values) {
+    protected function createCollection($values)
+    {
         $result = $this->createStoreCollection($values);
         if (!empty($result['error'])) {
-            return $this->messenger->messageBuilder('error',
-            $this->messenger->build('error',[
-                'error'=>[
-                    'code'=>$result['error']['code'],
-                    'message'=>$result['error']['message']
-                ]
-            ]));
+            return $this->messenger->messageBuilder(
+                'error',
+                $this->messenger->build('error', [
+                    'error' => [
+                        'code' => $result['error']['code'],
+                        'message' => $result['error']['message']
+                    ]
+                ])
+            );
         } else {
             return $result;
         }
@@ -375,36 +360,30 @@ class CollectionsController extends ControllerClass
             return $this->getCollections();
         }
     } */
-    protected function getdownloadedCollections(): array
+    protected function getdownloadedCollections($page = []): array
     {
-        $page = [];
         $result = [];
-        do {
-            $collections = $this->downloadCollections($page);
-            if (isset($collections['error']) && !empty($collections['error'])) {
-                $data = $this->messenger->build(
-                    'error',
-                    [
-                        'message' => "Hay errores al crear collecciones",
-                        'code' => "00500"
-                    ]
-                );
-                $data['extra'] = $collections['error'];
-                $viewData = $this->messenger->messageBuilder(
-                    'message',
-                    $data,
-                    'band'
-                );
-                $viewData['viewType'] = "template";
-                $response = $this->createViewData('errors/500',
-                    $viewData,[
-                        'view'=>"errors/templates/500",
-                        'children' => [
-                            ['main' => "collections", 'module' => "collections", 'method' => "index"],
-                            ['module' => "collections", 'method' => "download", 'params' => null]
-                        ]]);
-                break;
-            }
+        $collections = $this->downloadCollections($page);
+        if (isset($collections['error']) && !empty($collections['error'])) {
+            $data = $this->messenger->build('error', [
+                'message' => "Hay errores al crear collecciones",
+                'code' => "00500"
+            ]);
+            $data['extra'] = $collections['error'];
+            $viewData = $this->messenger->messageBuilder('message', $data);
+            /* $viewData['viewType'] = "template";
+            $response = $this->createViewData('errors/500', $viewData, [
+                'view' => "errors/templates/500",
+                'children' => [
+                    ['main' => "collections", 'module' => "collections", 'method' => "index"],
+                    ['module' => "collections", 'method' => "download", 'params' => null]
+                ]
+            ]); */
+            $response = [
+                'data' => $collections['data']['pagination'],
+                'report' => [], 
+                'error' => $viewData];
+        } else {
             $page = $collections['data']['pagination'];
             foreach ($collections['data']['collections'] as $collection) {
                 $result[] = [
@@ -412,12 +391,42 @@ class CollectionsController extends ControllerClass
                     'result' => $this->crearColeccion($collection)
                 ];
             }
-            sleep(30);
-        } while ($page['hasNextPage'] == true);
-        if (empty($result)) {
-            $response = $this->createViewData('_shared/_error', ['error' => ['message' => "Hay errores al crear collecciones", 'data' => $result]], [], 'template', 500);
-        } else {
-            $response = $this->collectionByParams();
+            if (empty($result)) {
+                $response = /* $this->createViewData(
+                    'error/500', */
+                    [
+                        'data' => $collections['data']['pagination'], 
+                        'report' => [],
+                        'error'=>$this->messenger->messageBuilder(
+                        'message',
+                        $this->messenger->build('error', [
+                            'code' => "00500",
+                            'message' => "Hay errores al crear collecciones",
+                            'data' => $result
+                        ])
+                    )/* ,
+                    [
+                        'view' => "errors/templates/500",
+                        'children' => [
+                            ['main' => "collections", 'module' => "collections", 'method' => "index"],
+                            ['module' => "collections", 'method' => "download", 'params' => null]
+                        ]
+                    ]
+                        ) */];
+            } else {
+                $g = 0;
+                $f = 0;
+                foreach ($result as $resultado) {
+
+                    if (isset($resultado['result']['error']) && !empty(($resultado['result']['error']))) {
+                        $f++;
+                    } else {
+                        $g++;
+                    }
+                }
+                $reporte = ['creadas' => $g, 'omitidas' => $f];
+                $response = ['data' => $collections['data']['pagination'], 'report' => $reporte];
+            }
         }
         return $response;
     }
@@ -475,7 +484,8 @@ class CollectionsController extends ControllerClass
         }
         return $result;
     }
-    protected function setUpdateCollection ($values) {
+    protected function setUpdateCollection($values)
+    {
         $this->model->activo = $values['active'];
         $this->model->handle = $values['handle'];
         $this->model->title = $values['title'];
@@ -501,9 +511,12 @@ class CollectionsController extends ControllerClass
                 $this->messenger->build(
                     'message',
                     [
-                        'code'=>"00200",
-                        'message'=>"Colección actualizada exitosamente"
-                    ]),"json");
+                        'code' => "00200",
+                        'message' => "Colección actualizada exitosamente"
+                    ]
+                ),
+                "json"
+            );
         }
         return $data;
     }
@@ -578,6 +591,7 @@ class CollectionsController extends ControllerClass
         } else {
             $limit = $values['limit'];
             $this->model->page = $values;
+            $this->model->limit = $limit;
             $list = $this->model->getPage('store');
         }
         if (empty($list['error'])) {
@@ -1238,15 +1252,16 @@ class CollectionsController extends ControllerClass
         $this->model->rules = json_encode($values['ruleSet']);
         $this->model->fields = json_encode($values['metafields']);
         $this->model->seo = json_encode($values['seo']);
-        $existe = $this->model->find([
-            'collection_id',
-            'id'
-        ]);
+        $existe = $this->model->find(['collection_id', 'id']);
         if (empty($existe['data'])) {
             return $this->model->createCollection();
         }
         $this->cleanVars();
-        return false;
+        return [
+            'error' => [
+                'code' => "", 'message' => "La colección ya existe."
+            ]
+        ];
     }
     private function cleanVars()
     {
@@ -1502,7 +1517,8 @@ class CollectionsController extends ControllerClass
     {
         return $this->model->get('collection', 'all');
     }
-    private function createStoreCollection ($values) {
+    private function createStoreCollection($values)
+    {
         $this->model->title = $values['title'];
         $this->model->handle = $values['handle'];
         //$this->model->rules = json_encode($values['ruleSet']);
@@ -1518,5 +1534,4 @@ class CollectionsController extends ControllerClass
         $this->cleanVars();
         return false;
     }
-
 }

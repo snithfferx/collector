@@ -124,12 +124,15 @@
                 { data: "verified" }
             ];
             let collections = {},
-                result;
+                result,
+                cuenta = 0,
+                dataBaseResult,
+                currentDownload;
             let collectionsTable = $("#collectionsList").DataTable({
                 ajax: {
-                    url: '/collections/download/list',
+                    url: '/collections/download?action=list',
                     dataSrc: function(r) {
-                        console.log(r)
+                        //console.log(r)
                         if (r.error != undefined) {
                             alertaPopUp(r.error);
                         } else {
@@ -178,45 +181,68 @@
                 "buttons": botones()
             });
             $(document).ready(function() {
-                collectionsTable.buttons().container().appendTo($('.col-sm-6:eq(0)', collectionsTable.table().container()));
+                collectionsTable.buttons().container().appendTo($('.col-sm-6:eq(0)', collectionsTable.table()
+                    .container()));
                 $("#populateDB").click(function() {
-                    populateDatabase();
-                    setInterval(() => {
+                    var counterLines;
+                    counterLines = setInterval(() => {
                         contarLineas();
                         collectionsTable.ajax.reload();
                     }, 300000);
+                    populateDatabase();
                 });
                 contarLineas();
             });
 
-            function populateDatabase() {
+            async function populateDatabase(pagina) {
+                var result = {};
                 $.ajax({
-                    url: '/collections/download/proceed',
+                    url: '/collections/download',
                     type: 'POST',
+                    data: {
+                        action: 'proceed',
+                        page: pagina
+                    },
                     beforeSend: function() {
                         $("#spinger").show();
                     },
                     success: function(r) {
                         result = JSON.parse(r);
-                        if (result.error != undefined) {
-                            alertaPopUp(result.error);
-                        } else {
-                            collectionsTable.ajax.reload();
+                        collectionsTable.ajax.reload();
+                        if (result.data.hasNextPage === true) {
+                            currentDownload = setTimeout(()=>{
+                                populateDatabase(result.data);
+                            },
+                            15000);
                         }
+                        alertaPopUp({
+                            title: "¡Ejecución terminada!",
+                            body: 'Reporte:<br>Creadas:' +
+                                result.report.creadas +
+                                '<br>Omitidas:' +
+                                result.report.omitidas
+                        }, 'info');
                     },
                     complete: function() {
                         $("#spinger").hide();
+                    },
+                    error: function(err) {
+                        reject(err);
                     }
                 });
+                return result;
             }
 
             function contarLineas() {
                 $.ajax({
-                    url: '/collections/download/checking',
+                    url: '/collections/download',
                     type: 'POST',
+                    data: {
+                        action: 'checking'
+                    },
                     success: function(r) {
                         result = JSON.parse(r);
-                        console.log(result)
+                        //console.log(result)
                         $("#counter").text(result.data);
                         if (result.error != []) {
                             alertaPopUp(result.error);
@@ -246,7 +272,7 @@
                             delay: 7500,
                             body: "Sorry no data found!",
                             icon: "fas fa-info-circle",
-                        },'error');
+                        }, 'error');
                     } else {
                         collectionsTable.clear();
                         collectionsTable.rows.add(searched).draw();
@@ -280,6 +306,41 @@
                     alert("Función aún no disponible");
                 }
             }
+            /* async function descargar(paginacion) {
+                //tick();
+                //console.log("Funcionó " + cuenta + " veces");
+                cuenta += 1;
+                var bdResponse = new Promise(function (resolve, reject) {
+                    resolve(populateDatabase(paginacion));
+                });
+                dbData = await dbResponse; 
+                dataBaseResult = dbData.value; */
+                /* if (dataBaseResult.value.data.hasNextPage === true) {
+                    realizarDescarga();
+                } else {
+                    console.log("todo listo");
+                    if (cuenta < 3) {
+                    }
+                }
+                return dataBaseResult; */
+                //} else {
+                    //dataBaseResult = false;
+            /* }
+            function realizarDescarga() {
+                pagina = new Array;
+                if (dataBaseResult != undefined) {
+                    pagina = dataBaseResult.data;
+                    if (pagina.hasNextPage == true) {
+                        currentDownload = setTimeout(
+                            descargar(pagina), 
+                        15000);
+                    } else {
+                        clearTimeout(currentDownload);
+                    }
+                } else {
+                    descargar(pagina);
+                }
+            } */
         </script>
     {{/literal}}
 {{/block}}
