@@ -380,7 +380,7 @@ class CollectionsController extends ControllerClass
                 ]
             ]); */
             $response = [
-                'data' => $collections['data']['pagination'],
+                'data' => ($collections['data']['pagination']) ??  [],
                 'report' => [], 
                 'error' => $viewData];
         } else {
@@ -392,9 +392,9 @@ class CollectionsController extends ControllerClass
                 ];
             }
             if (empty($result)) {
-                $response = /* $this->createViewData(
+                /* $this->createViewData(
                     'error/500', */
-                    [
+                $response = [
                         'data' => $collections['data']['pagination'], 
                         'report' => [],
                         'error'=>$this->messenger->messageBuilder(
@@ -404,7 +404,7 @@ class CollectionsController extends ControllerClass
                             'message' => "Hay errores al crear collecciones",
                             'data' => $result
                         ])
-                    )/* ,
+                    )];/* ,
                     [
                         'view' => "errors/templates/500",
                         'children' => [
@@ -412,7 +412,7 @@ class CollectionsController extends ControllerClass
                             ['module' => "collections", 'method' => "download", 'params' => null]
                         ]
                     ]
-                        ) */];
+                        ) */
             } else {
                 $g = 0;
                 $f = 0;
