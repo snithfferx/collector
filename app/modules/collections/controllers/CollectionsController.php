@@ -472,7 +472,7 @@ class CollectionsController extends ControllerClass
         }
         return $result;
     }
-    protected function syncronizeCommonName($values)
+    /* protected function syncronizeCommonName($values)
     {
         if (isset($values['id']) && !empty($values['id'])) {
             $result = $this->sincronizarNombreComun($values);
@@ -483,7 +483,7 @@ class CollectionsController extends ControllerClass
             $result = $this->createViewData('_shared/error', ['error' => ['messenge' => "Something when worng!!"]], [], 'template', 500);
         }
         return $result;
-    }
+    } */
     protected function setUpdateCollection($values)
     {
         $this->model->activo = $values['active'];

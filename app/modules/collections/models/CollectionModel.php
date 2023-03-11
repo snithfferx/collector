@@ -645,11 +645,11 @@ class CollectionModel extends ContextClass
         $response = $this->insert('temp_shopify_collector', [
             'fields' => [
                 'id', 'title', 'handle', 'productsCount', 'sortOrder',
-                'ruleSet', 'metafields', 'seo', 'gqid', 'verified'
+                'ruleSet', 'metafields', 'seo', 'gqid', 'verified', 'updated'
             ],
             'values' => [
                 $this->id, $this->title, $this->handle, $this->products, $this->order,
-                $this->rules, $this->fields, $this->seo, $this->graphQL_id,false
+                $this->rules, $this->fields, $this->seo, $this->graphQL_id,0,0
             ]
         ]);
         return $response;
@@ -684,7 +684,6 @@ class CollectionModel extends ContextClass
                 ];
             }
         }
-        $this->base = "shopify";
         $args = ['id', 'handle', 'title'];
         $conditions = array();
         $separators = array();
@@ -760,7 +759,7 @@ class CollectionModel extends ContextClass
                         'value' => $this->categoria
                     ]
                 ],
-                'separator' => null
+                'separator' => array()
             ]
         ]);
         if (!empty($isCat['data'])) $isCategory = true;
@@ -1436,7 +1435,7 @@ class CollectionModel extends ContextClass
                     break;
             }
         }
-        $query['params'] = (!empty($conditions)) ? ['condition' => $conditions, 'separator' => $separators] : null;
+        $query['params'] = (!empty($conditions)) ? ['condition' => $conditions, 'separator' => $separators] : array();
         $response = $this->select("temp_shopify_collector", $query, $this->limit);
         return $response;
     }
