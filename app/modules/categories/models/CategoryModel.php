@@ -1,22 +1,30 @@
 <?php
+
 /**
  * 
  */
+
 namespace app\modules\categories\models;
+
 use app\core\classes\context\ContextClass;
-class CategoryModel extends ContextClass {
-    public function __construct() {
+
+class CategoryModel extends ContextClass
+{
+    public function __construct()
+    {
         $this->base = 'default';
     }
-    public function getCategoriesList () {
+    public function getCategoriesList()
+    {
         return $this->select('tipo_categoria', [
-            'fields'=>[
-                'tipo_categoria' =>['id_tipo_categoria=id','tipo_categoria=name']
-            ], 'joins'=>null, 'params'=>null
+            'fields' => [
+                'tipo_categoria' => ['id_tipo_categoria=id', 'tipo_categoria=name']
+            ], 'joins' => array(), 'params' => array()
         ], 1000, 'ASC');
     }
-    public function getSubCategoriesList ($value) {
-        $params = null;
+    public function getSubCategoriesList($value)
+    {
+        $params = array();
         if (is_array($value) && !empty($value)) {
             if (!is_null($value['cid']) && !empty($value['cid'])) {
                 $params = [
@@ -27,14 +35,14 @@ class CategoryModel extends ContextClass {
                             'field' => "id_tipo_categoria",
                             'value' => $value['cid']
                         ]
-                    ], 'separator' => null
+                    ], 'separator' => array()
                 ];
             }
         }
         return $this->select('tipo_producto', [
             'fields' => [
                 'tipo_producto' => ['id_tipo_producto=id', 'tipo_producto=name']
-            ], 'joins' => null, 'params' => $params
-        ],1000,'ASC');
+            ], 'joins' => array(), 'params' => $params
+        ], 1000, 'ASC');
     }
 }
