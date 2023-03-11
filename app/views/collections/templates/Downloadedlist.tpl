@@ -213,7 +213,7 @@
                             currentDownload = setTimeout(()=>{
                                 populateDatabase(result.data);
                             },
-                            15000);
+                            30000);
                         }
                         alertaPopUp({
                             title: "¡Ejecución terminada!",
