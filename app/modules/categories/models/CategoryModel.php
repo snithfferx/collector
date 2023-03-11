@@ -2,7 +2,7 @@
 /**
  * 
  */
-namespace app\Modules\categories\models;
+namespace app\modules\categories\models;
 use app\core\classes\context\ContextClass;
 class CategoryModel extends ContextClass {
     public function __construct() {

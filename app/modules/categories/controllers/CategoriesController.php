@@ -5,9 +5,9 @@
  * @author Jorge Echeverria <jecheverria@bytes4run.com>
  * @version 1.0.0
  */
-namespace app\Modules\categories\controllers;
+namespace app\modules\categories\controllers;
 use app\core\classes\ControllerClass;
-use app\Modules\categories\models\CategoryModel;
+use app\modules\categories\models\CategoryModel;
 class CategoriesController extends ControllerClass {
     private $model;
     public function __construct() {
